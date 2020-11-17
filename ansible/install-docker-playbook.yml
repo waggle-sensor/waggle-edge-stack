@@ -1,0 +1,81 @@
+# source: modifed version of https://www.rechberger.io/tutorial-install-docker-using-ansible-on-a-remote-server/
+---
+- name: Install Docker
+  hosts: remote
+  vars:
+    DOCKER_COMPOSE_VERSION: "1.27.4"  # https://docs.docker.com/compose/release-notes/
+    DOCKER_PACKAGES:
+      - apt-transport-https
+      - ca-certificates
+      - curl
+      - gnupg-agent
+      - software-properties-common
+    #USER: "YOUR_USER_ON_THE_REMOTE_SERVER"
+
+  tasks:
+  - name: Update apt packages
+    apt:
+      update_cache: "yes"
+      force_apt_get: "yes"
+
+  - name: Install packages needed for Docker
+    apt:
+      name: "{{ DOCKER_PACKAGES }}"
+      state: present
+      force_apt_get: "yes"
+
+  - name: Add Docker GPG apt Key
+    apt_key:
+      url: https://download.docker.com/linux/ubuntu/gpg
+      state: present
+
+  - name: Save the current Ubuntu release version into a variable
+    shell: lsb_release -cs
+    register: ubuntu_version
+
+  - name: Add Docker Repository
+    apt_repository:
+      repo: "deb [arch=amd64] https://download.docker.com/linux/ubuntu {{ ubuntu_version.stdout }} stable"
+      state: present
+
+  - name: Update apt packages
+    apt:
+      update_cache: "yes"
+      force_apt_get: "yes"
+
+  - name: Install Docker
+    apt:
+      name: "docker-ce"
+      state: present
+      force_apt_get: "yes"
+
+  - name: Test Docker with hello world example
+    shell: "docker run hello-world"
+    register: hello_world_output
+
+  - name: Show output of hello word example
+    debug:
+      msg: "Container Output: {{hello_world_output.stdout}}"
+
+  - name: Create docker group
+    group:
+      name: "docker"
+      state: present
+
+  - name: Adding user {{ USER }} to docker group  
+    user:
+      name: "{{ USER }}"
+      groups: "docker"
+      append: "yes"
+    when: 0 > 1  # disabled
+
+  - name: Install Docker Compose
+    get_url:
+      url: https://github.com/docker/compose/releases/download/{{ DOCKER_COMPOSE_VERSION }}/docker-compose-Linux-x86_64
+      dest: "/usr/local/bin/docker-compose"
+      mode: 0755
+
+  #- name: Reboot server in order for changes to take place
+  #  shell: "sleep 1 && reboot"
+  #  async: 1
+  #  poll: 0

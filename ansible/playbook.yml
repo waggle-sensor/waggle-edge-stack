@@ -1,0 +1,19 @@
+- name: init
+  hosts: all
+  become: yes
+  #remote_user: root
+
+  tasks:
+  - name: apt-get update
+    apt:
+      update_cache: yes
+  - name: Install python3
+    apt:
+      name:
+        - python3
+        - python3-pip
+        - python3-venv  # what package needs this ?
+      state: present
+  
+- name: docker
+  import_playbook: install-docker-playbook.yml
