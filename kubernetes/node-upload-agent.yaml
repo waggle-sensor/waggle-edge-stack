@@ -1,0 +1,49 @@
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: node-upload-agent
+  labels:
+    app.kubernetes.io/name: node-upload-agent
+    app.kubernetes.io/version: "0.0.1"
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: node-upload-agent
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: node-upload-agent
+        app.kubernetes.io/version: "0.0.1"
+    spec:
+      containers:
+      - image: waggle/node-upload-agent:0.0.1
+        name: node-upload-agent
+        resources:
+          limits:
+            cpu: 500m
+            memory: 20Mi
+          requests:
+            cpu: 250m
+            memory: 10Mi
+        volumeMounts:
+        - name: uploads
+          mountPath: /uploads
+        # TODO drop once sync to beehive works
+        - name: remote
+          mountPath: /remote
+        - name: upload-key
+          mountPath: /auth
+          readOnly: true
+      volumes:
+      - name: uploads
+        hostPath:
+          path: /uploads
+          type: DirectoryOrCreate
+      # TODO drop once sync to beehive works
+      - name: remote
+        hostPath:
+          path: /remote
+          type: DirectoryOrCreate
+      - name: upload-key
+        secret:
+          secretName: node-ssh-key
