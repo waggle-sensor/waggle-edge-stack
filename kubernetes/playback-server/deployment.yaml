@@ -1,0 +1,18 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: playback-server
+spec:
+  selector:
+    matchLabels:
+      app: playback-server
+  template:
+    metadata:
+      labels:
+        app: playback-server
+    spec:
+      containers:
+      - image: waggle/playback-server:0.0.1
+        name: playback-server
+        ports:
+        - containerPort: 8090
