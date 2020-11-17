@@ -1,0 +1,47 @@
+#!/bin/sh
+
+echo '   _____                   ____   _____ '
+echo '  / ____|                 / __ \ / ____|'
+echo ' | (___   __ _  __ _  ___| |  | | (___  '
+echo '  \___ \ / _` |/ _` |/ _ \ |  | |\___ \ '
+echo '  ____) | (_| | (_| |  __/ |__| |____) |'
+echo ' |_____/ \__,_|\__, |\___|\____/|_____/ '
+echo '                __/ |                   '
+echo '               |___/                    '
+echo
+
+[ -r /etc/lsb-release ] && . /etc/lsb-release
+
+if [ -z "$DISTRIB_DESCRIPTION" ] && [ -x /usr/bin/lsb_release ]; then
+        # Fall back to using the very slow lsb_release utility
+        DISTRIB_DESCRIPTION=$(lsb_release -s -d)
+fi
+
+date=`date`
+read load_one load_five load_fifteen load_rest < /proc/loadavg
+root_usage=`df -h / | awk '/\// {print $(NF-1)}'`
+plugin_usage=`df -h /media/plugin-data | awk '/\// {print $(NF-1)}'`
+memory_usage=`free -m | awk '/Mem/ { printf("%3i%%", $3/$2*100) }'`
+swap_usage=`free -m | awk '/Swap/ { printf("%3i%%", $3/$2*100) }'`
+processes=`ps ax | wc -l`
+ipaddr=`hostname -I | awk '{print $1}'`
+users=`users | wc -w`
+sage_os=`cat /etc/sage_version_os | cut -d ' ' -f 1`
+sage_os_details=`cat /etc/sage_version_os | cut -d ' ' -f 2-`
+uptime=`uptime | grep -ohe 'up .*' | sed 's/,/\ hours/g' | awk '{ printf $2" "$3 }'`
+system=`lshw -json -quiet -class system | jq .product -r`
+
+echo "System information as of: $date"
+echo
+printf "System:      \t%s\n" "$system"
+printf "System load: \t%s %s %s (1, 5, 15 min)\n" $load_one $load_five $load_fifteen
+printf "Memory usage:\t%s\tIP Address:\t%s\n" $memory_usage $ipaddr
+printf "Usage on /:  \t%s\tUptime:    \t%s\n" $root_usage "$uptime"
+printf "Plugin usage:\t%s\tUsers:     \t%s\n" $plugin_usage $users
+printf "Swap usage:  \t%s\tProcesses: \t%s\n" $swap_usage $processes
+echo
+
+printf "%s (%s %s %s)\n" "$DISTRIB_DESCRIPTION" "$(uname -o)" "$(uname -r)" "$(uname -m)"
+printf "Sage OS Version: %s\n" $sage_os
+printf " %s\n" "$sage_os_details"
+echo

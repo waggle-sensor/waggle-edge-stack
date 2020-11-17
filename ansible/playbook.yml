@@ -14,6 +14,35 @@
         - python3-pip
         - python3-venv  # what package needs this ?
       state: present
-  
+  - name: Creates directory
+    file:
+      path: /etc/sage/
+      state: directory
+  - name: config
+    copy:
+      dest: "/etc/sage/config.ini"
+      content: |
+        [system]
+        devmode = true
+        node-id-override = 0000000000000001
+
+        [hardware]
+        wlan-interface = eth0
+
+  - name: Creates directory
+    file:
+      path: /etc/update-motd.d/
+      state: directory
+  - name: Copy file with owner and permissions
+    copy:
+      src: 05-sage
+      dest: /etc/update-motd.d/05-sage
+      owner: root
+      group: root
+      mode: '0755'
+
 - name: docker
   import_playbook: install-docker-playbook.yml
+
+
+
