@@ -1,7 +1,8 @@
 # source: modifed version of https://www.rechberger.io/tutorial-install-docker-using-ansible-on-a-remote-server/
 ---
 - name: Install Docker
-  hosts: remote
+  hosts: all
+  become: yes
   vars:
     DOCKER_COMPOSE_VERSION: "1.27.4"  # https://docs.docker.com/compose/release-notes/
     DOCKER_PACKAGES:

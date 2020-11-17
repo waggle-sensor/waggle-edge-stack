@@ -16,10 +16,19 @@
   - name: Install ubuntu packages
     apt:
       name:
-        - systemd-sysv=245.4-4ubuntu3.3
+        - systemd-sysv=245.4-4ubuntu3.3  # is that a good idea? what if another version comes pre-installed ??
         - python3=3.8.2-0ubuntu2
         - python3-pip=20.0.2-5ubuntu1.1
         - python3-venv=3.8.2-0ubuntu2  # what package needs this ?
+
+        #- ansible  # maybe needed if we run asyncronous (long-running) playbooks locally
+        #- dnsmasq (rpi dhcp / pxe booting)
+        #- network-manager
+        #- nfs-kernel-server (rpi nfs)
+        #- openssh-server
+        #- rsyslog
+
+
       state: present
   - name: Creates directory
     file:
@@ -68,4 +77,13 @@
   import_playbook: install-docker-playbook.yml
 
 
+
+- name: k3s
+  hosts: all
+  become: yes
+  # https://github.com/rancher/k3s-ansible
+
+  tasks:
+    - name: install k3s
+      shell: curl -sfL https://get.k3s.io | sh -
 
