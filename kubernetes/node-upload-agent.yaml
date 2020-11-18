@@ -37,12 +37,12 @@ spec:
       volumes:
       - name: uploads
         hostPath:
-          path: /uploads
+          path: /media/plugin-data/uploads
           type: DirectoryOrCreate
       # TODO drop once sync to beehive works
       - name: remote
         hostPath:
-          path: /remote
+          path: /media/plugin-data/remote
           type: DirectoryOrCreate
       - name: upload-key
         secret:
