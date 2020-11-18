@@ -1,3 +1,7 @@
+
+# TODO: split playbook into a) image creation b) config deployment onto instance
+
+
 - name: init
   hosts: all
   become: yes
@@ -49,6 +53,9 @@
     file:
       path: /etc/sage/
       state: directory
+
+
+  # TODO: This is for testing only
   - name: config
     copy:
       dest: "/etc/sage/config.ini"
