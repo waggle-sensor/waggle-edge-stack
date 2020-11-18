@@ -28,9 +28,10 @@ spec:
           readOnly: true
         command: ['/bin/sh', '-c']
         args: ['rm -rf /etc/waggle; cp -r /etc/certs /etc/waggle; chown -R rabbitmq:rabbitmq /etc/waggle/; chown -R rabbitmq:rabbitmq /etc/rabbitmq/; /docker-entrypoint.sh rabbitmq-server']
-        - name: waggle-node-private
-          mountPath: /etc/waggle
-          readOnly: true
+        # something broken here ?
+        #- name: waggle-node-private
+        #  mountPath: /etc/waggle
+        #  readOnly: true
       volumes:
       - name: waggle-node-private
         secret:

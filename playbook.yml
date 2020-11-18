@@ -41,9 +41,9 @@
 
       state: present
 
-  - name: pip packages
-    pip:
-      name: openshift # needed for the community.kubernetes.k8s module
+  #- name: pip packages
+  #  pip:
+  #    name: openshift # needed for the community.kubernetes.k8s module
 
   - name: Creates directory
     file:
@@ -136,19 +136,9 @@
         src: kubernetes
         dest: /opt/sage/
 
-    #- name: Create a k3s namespace
-    #  k8s:
-    #    name: sage
-    #    api_version: v1
-    #    kind: Namespace
-    #    state: present
 
     - name: load kubernetes resources
-      command: kubectl apply -f /opt/sage/kubernetes/node-upload-agent.yaml
-      #k8s:
-      #  state: present
-      #  namespace: sage
-        #src: kubernetes/node-upload-agent.yaml
-        #definition: "{{ lookup('file', 'kubernetes/node-upload-agent.yaml') }}"
+      command: kubectl apply -k /opt/sage/kubernetes/
+     
         
         
