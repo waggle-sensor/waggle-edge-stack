@@ -1,3 +1,7 @@
+
+# TODO: split playbook into a) image creation b) config deployment onto instance
+
+
 - name: init
   hosts: all
   become: yes
