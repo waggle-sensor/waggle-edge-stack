@@ -33,6 +33,18 @@ vagrant plugin install vagrant-scp
 vagrant scp <some_local_file_or_dir> [vm_name]:<somewhere_on_the_vm>
 ```
 
+## Accessing sensor hardware
+
+
+For access to USB devices from within the VirtualBox VM please install the VirtualBox Extension Pack:
+
+[VirtualBox](https://www.virtualbox.org/wiki/Downloads)
+
+Also modify the Vagrantfile to enable usb passthrough.
+
+
+
+
 # Ansible
 
 Production deployments will be using ansible playbooks.

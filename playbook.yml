@@ -53,6 +53,9 @@
     file:
       path: /etc/sage/
       state: directory
+
+
+  # TODO: This is for testing only
   - name: config
     copy:
       dest: "/etc/sage/config.ini"
