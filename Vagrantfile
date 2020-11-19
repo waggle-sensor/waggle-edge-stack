@@ -1,6 +1,11 @@
 # -*- mode: ruby -*-
 # vi: set ft=ruby :
 
+
+# Env variable TZ is optional
+timezone = ENV["TZ"]
+
+
 Vagrant.configure("2") do |config|
   #config.vm.box = "hashicorp/bionic64"
   config.vm.box = "ubuntu/focal64"
@@ -15,9 +20,21 @@ Vagrant.configure("2") do |config|
     # VBoxManage controlvm :id webcam attach
   end
 
-  config.vm.provision "ansible" do |ansible|
-    ansible.playbook = "playbook.yml"
-  end
 
   
+
+
+  config.vm.provision "ansible" do |ansible|
+
+    
+    ansible.compatibility_mode = "2.0"
+    ansible.playbook = "playbook.yml"
+    ansible.extra_vars = {
+      beekeeper_host: "10.0.2.2",  # TODO remove this once registration service supports config file
+      beekeeper_registration_url: "10.0.2.2:20022" ,  # used in /etc/sage/config.ini
+      timezone: timezone   
+    }
+  end
+
+   
 end

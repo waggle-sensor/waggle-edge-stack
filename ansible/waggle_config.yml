@@ -1,0 +1,75 @@
+
+- name: waggle_config
+  hosts: all
+  become: yes
+  #remote_user: root
+  vars: 
+    timezone_internal: "none"
+
+  tasks:
+    
+
+    - name: set timezone variable if defined
+      set_fact:
+        timezone_internal: "{{timezone}}"
+      when: timezone is defined
+
+    - name: set timezone
+      timezone:
+        name: "{{timezone_internal}}"
+      when: timezone_internal != "none"
+
+    # TODO remove this once registration service supports config file
+    - fail: 
+        msg: "Bailing out: this play requires variable 'beekeeper_host'"
+      when: beekeeper_host is not defined
+
+    - lineinfile:
+        path: /etc/hosts
+        line: "{{beekeeper_host}} beehive"
+    
+    - fail: 
+        msg: "Bailing out: this play requires variable 'beekeeper_registration_url'"
+      when: beekeeper_registration_url is not defined
+
+    # TODO: This is for testing only
+    - name: config
+      copy:
+        dest: "/etc/sage/config.ini"
+        content: |
+          [system]
+          devmode = true
+          node-id-override = 0000000000000001
+          beekeeper-registration-url={{beekeeper_registration_url}}
+
+          [hardware]
+          wlan-interface = {{ ansible_default_ipv4.interface }}
+
+    - name: Make sure k3s is running
+      systemd:
+        state: started
+        name: k3s
+
+
+    - name: Wait for nodes to be ready
+      shell: "kubectl get nodes"
+      register: nodes
+      until:      
+        - '" Ready "  in nodes.stdout'      
+      retries: 20
+      delay: 2
+
+    - name: Creates directory
+      file:
+        path: /opt/sage/kubernetes
+        state: directory
+
+    - name: Ansible copy file to remote server
+      copy:
+        # ansible expects files in subfolder "files" (which does not exist), but we can get outside using "../"
+        src: ../kubernetes
+        dest: /opt/sage/
+
+
+    - name: load kubernetes resources
+      command: kubectl apply -k /opt/sage/kubernetes/    

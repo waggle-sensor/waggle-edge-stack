@@ -1,0 +1,126 @@
+
+# this playbook mainly installs waggle software and is intended to be used to create a waggle OS image
+
+- name: waggle_os
+  hosts: all
+  become: yes
+  #remote_user: root
+
+  vars:
+    REGISTRATION_VERSION: 2.1.1
+    REGISTRATION_SHA1: 1097639
+    REGISTRATION_BUILD_ID: "local"
+
+    REV_TUNNEL_VERSION: 2.1.1
+    REV_TUNNEL_SHA1: 1097639
+    REV_TUNNEL_BUILD_ID: "local"
+    
+
+  tasks:
+  - name: apt-get update
+    apt:
+      update_cache: yes
+  - name: Ensure a locale exists
+    community.general.locale_gen:
+      name: en_US.UTF-8
+      state: present
+
+
+  - name: Install ubuntu packages
+    apt:
+      name:
+        - systemd-sysv=245.4-4ubuntu3.3  # is that a good idea? what if another version comes pre-installed ??
+        - python3=3.8.2-0ubuntu2
+        - python3-pip=20.0.2-5ubuntu1.1
+        - python3-venv=3.8.2-0ubuntu2  # what package needs this ?
+
+        #- ansible  # maybe needed if we run asyncronous (long-running) playbooks locally
+        #- dnsmasq (rpi dhcp / pxe booting)
+        #- network-manager
+        #- nfs-kernel-server (rpi nfs)
+        #- openssh-server
+        #- rsyslog
+
+
+      state: present
+
+  #- name: pip packages
+  #  pip:
+  #    name: openshift # needed for the community.kubernetes.k8s module
+
+  - name: Creates directory
+    file:
+      path: /etc/sage/
+      state: directory
+
+
+  
+
+  - name: disable ubuntu motd-news
+    lineinfile:
+      dest: /etc/default/motd-news
+      state: present
+      regexp: '^ENABLED='
+      line: 'ENABLED=0'
+  - name: Creates directory
+    file:
+      path: /etc/update-motd.d/
+      state: directory
+  - name: Copy file with owner and permissions
+    copy:
+      src: 05-sage
+      dest: /etc/update-motd.d/05-sage
+      owner: root
+      group: root
+      mode: '0755'
+
+ 
+  - name: Download waggle-registration service
+    get_url:
+       url: "https://github.com/waggle-sensor/beekeeper-registration/releases/download/v{{REGISTRATION_VERSION}}/sagebk-registration_{{REGISTRATION_VERSION}}.{{REGISTRATION_BUILD_ID}}-{{REGISTRATION_SHA1}}_all.deb"
+       dest: "/tmp/sagebk-registration_{{REGISTRATION_VERSION}}.{{REGISTRATION_BUILD_ID}}-{{REGISTRATION_SHA1}}_all.deb"
+  
+  - name: Install waggle-registration service
+    apt:
+      deb: "/tmp/sagebk-registration_{{REGISTRATION_VERSION}}.{{REGISTRATION_BUILD_ID}}-{{REGISTRATION_SHA1}}_all.deb"
+
+  - name: Download waggle-reverse-tunnel service
+    get_url:
+       url: "https://github.com/waggle-sensor/beekeeper-registration/releases/download/v{{REV_TUNNEL_VERSION}}/sagebk-reverse-tunnel_{{REV_TUNNEL_VERSION}}.{{REV_TUNNEL_BUILD_ID}}-{{REV_TUNNEL_SHA1}}_all.deb"
+       dest: "/tmp/sagebk-reverse-tunnel_{{REV_TUNNEL_VERSION}}.{{REV_TUNNEL_BUILD_ID}}-{{REV_TUNNEL_SHA1}}_all.deb"
+
+  - name: Install waggle-reverse-tunnel service
+    apt:
+      deb: "/tmp/sagebk-reverse-tunnel_{{REV_TUNNEL_VERSION}}.{{REV_TUNNEL_BUILD_ID}}-{{REV_TUNNEL_SHA1}}_all.deb"
+
+
+- name: docker
+  import_playbook: install-docker-playbook.yml
+
+
+
+- name: install k3s (do not run yet)
+  hosts: all
+  become: yes
+  environment:
+    KUBECONFIG: /etc/rancher/k3s/k3s.yaml
+
+  # https://github.com/rancher/k3s-ansible
+
+  tasks:
+    - name: install k3s (without starting)
+      args:
+        warn: false  # ansible is unhappy about curl
+      shell: curl -sfL https://get.k3s.io | INSTALL_K3S_SKIP_START=1 sh -
+      # INSTALL_K3S_SKIP_START this will prevent start of k3s
+      # TODO: use INSTALL_K3S_VERSION
+
+
+    - name: copy kubernetes resource files to node
+      copy:
+        # ansible expects files in subfolder "files" (which does not exist), but we can get outside using "../"
+        src: ../kubernetes
+        dest: /opt/sage/
+     
+        
+        
