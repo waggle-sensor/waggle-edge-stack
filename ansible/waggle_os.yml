@@ -92,10 +92,23 @@
   - name: Install waggle-reverse-tunnel service
     apt:
       deb: "/tmp/sagebk-reverse-tunnel_{{REV_TUNNEL_VERSION}}.{{REV_TUNNEL_BUILD_ID}}-{{REV_TUNNEL_SHA1}}_all.deb"
+  
+  - name: waggle-list-services
+    copy:
+      dest: "/usr/local/bin/waggle-list-services"
+      owner: root
+      group: root
+      mode: '0755'
+      content: |
+        #!/bin/sh
+        systemctl list-units -t service --full --all --plain --no-legend | grep '^\(sage\|waggle\)'
 
 
 - name: docker
   import_playbook: install-docker-playbook.yml
+
+
+
 
 
 
