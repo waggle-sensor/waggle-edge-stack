@@ -12,6 +12,8 @@ Vagrant.configure("2") do |config|
   config.vm.hostname = "waggle-node"
   config.vm.network "private_network", ip: "10.31.81.10"
 
+  config.vm.synced_folder "../beekeeper-registration", "/beekeeper-registration"
+
   config.vm.provider "virtualbox" do |vb|
     vb.memory = "2048"
     # enable usb passthrough (optional)
@@ -30,8 +32,9 @@ Vagrant.configure("2") do |config|
     ansible.compatibility_mode = "2.0"
     ansible.playbook = "playbook.yml"
     ansible.extra_vars = {
-      beekeeper_host: "10.0.2.2",  # TODO remove this once registration service supports config file
-      beekeeper_registration_url: "10.0.2.2:20022" ,  # used in /etc/sage/config.ini
+      node_id: "0000000000000001" , 
+      beekeeper_registration_host: "10.0.2.2" ,  # used in /etc/waggle/config.ini
+      beekeeper_registration_port: "20022" ,  # used in /etc/waggle/config.ini
       timezone: timezone   
     }
   end

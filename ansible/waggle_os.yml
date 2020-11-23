@@ -48,12 +48,16 @@
   #  pip:
   #    name: openshift # needed for the community.kubernetes.k8s module
 
-  - name: Creates directory
+  # TODO remove !?
+  - name: Create directory /etc/sage/  
     file:
       path: /etc/sage/
       state: directory
 
-
+  - name: Create directory /etc/waggle/
+    file:
+      path: /etc/waggle/
+      state: directory
   
 
   - name: disable ubuntu motd-news
