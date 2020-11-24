@@ -4,7 +4,7 @@ metadata:
   name: node-upload-agent
   labels:
     app.kubernetes.io/name: node-upload-agent
-    app.kubernetes.io/version: "0.0.2"
+    app.kubernetes.io/version: "0.0.5"
 spec:
   selector:
     matchLabels:
@@ -13,10 +13,10 @@ spec:
     metadata:
       labels:
         app.kubernetes.io/name: node-upload-agent
-        app.kubernetes.io/version: "0.0.2"
+        app.kubernetes.io/version: "0.0.5"
     spec:
       containers:
-      - image: waggle/node-upload-agent:0.0.2
+      - image: waggle/node-upload-agent:0.0.5
         name: node-upload-agent
         resources:
           limits:
@@ -25,25 +25,20 @@ spec:
           requests:
             cpu: 250m
             memory: 10Mi
+        envFrom:
+          - configMapRef:
+              name: waggle-config
         volumeMounts:
+        - name: waggle-secret
+          mountPath: /etc/waggle
+          readOnly: true
         - name: uploads
           mountPath: /uploads
-        # TODO drop once sync to beehive works
-        - name: remote
-          mountPath: /remote
-        - name: upload-key
-          mountPath: /auth
-          readOnly: true
       volumes:
+      - name: waggle-secret
+        secret:
+          secretName: waggle-secret
       - name: uploads
         hostPath:
           path: /media/plugin-data/uploads
           type: DirectoryOrCreate
-      # TODO drop once sync to beehive works
-      - name: remote
-        hostPath:
-          path: /media/plugin-data/remote
-          type: DirectoryOrCreate
-      - name: upload-key
-        secret:
-          secretName: node-ssh-key

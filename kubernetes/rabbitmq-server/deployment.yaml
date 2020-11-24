@@ -21,7 +21,7 @@ spec:
         - containerPort: 5672
         envFrom:
           - configMapRef:
-              name: waggle-node-env
+              name: waggle-config
         volumeMounts:
         - name: waggle-node-private
           mountPath: /etc/certs

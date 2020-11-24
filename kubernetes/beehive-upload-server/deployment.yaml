@@ -1,0 +1,28 @@
+# TODO use volume for managing private credentials
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: beehive-upload-server
+spec:
+  selector:
+    matchLabels:
+      app: beehive-upload-server
+  template:
+    metadata:
+      labels:
+        app: beehive-upload-server
+    spec:
+      containers:
+      - image: waggle/beehive-upload-server:0.0.2
+        name: beehive-upload-server
+        ports:
+        - containerPort: 22
+        volumeMounts:
+        - name: beehive-upload-server-secret
+          mountPath: /etc/waggle
+          readOnly: true
+      volumes:
+      - name: beehive-upload-server-secret
+        secret:
+          secretName: beehive-upload-server-secret
+          defaultMode: 0600
