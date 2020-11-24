@@ -55,3 +55,29 @@ Production deployments will be using ansible playbooks.
 
 
 
+# Advanced: Run beekeeper and connect vagrant waggle node
+
+```bash
+cd ~/git/
+git clone https://github.com/waggle-sensor/waggle-edge-stack.git
+git clone https://github.com/waggle-sensor/beekeeper.git
+cd beekeeper/bk-config
+
+docker build -t sagecontinuum/bk-config .
+
+# create beekeeper keys
+docker run -ti --rm --name bk-config -v beekeeper-config_bk-secrets:/usr/lib/sage/ sagecontinuum/bk-config init-keys.sh
+
+# create registration key (1500 minutes valid)
+./create_client_files.sh 10.0.2.2 20022 1500
+
+# copy registration key 
+cp known_hosts register.pem register.pem-cert.pub ~/git/waggle-edge-stack/ansible/private/
+
+# start vagrant waggle node
+cd ~/git/waggle-edge-stack
+vagrant up
+vagrant ssh
+sudo -i
+waggle-list-services 
+```
