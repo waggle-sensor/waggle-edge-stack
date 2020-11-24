@@ -97,6 +97,36 @@
     apt:
       deb: "/tmp/sagebk-reverse-tunnel_{{REV_TUNNEL_VERSION}}.{{REV_TUNNEL_BUILD_ID}}-{{REV_TUNNEL_SHA1}}_all.deb"
   
+  # TODO remove
+  - name: Get latest sagebk-registration (for testing purposes)
+    get_url:
+      url: https://raw.githubusercontent.com/wgerlach/beekeeper-registration/master/ROOTFS/usr/bin/sagebk-registration
+      dest: /usr/bin/sagebk-registration
+      mode: '0755'
+      force: yes
+
+  # TODO remove
+  - name: Get latest sagebk-reverse-tunnel (for testing purposes)
+    get_url:
+      url: https://raw.githubusercontent.com/wgerlach/beekeeper-registration/master/ROOTFS/usr/bin/sagebk-reverse-tunnel
+      dest: /usr/bin/sagebk-reverse-tunnel
+      mode: '0755'
+      force: yes
+
+  # TODO remove
+  - name: Restart sagebk-registration.service
+    systemd:
+      state: restarted
+      name: sagebk-registration.service
+
+  # TODO remove
+  - name: Restart sagebk-reverse-tunnel.service
+    systemd:
+      state: restarted
+      name: sagebk-reverse-tunnel.service
+
+
+
   - name: waggle-list-services
     copy:
       dest: "/usr/local/bin/waggle-list-services"
