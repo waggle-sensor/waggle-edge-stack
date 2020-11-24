@@ -50,8 +50,6 @@
           # use network-interface if default does not work
           # e.g. enp0s3 , eth0
           # network-interface = {{ ansible_default_ipv4.interface }}
-
-    
    
     - name: check private/register.pem-cert.pub
       become: no
@@ -101,6 +99,18 @@
       systemd:
         state: started
         name: k3s
+
+    # speed-up, otherwise have to wait up to 3 minutes
+    - name: Restart sagebk-registration.service
+      systemd:
+        state: restarted
+        name: sagebk-registration.service
+
+    # speed-up, otherwise have to wait up to 3 minute
+    - name: Restart sagebk-reverse-tunnel.service
+      systemd:
+        state: restarted
+        name: sagebk-reverse-tunnel.service
 
 
     - name: Wait for nodes to be ready
