@@ -21,10 +21,7 @@ metadata:
   name: waggle-config
 data:
   WAGGLE_NODE_ID: "$WAGGLE_NODE_ID"
-  WAGGLE_UPLOAD_HOST: "beehive-upload-server"
 EOF
-
-# TODO split ca.pub into its own thing and then just use generic signed ssh key resource?
 
 # generate test ca key pair
 ssh-keygen -C "Beekeeper CA Key" -N "" -f ca
@@ -32,45 +29,29 @@ ssh-keygen -C "Beekeeper CA Key" -N "" -f ca
 # generate and sign node ssh key
 # do we need different access between beekeeper and the upload server??
 ssh-keygen -C "Node SSH Key" -N "" -f node-ssh-key
-
 ssh-keygen -s ca \
     -I "Waggle Upload Key" \
     -n "node$WAGGLE_NODE_ID" \
-    -V "-5m:+7d" \
+    -V "-5m:+365d" \
     node-ssh-key
+(kubectl delete secret waggle-secret || true) &>/dev/null
+kubectl create secret generic waggle-secret \
+  --from-file=ca.pub=ca.pub \
+  --from-file=ssh-key=node-ssh-key \
+  --from-file=ssh-key.pub=node-ssh-key.pub \
+  --from-file=ssh-key-cert.pub=node-ssh-key-cert.pub
 
-cat <<EOF | kubectl apply -f -
-apiVersion: v1
-kind: Secret
-type: Opaque
-metadata:
-  name: waggle-secret
-data:
-  ca.pub: $(base64 -w 0 ca.pub)
-  ssh-key: $(base64 -w 0 node-ssh-key)
-  ssh-key.pub: $(base64 -w 0 node-ssh-key.pub)
-  ssh-key-cert.pub: $(base64 -w 0 node-ssh-key-cert.pub)
-EOF
-
-# generate and sign
+# generate and sign upload server host key
 ssh-keygen -C "Upload Server Key" -N "" -f upload-server-host-key
-
 ssh-keygen -s ca \
     -I "Upload Server Key" \
-    -n "upload-server" \
-    -V "-5m:+7d" \
+    -n "beehive-upload-server" \
+    -V "-5m:+365d" \
     -h \
     upload-server-host-key
-
-cat <<EOF | kubectl apply -f -
-apiVersion: v1
-kind: Secret
-type: Opaque
-metadata:
-  name: beehive-upload-server-secret
-data:
-  ca.pub: $(base64 -w 0 ca.pub)
-  upload-server-key: $(base64 -w 0 upload-server-host-key)
-  upload-server-key.pub: $(base64 -w 0 upload-server-host-key.pub)
-  upload-server-key-cert.pub: $(base64 -w 0 upload-server-host-key-cert.pub)
-EOF
+(kubectl delete secret beehive-upload-server-secret || true) &>/dev/null
+kubectl create secret generic beehive-upload-server-secret \
+  --from-file=ca.pub=ca.pub \
+  --from-file=ssh-host-key=upload-server-host-key \
+  --from-file=ssh-host-key.pub=upload-server-host-key.pub \
+  --from-file=ssh-host-key-cert.pub=upload-server-host-key-cert.pub
