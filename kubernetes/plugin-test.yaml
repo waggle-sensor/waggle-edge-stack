@@ -23,7 +23,7 @@ spec:
             memory: 10Mi
         volumeMounts:
           - name: uploads
-            mountPath: /uploads
+            mountPath: /run/waggle/uploads
       volumes:
       - name: uploads
         hostPath:
