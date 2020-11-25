@@ -97,6 +97,12 @@
     apt:
       deb: "/tmp/sagebk-reverse-tunnel_{{REV_TUNNEL_VERSION}}.{{REV_TUNNEL_BUILD_ID}}-{{REV_TUNNEL_SHA1}}_all.deb"
   
+  # TODO remove (this should be in debian package)
+  - name: install kubernetes python lib for sagebk-registration
+    pip: 
+      name: kubernetes==12.0.1
+
+
   # TODO remove
   - name: Get latest sagebk-registration (for testing purposes)
     get_url:
