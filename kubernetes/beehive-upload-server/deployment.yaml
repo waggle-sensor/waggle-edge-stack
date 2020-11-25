@@ -16,11 +16,17 @@ spec:
       - image: waggle/beehive-upload-server:0.0.2
         name: beehive-upload-server
         ports:
-        - containerPort: 22
+        - name: ssh
+          containerPort: 22
         volumeMounts:
         - name: beehive-upload-server-secret
           mountPath: /etc/waggle
           readOnly: true
+        livenessProbe:
+          tcpSocket:
+            port: ssh
+          initialDelaySeconds: 5
+          periodSeconds: 60
       volumes:
       - name: beehive-upload-server-secret
         secret:
