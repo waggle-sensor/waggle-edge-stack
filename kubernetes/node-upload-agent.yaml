@@ -4,7 +4,7 @@ metadata:
   name: node-upload-agent
   labels:
     app.kubernetes.io/name: node-upload-agent
-    app.kubernetes.io/version: "0.0.5"
+    app.kubernetes.io/version: "0.0.9"
 spec:
   selector:
     matchLabels:
@@ -13,17 +13,17 @@ spec:
     metadata:
       labels:
         app.kubernetes.io/name: node-upload-agent
-        app.kubernetes.io/version: "0.0.5"
+        app.kubernetes.io/version: "0.0.9"
     spec:
       containers:
-      - image: waggle/node-upload-agent:0.0.5
+      - image: waggle/node-upload-agent:0.0.9
         name: node-upload-agent
         resources:
           limits:
-            cpu: 500m
+            cpu: 200m
             memory: 20Mi
           requests:
-            cpu: 250m
+            cpu: 100m
             memory: 10Mi
         envFrom:
           - configMapRef:
@@ -34,10 +34,18 @@ spec:
           readOnly: true
         - name: uploads
           mountPath: /uploads
+        livenessProbe:
+          exec:
+            command:
+            - rm
+            - /tmp/healthy
+          initialDelaySeconds: 5
+          periodSeconds: 300
       volumes:
       - name: waggle-secret
         secret:
           secretName: waggle-secret
+          defaultMode: 0600
       - name: uploads
         hostPath:
           path: /media/plugin-data/uploads
