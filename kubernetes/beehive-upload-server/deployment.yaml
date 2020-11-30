@@ -13,7 +13,7 @@ spec:
         app: beehive-upload-server
     spec:
       containers:
-      - image: waggle/beehive-upload-server:0.0.2
+      - image: waggle/beehive-upload-server:0.0.3
         name: beehive-upload-server
         ports:
         - name: ssh

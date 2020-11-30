@@ -4,7 +4,6 @@ metadata:
   name: node-upload-agent
   labels:
     app.kubernetes.io/name: node-upload-agent
-    app.kubernetes.io/version: "0.0.9"
 spec:
   selector:
     matchLabels:
@@ -13,10 +12,9 @@ spec:
     metadata:
       labels:
         app.kubernetes.io/name: node-upload-agent
-        app.kubernetes.io/version: "0.0.9"
     spec:
       containers:
-      - image: waggle/node-upload-agent:0.0.9
+      - image: waggle/node-upload-agent:0.0.10
         name: node-upload-agent
         resources:
           limits:
