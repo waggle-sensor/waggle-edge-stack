@@ -7,16 +7,19 @@ plugin_username="${plugin_name}-${plugin_version}"
 plugin_password="averysecurepassword"
 
 # apply rabbitmq server config
-kubectl exec --stdin service/rabbitmq-server -- bash -s <<EOF
-if ! rabbitmqctl authenticate_user ${plugin_username} ${plugin_password}; then
-  rabbitmqctl add_user ${plugin_username} ${plugin_password} || \
-  rabbitmqctl change_password ${plugin_username} ${plugin_password}
-fi
-rabbitmqctl set_permissions ${plugin_username} '.*' '.*' '.*'
+# TODO make permissions more strict
+kubectl exec --stdin service/rabbitmq-server -- sh -s <<EOF
+while ! rabbitmqctl -q authenticate_user ${plugin_username} ${plugin_password}; do
+  echo "adding user ${plugin_username} to rabbitmq"
+  rabbitmqctl -q add_user ${plugin_username} ${plugin_password} || \
+  rabbitmqctl -q change_password ${plugin_username} ${plugin_password}
+done
+
+rabbitmqctl set_permissions ${plugin_username} ".*" ".*" ".*"
 EOF
 
 # apply deployment config
-cat <<EOF | kubectl apply -f -
+kubectl apply -f - <<EOF
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -42,6 +45,10 @@ spec:
           value: "${plugin_username}"
         - name: WAGGLE_PLUGIN_PASSWORD
           value: "${plugin_password}"
+        - name: WAGGLE_PLUGIN_HOST
+          value: "rabbitmq-server"
+        - name: WAGGLE_PLUGIN_PORT
+          value: "5672"
         envFrom:
           - configMapRef:
               name: waggle-config
