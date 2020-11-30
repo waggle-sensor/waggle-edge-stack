@@ -20,19 +20,19 @@ cat <<EOF | kubectl apply -f -
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: plugin-test-pipeline
+  name: ${plugin_name}
 spec:
   selector:
     matchLabels:
-      app: plugin-test-pipeline
+      app: ${plugin_name}
   template:
     metadata:
       labels:
-        app: plugin-test-pipeline
+        app: ${plugin_name}
     spec:
       containers:
       - image: ${plugin_image}
-        name: plugin-test-pipeline
+        name: ${plugin_name}
         env:
         - name: WAGGLE_PLUGIN_NAME
           value: "${plugin_name}"
