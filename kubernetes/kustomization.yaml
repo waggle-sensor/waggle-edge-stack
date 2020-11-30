@@ -10,5 +10,7 @@ resources:
   - rabbitmq-server/deployment.yaml
   - rabbitmq-server/service.yaml
 
+  - data-sharing-service.yaml
+
 
   # see https://kubectl.docs.kubernetes.io/references/kustomize/images/
