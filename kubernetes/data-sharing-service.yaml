@@ -1,0 +1,27 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: data-sharing-service
+spec:
+  selector:
+    matchLabels:
+      app: data-sharing-service
+  template:
+    metadata:
+      labels:
+        app: data-sharing-service
+    spec:
+      containers:
+      - name: data-sharing-service
+        image: waggle/data-sharing-service
+        args: ["amqp://service:service@rabbitmq-server"]
+        envFrom:
+        - configMapRef:
+            name: waggle-config
+        resources:
+          limits:
+            cpu: 200m
+            memory: 20Mi
+          requests:
+            cpu: 100m
+            memory: 10Mi
