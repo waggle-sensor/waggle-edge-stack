@@ -14,7 +14,7 @@ echo "working in $(pwd)"
 WAGGLE_NODE_ID="0000000000000001"
 
 # generate node configmap
-cat <<EOF | kubectl apply -f -
+kubectl apply -f - <<EOF
 apiVersion: v1
 kind: ConfigMap
 metadata:
