@@ -1,5 +1,13 @@
 #!/bin/bash -e
 
+if [ -z "$1" ] || [ -z "$2" ]; then
+  echo "usage: $0 plugin-name plugin-version"
+  echo "example: $0 plugin-test-pipeline 0.0.2"
+  echo
+  echo "note: assumes image follows \"docker.io/waggle/plugin-name:plugin-version\" for now"
+  exit 1
+fi
+
 plugin_name="$1"
 plugin_version="$2"
 plugin_image="docker.io/waggle/${plugin_name}:${plugin_version}"
