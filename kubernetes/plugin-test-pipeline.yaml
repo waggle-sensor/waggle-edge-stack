@@ -1,19 +1,19 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: plugin-test
+  name: plugin-test-pipeline
 spec:
   selector:
     matchLabels:
-      app: plugin-test
+      app: plugin-test-pipeline
   template:
     metadata:
       labels:
-        app: plugin-test
+        app: plugin-test-pipeline
     spec:
       containers:
-      - image: waggle/plugin-test:latest
-        name: plugin-test
+      - image: waggle/plugin-test-pipeline:latest
+        name: plugin-test-pipeline
         resources:
           limits:
             cpu: 200m
@@ -27,5 +27,5 @@ spec:
       volumes:
       - name: uploads
         hostPath:
-          path: /media/plugin-data/uploads/plugin-test
+          path: /media/plugin-data/uploads/plugin-test-pipeline
           type: DirectoryOrCreate
