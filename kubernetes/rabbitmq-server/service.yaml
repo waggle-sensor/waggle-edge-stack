@@ -6,11 +6,11 @@ spec:
   selector:
     app: rabbitmq-server
   ports:
-    - name: management
+    - name: rabbitmq-management
       protocol: TCP
       port: 15672
       targetPort: 15672
-    - name: messaging
+    - name: amqp
       protocol: TCP
       port: 5672
       targetPort: 5672

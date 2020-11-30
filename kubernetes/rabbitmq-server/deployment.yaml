@@ -13,26 +13,21 @@ spec:
         app: rabbitmq-server
     spec:
       containers:
-      # TODO consider using a configmap and use regular rabbitmq-server
-      - image: waggle/node-rabbitmq-server:0.0.1
-        name: rabbitmq-server
+      - name: rabbitmq-server
+        image: waggle/node-rabbitmq-server:0.0.1
+        # command: ['/bin/sh', '-c']
+        # args: ['rm -rf /etc/waggle; cp -r /etc/certs /etc/waggle; chown -R rabbitmq:rabbitmq /etc/waggle/; chown -R rabbitmq:rabbitmq /etc/rabbitmq/; /docker-entrypoint.sh rabbitmq-server']
         ports:
-        - containerPort: 15672
         - containerPort: 5672
+        - containerPort: 15672
         envFrom:
-          - configMapRef:
-              name: waggle-config
+        - configMapRef:
+            name: waggle-config
         volumeMounts:
-        - name: waggle-node-private
-          mountPath: /etc/certs
+        - name: waggle-secret
+          mountPath: /etc/waggle
           readOnly: true
-        command: ['/bin/sh', '-c']
-        args: ['rm -rf /etc/waggle; cp -r /etc/certs /etc/waggle; chown -R rabbitmq:rabbitmq /etc/waggle/; chown -R rabbitmq:rabbitmq /etc/rabbitmq/; /docker-entrypoint.sh rabbitmq-server']
-        # something broken here ?
-        #- name: waggle-node-private
-        #  mountPath: /etc/waggle
-        #  readOnly: true
       volumes:
-      - name: waggle-node-private
+      - name: waggle-secret
         secret:
-          secretName: waggle-node-private
+          secretName: waggle-secret
