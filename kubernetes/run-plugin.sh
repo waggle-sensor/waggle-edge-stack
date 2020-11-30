@@ -42,6 +42,9 @@ spec:
           value: "${plugin_username}"
         - name: WAGGLE_PLUGIN_PASSWORD
           value: "${plugin_password}"
+        envFrom:
+          - configMapRef:
+              name: waggle-config
         resources:
           limits:
             cpu: 200m
