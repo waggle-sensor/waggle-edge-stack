@@ -12,8 +12,6 @@ Vagrant.configure("2") do |config|
   config.vm.hostname = "waggle-node"
   config.vm.network "private_network", ip: "10.31.81.10"
 
-  config.vm.synced_folder "../beekeeper-registration", "/beekeeper-registration"
-
   config.vm.provider "virtualbox" do |vb|
     vb.memory = "2048"
     # enable usb passthrough (optional)
