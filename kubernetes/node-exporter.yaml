@@ -1,0 +1,66 @@
+# Runs one instance of node-exporter on every node (DaemonSet) and expose
+# the service on port 9100 on every node host.
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: node-exporter
+  labels:
+    app.kubernetes.io/name: node-exporter
+    app.kubernetes.io/version: v1.0.1
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: node-exporter
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: node-exporter
+        app.kubernetes.io/version: v1.0.1
+    spec:
+      containers:
+      - args:
+        - --web.listen-address=127.0.0.1:9100
+        - --path.procfs=/host/proc
+        - --path.sysfs=/host/sys
+        - --path.rootfs=/host/root
+        - --no-collector.wifi
+        - --no-collector.hwmon
+        - --collector.filesystem.ignored-mount-points=^/(dev|proc|sys|var/lib/docker/.+|var/lib/kubelet/pods/.+)($|/)
+        image: prom/node-exporter:v1.0.1
+        name: node-exporter
+        resources:
+          limits:
+            cpu: 250m
+            memory: 180Mi
+          requests:
+            cpu: 102m
+            memory: 180Mi
+        ports:
+        - name: http
+          containerPort: 9100
+          hostPort: 9100
+        volumeMounts:
+        - mountPath: /host/proc
+          mountPropagation: HostToContainer
+          name: proc
+          readOnly: true
+        - mountPath: /host/sys
+          mountPropagation: HostToContainer
+          name: sys
+          readOnly: true
+        - mountPath: /host/root
+          mountPropagation: HostToContainer
+          name: root
+          readOnly: true
+      hostNetwork: true
+      hostPID: true
+      volumes:
+      - hostPath:
+          path: /proc
+        name: proc
+      - hostPath:
+          path: /sys
+        name: sys
+      - hostPath:
+          path: /
+        name: root

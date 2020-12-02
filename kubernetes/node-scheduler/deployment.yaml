@@ -1,0 +1,20 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: node-scheduler
+spec:
+  selector:
+    matchLabels:
+      app: node-scheduler
+  template:
+    metadata:
+      labels:
+        app: node-scheduler
+    spec:
+      serviceAccountName: node-scheduler
+      containers:
+      # TODO change to the real scheduler image :)
+      - image: ubuntu
+        name: node-scheduler
+        command: ['sh', '-c']
+        args: ['while sleep 10; do echo scheduling; done']
