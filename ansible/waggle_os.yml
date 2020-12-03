@@ -78,6 +78,51 @@
       group: root
       mode: '0755'
 
+
+  - name: check private/register.pem-cert.pub
+    become: no
+    local_action: stat path=private/register.pem-cert.pub
+    register: register_cert
+
+  - name: Copy register.pem-cert.pub if exists
+    copy:
+      src: private/register.pem-cert.pub
+      dest: /etc/waggle/sage_registration-cert.pub
+      owner: root
+      group: root
+      mode: '0644'
+    when: register_cert.stat.exists
+  
+  - name: check private/register.pem
+    become: no
+    local_action: stat path=private/register.pem
+    register: register_pem
+
+  - name: Copy register.pem if exists
+    copy:
+      src: private/register.pem
+      dest: /etc/waggle/sage_registration
+      owner: root
+      group: root
+      mode: '0600'
+    when: register_pem.stat.exists
+
+  - name: check private/known_hosts
+    become: no
+    local_action: stat path=private/known_hosts
+    register: known_hosts
+
+  # TODO this may not be ideal as it would overwrite an existing file
+  - name: Copy known_hosts if exists
+    copy:
+      src: private/known_hosts
+      dest: /etc/ssh/ssh_known_hosts
+      owner: root
+      group: root
+      mode: '0644'
+    when: known_hosts.stat.exists
+
+
   - fail: 
       msg: "Bailing out: this play requires variable 'beekeeper_registration_host'"
     when: beekeeper_registration_host is not defined
@@ -117,7 +162,8 @@
     get_url:
        url: "https://github.com/waggle-sensor/beekeeper-registration/releases/download/v{{REGISTRATION_VERSION}}/sagebk-registration_{{REGISTRATION_VERSION}}.{{REGISTRATION_BUILD_ID}}-{{REGISTRATION_SHA1}}_all.deb"
        dest: "/tmp/sagebk-registration_{{REGISTRATION_VERSION}}.{{REGISTRATION_BUILD_ID}}-{{REGISTRATION_SHA1}}_all.deb"
-  
+
+  # TODO try use RUNLEVEL=1 to prevent starting of service a this point  
   - name: Install waggle-registration service
     apt:
       deb: "/tmp/sagebk-registration_{{REGISTRATION_VERSION}}.{{REGISTRATION_BUILD_ID}}-{{REGISTRATION_SHA1}}_all.deb"
@@ -127,6 +173,7 @@
        url: "https://github.com/waggle-sensor/beekeeper-registration/releases/download/v{{REV_TUNNEL_VERSION}}/sagebk-reverse-tunnel_{{REV_TUNNEL_VERSION}}.{{REV_TUNNEL_BUILD_ID}}-{{REV_TUNNEL_SHA1}}_all.deb"
        dest: "/tmp/sagebk-reverse-tunnel_{{REV_TUNNEL_VERSION}}.{{REV_TUNNEL_BUILD_ID}}-{{REV_TUNNEL_SHA1}}_all.deb"
 
+  # TODO try use RUNLEVEL=1 to prevent starting of service a this point
   - name: Install waggle-reverse-tunnel service
     apt:
       deb: "/tmp/sagebk-reverse-tunnel_{{REV_TUNNEL_VERSION}}.{{REV_TUNNEL_BUILD_ID}}-{{REV_TUNNEL_SHA1}}_all.deb"
@@ -177,7 +224,7 @@
         #!/bin/sh
         systemctl list-units -t service --full --all --plain --no-legend | grep '^\(sage\|waggle\)'
 
-
+ # TODO: (if we keep it) prevent start at this point, start later
 - name: docker
   import_playbook: install-docker-playbook.yml
 
