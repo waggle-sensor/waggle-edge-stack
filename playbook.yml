@@ -1,8 +1,0 @@
-
-
-
-- name: waggle_os
-  import_playbook: ansible/waggle_os.yml
-
-- name: waggle_config
-  import_playbook: ansible/waggle_config.yml
