@@ -17,6 +17,11 @@
     
 
   tasks:
+
+  - fail:
+      msg: "Only 18.04 and 20.04 supported"
+    when: ansible_distribution_version != "20.04" and ansible_distribution_version != "18.04"
+
   - name: apt-get update
     apt:
       update_cache: yes
@@ -24,8 +29,8 @@
     community.general.locale_gen:
       name: en_US.UTF-8
       state: present
-
-
+    
+ 
   - name: Install ubuntu packages
     apt:
       name:
@@ -33,6 +38,21 @@
         - python3=3.8.2-0ubuntu2
         - python3-pip=20.0.2-5ubuntu1.1
         - python3-venv=3.8.2-0ubuntu2  # what package needs this ?
+      state: present
+    when:
+      - ansible_distribution_version == "20.04"
+
+  - name: Install ubuntu packages
+    apt:
+      name:
+        - systemd-sysv=237-3ubuntu10.43  # is that a good idea? what if another version comes pre-installed ??
+        - python3=3.6.7-1~18.04
+        - python3-pip=9.0.1-2.3~ubuntu1.18.04.4
+        - python3-venv=3.6.7-1~18.04  # what package needs this ?
+      state: present
+    when:
+      - ansible_distribution_version == "18.04"
+
 
         #- ansible  # maybe needed if we run asyncronous (long-running) playbooks locally
         #- dnsmasq (rpi dhcp / pxe booting)
@@ -42,7 +62,7 @@
         #- rsyslog
 
 
-      state: present
+      
 
   #- name: pip packages
   #  pip:
@@ -163,21 +183,23 @@
        url: "https://github.com/waggle-sensor/beekeeper-registration/releases/download/v{{REGISTRATION_VERSION}}/sagebk-registration_{{REGISTRATION_VERSION}}.{{REGISTRATION_BUILD_ID}}-{{REGISTRATION_SHA1}}_all.deb"
        dest: "/tmp/sagebk-registration_{{REGISTRATION_VERSION}}.{{REGISTRATION_BUILD_ID}}-{{REGISTRATION_SHA1}}_all.deb"
 
-  # TODO try use RUNLEVEL=1 to prevent starting of service a this point  
-  - name: Install waggle-registration service
-    apt:
-      deb: "/tmp/sagebk-registration_{{REGISTRATION_VERSION}}.{{REGISTRATION_BUILD_ID}}-{{REGISTRATION_SHA1}}_all.deb"
+  
+  #- name: Install waggle-registration service (but do not start)
+  #  apt:
+  #    deb: "/tmp/sagebk-registration_{{REGISTRATION_VERSION}}.{{REGISTRATION_BUILD_ID}}-{{REGISTRATION_SHA1}}_all.deb"
+  #    policy_rc_d: 101
 
   - name: Download waggle-reverse-tunnel service
     get_url:
        url: "https://github.com/waggle-sensor/beekeeper-registration/releases/download/v{{REV_TUNNEL_VERSION}}/sagebk-reverse-tunnel_{{REV_TUNNEL_VERSION}}.{{REV_TUNNEL_BUILD_ID}}-{{REV_TUNNEL_SHA1}}_all.deb"
        dest: "/tmp/sagebk-reverse-tunnel_{{REV_TUNNEL_VERSION}}.{{REV_TUNNEL_BUILD_ID}}-{{REV_TUNNEL_SHA1}}_all.deb"
 
-  # TODO try use RUNLEVEL=1 to prevent starting of service a this point
-  - name: Install waggle-reverse-tunnel service
-    apt:
-      deb: "/tmp/sagebk-reverse-tunnel_{{REV_TUNNEL_VERSION}}.{{REV_TUNNEL_BUILD_ID}}-{{REV_TUNNEL_SHA1}}_all.deb"
   
+  #- name: Install waggle-reverse-tunnel service (but do not start)
+  #  apt:
+  #    deb: "/tmp/sagebk-reverse-tunnel_{{REV_TUNNEL_VERSION}}.{{REV_TUNNEL_BUILD_ID}}-{{REV_TUNNEL_SHA1}}_all.deb"
+  #    policy_rc_d: 101
+
   # TODO remove (this should be in debian package)
   - name: install kubernetes python lib for sagebk-registration
     pip: 
@@ -201,16 +223,16 @@
       force: yes
 
   # TODO remove
-  - name: Restart sagebk-registration.service
-    systemd:
-      state: restarted
-      name: sagebk-registration.service
+  #- name: Restart sagebk-registration.service
+  #  systemd:
+  #    state: restarted
+  #    name: sagebk-registration.service
 
   # TODO remove
-  - name: Restart sagebk-reverse-tunnel.service
-    systemd:
-      state: restarted
-      name: sagebk-reverse-tunnel.service
+  #- name: Restart sagebk-reverse-tunnel.service
+  #  systemd:
+  #    state: restarted
+  #    name: sagebk-reverse-tunnel.service
 
 
 

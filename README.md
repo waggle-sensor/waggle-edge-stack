@@ -61,15 +61,16 @@ Production deployments will be using ansible playbooks.
 cd ~/git/
 git clone https://github.com/waggle-sensor/waggle-edge-stack.git
 git clone https://github.com/waggle-sensor/beekeeper.git
-cd beekeeper/bk-config
+cd beekeeper
 
-docker build -t sagecontinuum/bk-config .
+./init-keys.sh new # or ./init-keys.sh test
 
-# create beekeeper keys
-docker run -ti --rm --name bk-config -v beekeeper-config_bk-secrets:/usr/lib/sage/ sagecontinuum/bk-config init-keys.sh
+# start beekeeper
+docker-compose up -d
 
 # create registration key (1500 minutes valid)
-./create_client_files.sh 10.0.2.2 20022 1500
+cd bk-config
+./create_client_files.sh 10.0.2.2 20022 +1500m
 
 # copy registration key 
 cp known_hosts register.pem register.pem-cert.pub ~/git/waggle-edge-stack/ansible/private/

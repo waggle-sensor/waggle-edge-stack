@@ -7,8 +7,12 @@ timezone = ENV["TZ"]
 
 
 Vagrant.configure("2") do |config|
-  #config.vm.box = "hashicorp/bionic64"
-  config.vm.box = "ubuntu/focal64"
+  # Currently we use bionic64 (18.04) because NVIDIA software (NVIDIA JetPack) does not support newer ubuntu yet
+  config.vm.box = "hashicorp/bionic64"
+
+  #config.vm.box = "ubuntu/focal64"  # if you use 20.04, comment out the two shell provisioners below
+
+
   config.vm.hostname = "waggle-node"
   config.vm.network "private_network", ip: "10.31.81.10"
 
@@ -21,6 +25,10 @@ Vagrant.configure("2") do |config|
   end
 
 
+
+  # only for 18.04 (ansible complains about python3 missing in 18.04)
+  config.vm.provision "shell", inline: "apt-get install -y python3=3.6.7-1~18.04"
+  config.vm.provision "shell", inline: "update-alternatives --install /usr/bin/python3 python /usr/bin/python3.6 20"
 
   config.vm.provision "os", type: "ansible" do |ansible|
     ansible.playbook = "ansible/waggle_os.yml"

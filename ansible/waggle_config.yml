@@ -40,16 +40,16 @@
         name: k3s
 
     # speed-up, otherwise have to wait up to 3 minutes
-    - name: Restart sagebk-registration.service
-      systemd:
-        state: restarted
-        name: sagebk-registration.service
+    #- name: Restart sagebk-registration.service
+    #  systemd:
+    #    state: restarted
+    #    name: sagebk-registration.service
 
     # speed-up, otherwise have to wait up to 3 minute
-    - name: Restart sagebk-reverse-tunnel.service
-      systemd:
-        state: restarted
-        name: sagebk-reverse-tunnel.service
+    #- name: Restart sagebk-reverse-tunnel.service
+    #  systemd:
+    #    state: restarted
+    #    name: sagebk-reverse-tunnel.service
 
 
     - name: Wait for nodes to be ready
