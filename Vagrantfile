@@ -29,6 +29,7 @@ Vagrant.configure("2") do |config|
   # only for 18.04 (ansible complains about python3 missing in 18.04)
   config.vm.provision "shell", inline: "apt-get install -y python3=3.6.7-1~18.04"
   config.vm.provision "shell", inline: "update-alternatives --install /usr/bin/python3 python /usr/bin/python3.6 20"
+  config.vm.provision "shell", inline: "update-alternatives --install /usr/bin/python python3 /usr/bin/python3.6 20"
 
   config.vm.provision "os", type: "ansible" do |ansible|
     ansible.playbook = "ansible/waggle_os.yml"
@@ -36,7 +37,7 @@ Vagrant.configure("2") do |config|
     ansible.verbose = true
     ansible.extra_vars = {      
       beekeeper_registration_host: "10.0.2.2" ,  # used in /etc/waggle/config.ini
-      beekeeper_registration_port: "20022" ,  # used in /etc/waggle/config.ini
+      beekeeper_registration_port: "20022"   # used in /etc/waggle/config.ini
     }
   end
 
