@@ -82,3 +82,14 @@ vagrant ssh
 sudo -i
 waggle-list-services 
 ```
+
+
+## Reverse ssh tunnel
+
+To access vagrant via reverse ssh tunnel from within beekeeper:
+
+```bash
+docker exec -it beekeeper_bk-sshd_1 /bin/bash
+ssh -o 'ProxyCommand=socat UNIX:/home_dirs/ep-0000000000000001/rtun.sock -' vagrant@foo
+#password: vagrant
+```
