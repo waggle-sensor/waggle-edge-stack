@@ -13,12 +13,25 @@ spec:
     spec:
       containers:
       - name: data-sharing-service
-        image: waggle/data-sharing-service
-        # TODO use a proper service password
-        args: ["amqp://service:service@rabbitmq-server"]
+        image: waggle/data-sharing-service:0.0.1
         envFrom:
         - configMapRef:
             name: waggle-config
+        env:
+        - name: RABBITMQ_HOST
+          value: "rabbitmq-server"
+        - name: RABBITMQ_PORT
+          value: "5672"
+        - name: RABBITMQ_USERNAME
+          valueFrom:
+            secretKeyRef:
+              name: rabbitmq-service-account-secret
+              key: USERNAME
+        - name: RABBITMQ_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: rabbitmq-service-account-secret
+              key: PASSWORD
         resources:
           limits:
             cpu: 200m
@@ -26,3 +39,4 @@ spec:
           requests:
             cpu: 100m
             memory: 10Mi
+
