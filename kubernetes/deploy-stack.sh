@@ -84,7 +84,7 @@ EOF
 
 # TODO this may not be secure over the network. check this later.
 echo "updating rabbitmq service account"
-while ! kubectl exec --stdin service/rabbitmq-server -- true; do
+while ! kubectl exec --stdin service/rabbitmq-server -- rabbitmqctl list_users; do
   echo "waiting for rabbitmq server"
   sleep 3
 done
