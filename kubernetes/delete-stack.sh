@@ -6,6 +6,7 @@ kubectl delete -f playback-server
 kubectl delete -f rabbitmq-server
 kubectl delete -f beehive-upload-server
 kubectl delete -f data-sharing-service.yaml
+kubectl delete -f node-exporter.yaml
 
 # delete config and secrets
 kubectl delete configmap waggle-config
