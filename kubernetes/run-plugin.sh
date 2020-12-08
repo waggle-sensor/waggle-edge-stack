@@ -70,9 +70,15 @@ spec:
         volumeMounts:
           - name: uploads
             mountPath: /run/waggle/uploads
+          - name: waggle-data-config
+            mountPath: /run/waggle/data-config.json
+            subPath: data-config.json
       volumes:
       - name: uploads
         hostPath:
           path: /media/plugin-data/uploads/${plugin_name}/${plugin_version}
           type: DirectoryOrCreate
+      - name: waggle-data-config
+        configMap:
+          name: waggle-data-config
 EOF

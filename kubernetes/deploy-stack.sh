@@ -1,21 +1,8 @@
 #!/bin/bash -e
 
-# defines made up credentials for testing. this includes:
-# * Node ID
-# * Upload server hostname
-# * CA pubkey
-# * Node SSH key pair
-# * Signed Node SSH cert
-
-export WAGGLE_NODE_ID=${WAGGLE_NODE_ID:-0000000000000001}
-echo "WAGGLE_NODE_ID: $WAGGLE_NODE_ID"
-
-export WAGGLE_BEEHIVE_HOST=${WAGGLE_BEEHIVE_HOST:-beehive1.mcs.anl.gov}
-echo "WAGGLE_BEEHIVE_HOST: $WAGGLE_BEEHIVE_HOST"
-
-# generate node configmap
-echo "generating waggle-config"
-kubectl apply -f - <<EOF
+create_waggle_config() {
+  echo "creating waggle config"
+  kubectl apply -f - <<EOF
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -24,6 +11,22 @@ data:
   WAGGLE_NODE_ID: "$WAGGLE_NODE_ID"
   WAGGLE_BEEHIVE_HOST: "WAGGLE_BEEHIVE_HOST"
 EOF
+}
+
+create_waggle_data_config() {
+  echo "creating waggle data config"
+  (kubectl delete configmap waggle-data-config || true) &>/dev/null
+  kubectl create configmap waggle-data-config --from-file=data-config.json=data-config.json
+}
+
+export WAGGLE_NODE_ID=${WAGGLE_NODE_ID:-0000000000000001}
+echo "WAGGLE_NODE_ID=$WAGGLE_NODE_ID"
+
+export WAGGLE_BEEHIVE_HOST=${WAGGLE_BEEHIVE_HOST:-beehive1.mcs.anl.gov}
+echo "WAGGLE_BEEHIVE_HOST=$WAGGLE_BEEHIVE_HOST"
+
+create_waggle_config
+create_waggle_data_config
 
 (
 echo "generating test ssh credentials"
