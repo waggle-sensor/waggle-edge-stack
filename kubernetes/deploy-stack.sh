@@ -7,11 +7,17 @@
 # * Node SSH key pair
 # * Signed Node SSH cert
 
+export WAGGLE_NODE_ID=${WAGGLE_NODE_ID:-0000000000000001}
+echo "WAGGLE_NODE_ID: $WAGGLE_NODE_ID"
+
+export WAGGLE_BEEHIVE_HOST=${WAGGLE_BEEHIVE_HOST:-beehive1.mcs.anl.gov}
+echo "WAGGLE_BEEHIVE_HOST: $WAGGLE_BEEHIVE_HOST"
+
+(
+echo "generating test ssh credentials"
 tempdir=$(mktemp -d)
 cd "$tempdir"
 echo "working in $(pwd)"
-
-WAGGLE_NODE_ID="0000000000000001"
 
 # generate node configmap
 kubectl apply -f - <<EOF
@@ -21,7 +27,7 @@ metadata:
   name: waggle-config
 data:
   WAGGLE_NODE_ID: "$WAGGLE_NODE_ID"
-  WAGGLE_BEEHIVE_HOST: "beehive1.mcs.anl.gov"
+  WAGGLE_BEEHIVE_HOST: "WAGGLE_BEEHIVE_HOST"
 EOF
 
 # generate test ca key pair
@@ -56,8 +62,12 @@ kubectl create secret generic beehive-upload-server-secret \
   --from-file=ssh-host-key=upload-server-host-key \
   --from-file=ssh-host-key.pub=upload-server-host-key.pub \
   --from-file=ssh-host-key-cert.pub=upload-server-host-key-cert.pub
+)
 
-# generate local rabbitmq service account credentials
+echo "creating rabbitmq server"
+kubectl apply -f rabbitmq-server
+
+echo "generating rabbitmq service account credentials"
 username=service
 password=$(openssl rand -hex 12)
 
@@ -68,6 +78,28 @@ metadata:
   name: rabbitmq-service-account-secret
 type: Opaque
 stringData:
-    USERNAME: "${username}"
-    PASSWORD: "${password}"
+    USERNAME: "$username"
+    PASSWORD: "$password"
 EOF
+
+# TODO this may not be secure over the network. check this later.
+echo "updating rabbitmq service account"
+while ! kubectl exec --stdin service/rabbitmq-server -- true; do
+  echo "waiting for rabbitmq server"
+  sleep 3
+done
+
+kubectl exec --stdin service/rabbitmq-server -- sh -s <<EOF
+while ! rabbitmqctl -q authenticate_user "$username" "$password"; do
+  echo "refreshing credentials for \"$username\""
+  rabbitmqctl -q add_user "$username" "$password" || \
+  rabbitmqctl -q change_password "$username" "$password"
+done
+EOF
+
+# setup shovel using credentials.
+echo "enabling shovels for $WAGGLE_NODE_ID to $WAGGLE_BEEHIVE_HOST"
+while ! WAGGLE_NODE_ID="$WAGGLE_NODE_ID" WAGGLE_BEEHIVE_HOST="$WAGGLE_BEEHIVE_HOST" NODE_RABBITMQ_USERNAME="$username" NODE_RABBITMQ_PASSWORD="$password" python3 shovelctl.py enable; do
+  echo "failed to update shovel"
+  sleep 3
+done
