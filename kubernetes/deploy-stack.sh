@@ -13,13 +13,8 @@ echo "WAGGLE_NODE_ID: $WAGGLE_NODE_ID"
 export WAGGLE_BEEHIVE_HOST=${WAGGLE_BEEHIVE_HOST:-beehive1.mcs.anl.gov}
 echo "WAGGLE_BEEHIVE_HOST: $WAGGLE_BEEHIVE_HOST"
 
-(
-echo "generating test ssh credentials"
-tempdir=$(mktemp -d)
-cd "$tempdir"
-echo "working in $(pwd)"
-
 # generate node configmap
+echo "generating waggle-config"
 kubectl apply -f - <<EOF
 apiVersion: v1
 kind: ConfigMap
@@ -29,6 +24,14 @@ data:
   WAGGLE_NODE_ID: "$WAGGLE_NODE_ID"
   WAGGLE_BEEHIVE_HOST: "WAGGLE_BEEHIVE_HOST"
 EOF
+
+(
+echo "generating test ssh credentials"
+
+# ensure temp dir exists and is empty
+mkdir -p .tmp
+rm -f .tmp/*
+cd .tmp
 
 # generate test ca key pair
 ssh-keygen -C "Beekeeper CA Key" -N "" -f ca
@@ -62,6 +65,9 @@ kubectl create secret generic beehive-upload-server-secret \
   --from-file=ssh-host-key=upload-server-host-key \
   --from-file=ssh-host-key.pub=upload-server-host-key.pub \
   --from-file=ssh-host-key-cert.pub=upload-server-host-key-cert.pub
+
+# cleanup tempdir
+rm -rf .tmp
 )
 
 echo "creating rabbitmq server"
@@ -104,16 +110,15 @@ while ! WAGGLE_NODE_ID="$WAGGLE_NODE_ID" WAGGLE_BEEHIVE_HOST="$WAGGLE_BEEHIVE_HO
   sleep 3
 done
 
-echo "deploying rest of noode stack"
+echo "deploying rest of node stack"
 kubectl apply -f node-upload-agent.yaml
 kubectl apply -f playback-server
 kubectl apply -f data-sharing-service.yaml
 kubectl apply -f node-exporter.yaml
 
-echo "deploying up"
+# upload server deployment - should be moved into a "deploy-beehive" script
+echo "deploying upload server"
 kubectl apply -f beehive-upload-server
-
-echo "adding user to upload server"
 
 add_user_to_upload_server() {
   username="$1"
@@ -124,6 +129,7 @@ true
 EOF
 }
 
+echo "adding user to upload server"
 while ! add_user_to_upload_server "node$WAGGLE_NODE_ID"; do
   sleep 3
 done
