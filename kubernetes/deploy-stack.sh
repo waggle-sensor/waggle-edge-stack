@@ -103,3 +103,27 @@ while ! WAGGLE_NODE_ID="$WAGGLE_NODE_ID" WAGGLE_BEEHIVE_HOST="$WAGGLE_BEEHIVE_HO
   echo "failed to update shovel"
   sleep 3
 done
+
+echo "deploying rest of noode stack"
+kubectl apply -f node-upload-agent.yaml
+kubectl apply -f playback-server
+kubectl apply -f data-sharing-service.yaml
+kubectl apply -f node-exporter.yaml
+
+echo "deploying up"
+kubectl apply -f beehive-upload-server
+
+echo "adding user to upload server"
+
+add_user_to_upload_server() {
+  username="$1"
+  kubectl exec --stdin deployment/beehive-upload-server -- sh -s <<EOF
+adduser -D -g "" "$username"
+passwd -u "$username"
+true
+EOF
+}
+
+while ! add_user_to_upload_server "node$WAGGLE_NODE_ID"; do
+  sleep 3
+done
