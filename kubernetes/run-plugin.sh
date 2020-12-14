@@ -40,6 +40,7 @@ spec:
     metadata:
       labels:
         app: ${plugin_name}
+        waggle/kind: plugin
     spec:
       containers:
       - image: ${plugin_image}
