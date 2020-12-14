@@ -42,7 +42,9 @@ ssh-keygen -C "Beekeeper CA Key" -N "" -f ca
 # generate and sign node ssh key
 # do we need different access between beekeeper and the upload server??
 ssh-keygen -C "Node SSH Key" -N "" -f node-ssh-key
-ssh-keygen -s ca \
+ssh-keygen \
+    -s ca \
+    -t rsa-sha2-256 \
     -I "Waggle Upload Key" \
     -n "node$WAGGLE_NODE_ID" \
     -V "-5m:+365d" \
@@ -56,7 +58,9 @@ kubectl create secret generic waggle-secret \
 
 # generate and sign upload server host key
 ssh-keygen -C "Upload Server Key" -N "" -f upload-server-host-key
-ssh-keygen -s ca \
+ssh-keygen \
+    -s ca \
+    -t rsa-sha2-256 \
     -I "Upload Server Key" \
     -n "beehive-upload-server" \
     -V "-5m:+365d" \
@@ -68,9 +72,6 @@ kubectl create secret generic beehive-upload-server-secret \
   --from-file=ssh-host-key=upload-server-host-key \
   --from-file=ssh-host-key.pub=upload-server-host-key.pub \
   --from-file=ssh-host-key-cert.pub=upload-server-host-key-cert.pub
-
-# cleanup tempdir
-rm -rf .tmp
 )
 
 echo "creating rabbitmq server"
