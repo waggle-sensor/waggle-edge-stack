@@ -74,6 +74,17 @@ kubectl create secret generic beehive-upload-server-secret \
   --from-file=ssh-host-key-cert.pub=upload-server-host-key-cert.pub
 )
 
+(kubectl delete secret waggle-shovel-secret || true) &>/dev/null
+if ls /etc/waggle/cacert.pem /etc/waggle/cert.pem /etc/waggle/key.pem; then
+  echo "adding rabbitmq shovel credentials in /etc/waggle to secret"
+  kubectl create secret generic waggle-shovel-secret \
+    --from-file=cacert.pem=/etc/waggle/cacert.pem \
+    --from-file=cert.pem=/etc/waggle/cert.pem \
+    --from-file=key.pem=/etc/waggle/key.pem
+else
+  echo "rabbitmq shovel credentials not found - will run in local mode only"
+fi
+
 echo "creating rabbitmq server"
 kubectl apply -f rabbitmq-server
 

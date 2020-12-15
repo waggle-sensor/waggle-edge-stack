@@ -24,10 +24,11 @@ spec:
         - configMapRef:
             name: waggle-config
         volumeMounts:
-        - name: waggle-secret
+        - name: waggle-shovel-secret
           mountPath: /etc/waggle
           readOnly: true
       volumes:
-      - name: waggle-secret
+      - name: waggle-shovel-secret
         secret:
-          secretName: waggle-secret
+          secretName: waggle-shovel-secret
+          optional: true
