@@ -6,7 +6,7 @@ metadata:
 spec:
   podSelector:
     matchLabels:
-      waggle/kind: plugin
+      role: plugin
   policyTypes:
   - Ingress
   - Egress
