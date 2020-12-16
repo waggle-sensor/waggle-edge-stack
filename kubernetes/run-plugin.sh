@@ -26,6 +26,9 @@ done
 rabbitmqctl set_permissions ${plugin_username} ".*" ".*" ".*"
 EOF
 
+# ensure plugin network policy is in place
+kubectl apply -f plugin-network-policy.yaml
+
 # apply deployment config
 kubectl apply -f - <<EOF
 apiVersion: apps/v1
