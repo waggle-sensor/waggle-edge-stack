@@ -1,16 +1,37 @@
 #!/bin/bash -e
 
-if [ -z "$1" ] || [ -z "$2" ]; then
-  echo "usage: $0 plugin-name plugin-version"
-  echo "example: $0 plugin-test-pipeline 0.0.2"
-  echo
-  echo "note: assumes image follows \"docker.io/waggle/plugin-name:plugin-version\" for now"
+fatal() {
+  echo $*
+  exit 1
+}
+
+if [ -z "$1" ]; then
+  echo "usage: $0 plugin-image"
+  echo "example: "
   exit 1
 fi
 
-plugin_name="$1"
-plugin_version="$2"
-plugin_image="docker.io/waggle/${plugin_name}:${plugin_version}"
+plugin_image="$1"
+
+# if no namespace provided, assume docker.io/waggle
+case $(dirname $plugin_image) in
+.) plugin_image="docker.io/waggle/${plugin_image}" ;;
+esac
+
+if ! echo "$plugin_image" | grep -q ":"; then
+  fatal "plugin image tag is required"
+fi
+
+plugin_name=$(basename $1 | sed -e 's/:.*//')
+if [ -z "$plugin_name" ]; then
+  fatal "plugin name is required"
+fi
+
+plugin_version=$(basename $1 | sed -e 's/.*://')
+if [ -z "$plugin_version" ]; then
+  fatal "plugin version is required"
+fi
+
 plugin_username="${plugin_name}-${plugin_version}"
 plugin_password="averysecurepassword"
 
