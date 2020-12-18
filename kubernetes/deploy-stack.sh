@@ -118,14 +118,8 @@ while ! rabbitmqctl -q authenticate_user "$username" "$password"; do
 done
 EOF
 
-# setup shovel using credentials.
-echo "enabling shovels for $WAGGLE_NODE_ID to $WAGGLE_BEEHIVE_HOST"
-while ! WAGGLE_NODE_ID="$WAGGLE_NODE_ID" WAGGLE_BEEHIVE_HOST="$WAGGLE_BEEHIVE_HOST" NODE_RABBITMQ_USERNAME="$username" NODE_RABBITMQ_PASSWORD="$password" python3 shovelctl.py enable; do
-  echo "failed to update shovel"
-  sleep 3
-done
-
 echo "deploying rest of node stack"
+kubectl apply -f data-shovel-push.yaml
 kubectl apply -f node-upload-agent.yaml
 kubectl apply -f playback-server
 kubectl apply -f data-sharing-service.yaml

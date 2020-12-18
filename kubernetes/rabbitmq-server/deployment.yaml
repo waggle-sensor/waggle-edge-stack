@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
       - name: rabbitmq-server
-        image: waggle/node-rabbitmq-server:0.0.1
+        image: waggle/node-rabbitmq-server:0.0.2
         # command: ['/bin/sh', '-c']
         # args: ['rm -rf /etc/waggle; cp -r /etc/certs /etc/waggle; chown -R rabbitmq:rabbitmq /etc/waggle/; chown -R rabbitmq:rabbitmq /etc/rabbitmq/; /docker-entrypoint.sh rabbitmq-server']
         ports:
