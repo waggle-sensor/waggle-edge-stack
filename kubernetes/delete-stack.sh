@@ -1,6 +1,7 @@
 #!/bin/bash
 
 # delete services
+kubectl delete -f data-shovel-push.yaml
 kubectl delete -f node-upload-agent.yaml
 kubectl delete -f playback-server
 kubectl delete -f rabbitmq-server
