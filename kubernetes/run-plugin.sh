@@ -47,8 +47,10 @@ done
 rabbitmqctl set_permissions ${plugin_username} ".*" ".*" ".*"
 EOF
 
+# NOTE this policy currently breaks the ability for plugins to talk to cameras
+# we need to fix this.
 # ensure plugin network policy is in place
-kubectl apply -f plugin-network-policy.yaml
+#kubectl apply -f plugin-network-policy.yaml
 
 # apply deployment config
 kubectl apply -f - <<EOF
@@ -71,7 +73,7 @@ spec:
         name: ${plugin_name}
         env:
         - name: WAGGLE_PLUGIN_NAME
-          value: "${plugin_name}"
+          value: "${plugin_name}:${plugin_version}"
         - name: WAGGLE_PLUGIN_VERSION
           value: "${plugin_version}"
         - name: WAGGLE_PLUGIN_USERNAME
