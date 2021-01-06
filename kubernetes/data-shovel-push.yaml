@@ -13,7 +13,10 @@ spec:
     spec:
       containers:
       - name: data-shovel-push
-        image: waggle/data-shovel:0.0.1
+        image: waggle/data-shovel:0.0.2
+        envFrom:
+        - configMapRef:
+            name: waggle-config
         env:
         # src params
         - name: SRC_HOST
