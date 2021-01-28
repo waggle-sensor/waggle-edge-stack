@@ -7,9 +7,7 @@
   #remote_user: root
 
   vars:
-    REGISTRATION_VERSION: 2.1.1
-    REGISTRATION_SHA1: 1097639
-    REGISTRATION_BUILD_ID: "local"
+    REGISTRATION_VERSION: 2.1.3
 
     REV_TUNNEL_VERSION: 2.1.1
     REV_TUNNEL_SHA1: 1097639
@@ -36,7 +34,7 @@
       name:
         - systemd-sysv=245.4-4ubuntu3.3  # is that a good idea? what if another version comes pre-installed ??
         - python3=3.8.2-0ubuntu2
-        - python3-pip=20.0.2-5ubuntu1.1
+        #- python3-pip=20.0.2-5ubuntu1.1
         - python3-venv=3.8.2-0ubuntu2  # what package needs this ?
       state: present
     when:
@@ -45,9 +43,9 @@
   - name: Install ubuntu packages
     apt:
       name:
-        - systemd-sysv=237-3ubuntu10.43  # is that a good idea? what if another version comes pre-installed ??
+        - systemd-sysv=237-3ubuntu10.44  # is that a good idea? what if another version comes pre-installed ??
         - python3=3.6.7-1~18.04
-        - python3-pip=9.0.1-2.3~ubuntu1.18.04.4
+        #- python3-pip=9.0.1-2.3~ubuntu1.18.04.4
         - python3-venv=3.6.7-1~18.04  # what package needs this ?
       state: present
     when:
@@ -180,19 +178,19 @@
 
   - name: Download waggle-registration service
     get_url:
-       url: "https://github.com/waggle-sensor/beekeeper-registration/releases/download/v{{REGISTRATION_VERSION}}/sagebk-registration_{{REGISTRATION_VERSION}}.{{REGISTRATION_BUILD_ID}}-{{REGISTRATION_SHA1}}_all.deb"
-       dest: "/tmp/sagebk-registration_{{REGISTRATION_VERSION}}.{{REGISTRATION_BUILD_ID}}-{{REGISTRATION_SHA1}}_all.deb"
+       url: "https://github.com/waggle-sensor/beekeeper-registration/releases/download/v{{REGISTRATION_VERSION}}/waggle-registration_{{REGISTRATION_VERSION}}_all.deb"
+       dest: "/tmp/waggle-registration_{{REGISTRATION_VERSION}}_all.deb"
 
   
-  #- name: Install waggle-registration service (but do not start)
-  #  apt:
-  #    deb: "/tmp/sagebk-registration_{{REGISTRATION_VERSION}}.{{REGISTRATION_BUILD_ID}}-{{REGISTRATION_SHA1}}_all.deb"
-  #    policy_rc_d: 101
+  - name: Install waggle-registration service (but do not start)
+    apt:
+      deb: "/tmp/waggle-registration_{{REGISTRATION_VERSION}}_all.deb"
+      policy_rc_d: 101
 
-  - name: Download waggle-reverse-tunnel service
-    get_url:
-       url: "https://github.com/waggle-sensor/beekeeper-registration/releases/download/v{{REV_TUNNEL_VERSION}}/sagebk-reverse-tunnel_{{REV_TUNNEL_VERSION}}.{{REV_TUNNEL_BUILD_ID}}-{{REV_TUNNEL_SHA1}}_all.deb"
-       dest: "/tmp/sagebk-reverse-tunnel_{{REV_TUNNEL_VERSION}}.{{REV_TUNNEL_BUILD_ID}}-{{REV_TUNNEL_SHA1}}_all.deb"
+  #- name: Download waggle-reverse-tunnel service
+  #  get_url:
+  #     url: "https://github.com/waggle-sensor/beekeeper-registration/releases/download/v{{REV_TUNNEL_VERSION}}/sagebk-reverse-tunnel_{{REV_TUNNEL_VERSION}}.{{REV_TUNNEL_BUILD_ID}}-{{REV_TUNNEL_SHA1}}_all.deb"
+  #     dest: "/tmp/sagebk-reverse-tunnel_{{REV_TUNNEL_VERSION}}.{{REV_TUNNEL_BUILD_ID}}-{{REV_TUNNEL_SHA1}}_all.deb"
 
   
   #- name: Install waggle-reverse-tunnel service (but do not start)
@@ -201,24 +199,24 @@
   #    policy_rc_d: 101
 
   # TODO remove (this should be in debian package)
-  - name: install kubernetes python lib for sagebk-registration
-    pip: 
-      name: kubernetes==12.0.1
+  #- name: install kubernetes python lib for sagebk-registration
+  #  pip: 
+  #    name: kubernetes==12.0.1
 
 
   # TODO remove
-  - name: Get latest sagebk-registration (for testing purposes)
+  - name: Get latest waggle-registration.py (for testing purposes)
     get_url:
-      url: https://raw.githubusercontent.com/wgerlach/beekeeper-registration/master/ROOTFS/usr/bin/sagebk-registration
-      dest: /usr/bin/sagebk-registration
+      url: https://raw.githubusercontent.com/waggle-sensor/node-registration-service/master/waggle-registration.py
+      dest: /usr/bin/waggle-registration.py
       mode: '0755'
       force: yes
 
   # TODO remove
-  - name: Get latest sagebk-reverse-tunnel (for testing purposes)
+  - name: Get latest waggle-reverse-tunnel.sh (for testing purposes)
     get_url:
-      url: https://raw.githubusercontent.com/wgerlach/beekeeper-registration/master/ROOTFS/usr/bin/sagebk-reverse-tunnel
-      dest: /usr/bin/sagebk-reverse-tunnel
+      url: https://raw.githubusercontent.com/waggle-sensor/node-reverse-tunnel-service/main/waggle-reverse-tunnel.sh
+      dest: /usr/bin/waggle-reverse-tunnel.sh
       mode: '0755'
       force: yes
 
