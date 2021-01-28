@@ -1,16 +1,37 @@
 #!/bin/bash -e
 
-if [ -z "$1" ] || [ -z "$2" ]; then
-  echo "usage: $0 plugin-name plugin-version"
-  echo "example: $0 plugin-test-pipeline 0.0.2"
-  echo
-  echo "note: assumes image follows \"docker.io/waggle/plugin-name:plugin-version\" for now"
+fatal() {
+  echo $*
+  exit 1
+}
+
+if [ -z "$1" ]; then
+  echo "usage: $0 plugin-image"
+  echo "example: "
   exit 1
 fi
 
-plugin_name="$1"
-plugin_version="$2"
-plugin_image="docker.io/waggle/${plugin_name}:${plugin_version}"
+plugin_image="$1"
+
+# if no namespace provided, assume docker.io/waggle
+case $(dirname $plugin_image) in
+.) plugin_image="docker.io/waggle/${plugin_image}" ;;
+esac
+
+if ! echo "$plugin_image" | grep -q ":"; then
+  fatal "plugin image tag is required"
+fi
+
+plugin_name=$(basename $1 | sed -e 's/:.*//')
+if [ -z "$plugin_name" ]; then
+  fatal "plugin name is required"
+fi
+
+plugin_version=$(basename $1 | sed -e 's/.*://')
+if [ -z "$plugin_version" ]; then
+  fatal "plugin version is required"
+fi
+
 plugin_username="${plugin_name}-${plugin_version}"
 plugin_password="averysecurepassword"
 
@@ -26,6 +47,11 @@ done
 rabbitmqctl set_permissions ${plugin_username} ".*" ".*" ".*"
 EOF
 
+# NOTE this policy currently breaks the ability for plugins to talk to cameras
+# we need to fix this.
+# ensure plugin network policy is in place
+#kubectl apply -f plugin-network-policy.yaml
+
 # apply deployment config
 kubectl apply -f - <<EOF
 apiVersion: apps/v1
@@ -40,13 +66,14 @@ spec:
     metadata:
       labels:
         app: ${plugin_name}
+        role: plugin
     spec:
       containers:
       - image: ${plugin_image}
         name: ${plugin_name}
         env:
         - name: WAGGLE_PLUGIN_NAME
-          value: "${plugin_name}"
+          value: "${plugin_name}:${plugin_version}"
         - name: WAGGLE_PLUGIN_VERSION
           value: "${plugin_version}"
         - name: WAGGLE_PLUGIN_USERNAME
@@ -70,9 +97,15 @@ spec:
         volumeMounts:
           - name: uploads
             mountPath: /run/waggle/uploads
+          - name: waggle-data-config
+            mountPath: /run/waggle/data-config.json
+            subPath: data-config.json
       volumes:
       - name: uploads
         hostPath:
           path: /media/plugin-data/uploads/${plugin_name}/${plugin_version}
           type: DirectoryOrCreate
+      - name: waggle-data-config
+        configMap:
+          name: waggle-data-config
 EOF

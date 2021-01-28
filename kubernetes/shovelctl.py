@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 import argparse
 import json
 import re
@@ -18,11 +19,13 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s %(message)s', datefm
 WAGGLE_NODE_ID = os.environ['WAGGLE_NODE_ID']
 WAGGLE_BEEHIVE_HOST = os.environ['WAGGLE_BEEHIVE_HOST']
 
-NODE_RABBITMQ_SERVER_HOST = os.environ.get('NODE_RABBITMQ_SERVER_HOST', 'rabbitmq-server')
-NODE_RABBITMQ_SERVER_PORT = int(os.environ.get('NODE_RABBITMQ_SERVER_PORT', 15672))
+NODE_RABBITMQ_HOST = os.environ.get('NODE_RABBITMQ_HOST', 'rabbitmq-server')
+NODE_RABBITMQ_PORT = int(os.environ.get('NODE_RABBITMQ_PORT', '15672'))
+NODE_RABBITMQ_USERNAME = os.environ.get('NODE_RABBITMQ_USERNAME', 'service')
+NODE_RABBITMQ_PASSWORD = os.environ.get('NODE_RABBITMQ_PASSWORD', 'service')
 
 node_uri = (
-    f'amqp://service:service@{NODE_RABBITMQ_SERVER_HOST}'
+    f'amqp://{NODE_RABBITMQ_USERNAME}:{NODE_RABBITMQ_PASSWORD}@{NODE_RABBITMQ_HOST}:{NODE_RABBITMQ_PORT}'
 )
 
 beehive_username = f'node{WAGGLE_NODE_ID}'

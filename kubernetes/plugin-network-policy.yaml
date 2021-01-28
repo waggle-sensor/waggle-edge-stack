@@ -1,0 +1,32 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: plugin-network-policy
+  namespace: default
+spec:
+  podSelector:
+    matchLabels:
+      role: plugin
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  - from:
+    - podSelector:
+        matchLabels:
+          app: rabbitmq-server
+    ports:
+    - protocol: TCP
+      port: 5671
+    - protocol: TCP
+      port: 5672
+  egress:
+  - to:
+    - podSelector:
+        matchLabels:
+          app: rabbitmq-server
+    ports:
+    - protocol: TCP
+      port: 5671
+    - protocol: TCP
+      port: 5672

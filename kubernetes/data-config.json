@@ -1,0 +1,72 @@
+[
+    {
+        "name": "Bottom Camera Image",
+        "match": {
+            "id": "bottom_image",
+            "type": "camera/image",
+            "orientation": "bottom",
+            "resolution": "800x600"
+        },
+        "handler": {
+            "type": "image",
+            "args": {
+                "url": "http://playback:8090/bottom/image.jpg"
+            }
+        }
+    },
+    {
+        "name": "Top Camera Image",
+        "match": {
+            "id": "top_image",
+            "type": "camera/image",
+            "orientation": "top",
+            "resolution": "800x600"
+        },
+        "handler": {
+            "type": "image",
+            "args": {
+                "url": "http://playback:8090/top/image.jpg"
+            }
+        }
+    },
+    {
+        "name": "Bottom Camera Video",
+        "match": {
+            "id": "bottom_video",
+            "type": "camera/video",
+            "orientation": "bottom",
+            "resolution": "800x600"
+        },
+        "handler": {
+            "type": "video",
+            "args": {
+                "url": "http://playback:8090/bottom/live.mp4"
+            }
+        }
+    },
+    {
+        "name": "Top Camera Video",
+        "match": {
+            "id": "top_video",
+            "type": "camera/video",
+            "orientation": "top",
+            "resolution": "800x600"
+        },
+        "handler": {
+            "type": "video",
+            "args": {
+                "url": "http://playback:8090/top/live.mp4"
+            }
+        }
+    },
+    {
+        "name": "Random Debug Stream",
+        "match": {
+            "type": "debug/random"
+        },
+        "handler": {
+            "type": "random",
+            "args": {}
+        }
+    }
+]
