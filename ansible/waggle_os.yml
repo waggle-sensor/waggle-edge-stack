@@ -7,12 +7,10 @@
   #remote_user: root
 
   vars:
-    REGISTRATION_VERSION: 2.1.3
+    REGISTRATION_VERSION: 2.1.3  # see https://github.com/waggle-sensor/node-registration-service/releases
+    REV_TUNNEL_VERSION: 2.1.4  # see https://github.com/waggle-sensor/node-reverse-tunnel-service/releases
+    NODE_ID_SERVICE_VERSION: 1.0.0  # see https://github.com/waggle-sensor/waggle-nodeid/releases
 
-    REV_TUNNEL_VERSION: 2.1.1
-    REV_TUNNEL_SHA1: 1097639
-    REV_TUNNEL_BUILD_ID: "local"
-    
 
   tasks:
 
@@ -27,8 +25,8 @@
     community.general.locale_gen:
       name: en_US.UTF-8
       state: present
-    
- 
+
+
   - name: Install ubuntu packages
     apt:
       name:
@@ -60,14 +58,14 @@
         #- rsyslog
 
 
-      
+
 
   #- name: pip packages
   #  pip:
   #    name: openshift # needed for the community.kubernetes.k8s module
 
   # TODO remove !?
-  - name: Create directory /etc/sage/  
+  - name: Create directory /etc/sage/
     file:
       path: /etc/sage/
       state: directory
@@ -76,7 +74,7 @@
     file:
       path: /etc/waggle/
       state: directory
-  
+
 
   - name: disable ubuntu motd-news
     lineinfile:
@@ -110,7 +108,7 @@
       group: root
       mode: '0644'
     when: register_cert.stat.exists
-  
+
   - name: check private/register.pem
     become: no
     local_action: stat path=private/register.pem
@@ -141,14 +139,14 @@
     when: known_hosts.stat.exists
 
 
-  - fail: 
+  - fail:
       msg: "Bailing out: this play requires variable 'beekeeper_registration_host'"
     when: beekeeper_registration_host is not defined
 
-  - fail: 
+  - fail:
       msg: "Bailing out: this play requires variable 'beekeeper_registration_port'"
     when: beekeeper_registration_port is not defined
-  
+
 
 
   # note that further config entries will be added later in the config playbook
@@ -162,8 +160,8 @@
 
         # by default this should be generated from the mac-address of the network device
         # e.g. 0000000000000001
-        #node-id-override = 
-        
+        #node-id-override =
+
         [registration]
         host={{beekeeper_registration_host}}
         port={{beekeeper_registration_port}}
@@ -175,50 +173,64 @@
         # network-interface = {{ ansible_default_ipv4.interface }}
 
 
+  # node id service
+  - name: Download node id service
+    get_url:
+       url: "https://github.com/waggle-sensor/waggle-nodeid/releases/download/v{{NODE_ID_SERVICE_VERSION}}/waggle-nodeid_{{NODE_ID_SERVICE_VERSION}}_all.deb"
+       dest: "/tmp/waggle-nodeid_{{NODE_ID_SERVICE_VERSION}}_all.deb"
 
+  - name: Install node id service service (but do not start)
+    apt:
+      deb: "/tmp/waggle-nodeid_{{NODE_ID_SERVICE_VERSION}}_all.deb"
+      policy_rc_d: 101
+
+  # waggle-registration
   - name: Download waggle-registration service
     get_url:
        url: "https://github.com/waggle-sensor/beekeeper-registration/releases/download/v{{REGISTRATION_VERSION}}/waggle-registration_{{REGISTRATION_VERSION}}_all.deb"
        dest: "/tmp/waggle-registration_{{REGISTRATION_VERSION}}_all.deb"
 
-  
   - name: Install waggle-registration service (but do not start)
     apt:
       deb: "/tmp/waggle-registration_{{REGISTRATION_VERSION}}_all.deb"
       policy_rc_d: 101
 
-  #- name: Download waggle-reverse-tunnel service
-  #  get_url:
-  #     url: "https://github.com/waggle-sensor/beekeeper-registration/releases/download/v{{REV_TUNNEL_VERSION}}/sagebk-reverse-tunnel_{{REV_TUNNEL_VERSION}}.{{REV_TUNNEL_BUILD_ID}}-{{REV_TUNNEL_SHA1}}_all.deb"
-  #     dest: "/tmp/sagebk-reverse-tunnel_{{REV_TUNNEL_VERSION}}.{{REV_TUNNEL_BUILD_ID}}-{{REV_TUNNEL_SHA1}}_all.deb"
+  # waggle-reverse-tunnel
+  - name: Download waggle-reverse-tunnel service
+    get_url:
+       url: "https://github.com/waggle-sensor/node-reverse-tunnel-service/releases/download/v{{REV_TUNNEL_VERSION}}/waggle-reverse-tunnel_{{REV_TUNNEL_VERSION}}_all.deb"
+       dest: "/tmp/waggle-reverse-tunnel_{{REV_TUNNEL_VERSION}}_all.deb"
 
-  
-  #- name: Install waggle-reverse-tunnel service (but do not start)
-  #  apt:
-  #    deb: "/tmp/sagebk-reverse-tunnel_{{REV_TUNNEL_VERSION}}.{{REV_TUNNEL_BUILD_ID}}-{{REV_TUNNEL_SHA1}}_all.deb"
-  #    policy_rc_d: 101
+  - name: Install waggle-reverse-tunnel service (but do not start)
+    apt:
+      deb: "/tmp/waggle-reverse-tunnel_{{REV_TUNNEL_VERSION}}_all.deb"
+      policy_rc_d: 101
+
+
+
+
 
   # TODO remove (this should be in debian package)
   #- name: install kubernetes python lib for sagebk-registration
-  #  pip: 
+  #  pip:
   #    name: kubernetes==12.0.1
 
 
   # TODO remove
-  - name: Get latest waggle-registration.py (for testing purposes)
-    get_url:
-      url: https://raw.githubusercontent.com/waggle-sensor/node-registration-service/master/waggle-registration.py
-      dest: /usr/bin/waggle-registration.py
-      mode: '0755'
-      force: yes
+  #- name: Get latest waggle-registration.py (for testing purposes)
+  #  get_url:
+  #    url: https://raw.githubusercontent.com/waggle-sensor/node-registration-service/master/waggle-registration.py
+  #    dest: /usr/bin/waggle-registration.py
+  #    mode: '0755'
+  #    force: yes
 
   # TODO remove
-  - name: Get latest waggle-reverse-tunnel.sh (for testing purposes)
-    get_url:
-      url: https://raw.githubusercontent.com/waggle-sensor/node-reverse-tunnel-service/main/waggle-reverse-tunnel.sh
-      dest: /usr/bin/waggle-reverse-tunnel.sh
-      mode: '0755'
-      force: yes
+  #- name: Get latest waggle-reverse-tunnel.sh (for testing purposes)
+  #  get_url:
+  #    url: https://raw.githubusercontent.com/waggle-sensor/node-reverse-tunnel-service/main/waggle-reverse-tunnel.sh
+  #    dest: /usr/bin/waggle-reverse-tunnel.sh
+  #    mode: '0755'
+  #    force: yes
 
   # TODO remove
   #- name: Restart sagebk-registration.service
@@ -234,9 +246,9 @@
 
 
 
-  - name: waggle-list-services
+  - name: waggle-services-list
     copy:
-      dest: "/usr/local/bin/waggle-list-services"
+      dest: "/usr/local/bin/waggle-services-list"
       owner: root
       group: root
       mode: '0755'
@@ -275,6 +287,6 @@
         # ansible expects files in subfolder "files" (which does not exist), but we can get outside using "../"
         src: ../kubernetes
         dest: /opt/sage/
-     
-        
-        
+
+
+

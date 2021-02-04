@@ -19,7 +19,40 @@
         name: "{{timezone_internal}}"
       when: timezone_internal != "none"
     
-    
+    - name: Check if sage_registration exists
+      stat:
+        path: /etc/waggle/sage_registration
+      register: reg_key_file
+
+    - name: copy test keys (only if registration key does not exist)
+      copy:
+        src: "test-keys/{{item}}"
+        dest: /etc/waggle/
+        owner: root
+        group: root
+        mode: '0600'
+      loop:
+        - key.pem
+        - key.pem-cert.pub
+        - pubkey.pem
+      when: not reg_key_file.stat.exists
+
+    - name: Copy known_hosts (only if registration key does not exist)
+      copy:
+        src: test-keys/known_hosts
+        dest: /etc/ssh/ssh_known_hosts
+        owner: root
+        group: root
+        mode: '0644'
+      when: not reg_key_file.stat.exists
+
+    - name: node-id file
+      copy:
+        dest: "/etc/waggle/node-id"
+        content: |
+          ep-{{node_id}}
+      when: not reg_key_file.stat.exists
+
 
     - name: config.ini (note that this file is created in the "os" playbook)
       community.general.ini_file:
