@@ -7,8 +7,8 @@
   #remote_user: root
 
   vars:
-    REGISTRATION_VERSION: 2.1.3  # see https://github.com/waggle-sensor/node-registration-service/releases
-    REV_TUNNEL_VERSION: 2.1.4  # see https://github.com/waggle-sensor/node-reverse-tunnel-service/releases
+    REGISTRATION_VERSION: 2.1.4  # see https://github.com/waggle-sensor/node-registration-service/releases
+    REV_TUNNEL_VERSION: 2.1.5  # see https://github.com/waggle-sensor/node-reverse-tunnel-service/releases
     NODE_ID_SERVICE_VERSION: 1.0.0  # see https://github.com/waggle-sensor/waggle-nodeid/releases
 
 
