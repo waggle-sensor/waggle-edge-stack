@@ -7,11 +7,9 @@ timezone = ENV["TZ"]
 
 
 Vagrant.configure("2") do |config|
-  # Currently we use bionic64 (18.04) because NVIDIA software (NVIDIA JetPack) does not support newer ubuntu yet
-  config.vm.box = "hashicorp/bionic64"
 
-  #config.vm.box = "ubuntu/focal64"  # if you use 20.04, comment out the two shell provisioners below
-
+  config.vm.box = "waggle/waggle-node"
+  config.vm.box_version = "0.0.1"
 
   config.vm.hostname = "waggle-node"
   config.vm.network "private_network", ip: "10.31.81.10"
@@ -25,32 +23,15 @@ Vagrant.configure("2") do |config|
   end
 
 
-
-  # only for 18.04 (ansible complains about python3 missing in 18.04)
-  config.vm.provision "shell", inline: "apt-get install -y python3=3.6.7-1~18.04"
-  config.vm.provision "shell", inline: "update-alternatives --install /usr/bin/python3 python /usr/bin/python3.6 20"
-  config.vm.provision "shell", inline: "update-alternatives --install /usr/bin/python python3 /usr/bin/python3.6 20"
-
-  config.vm.provision "os", type: "ansible" do |ansible|
-    ansible.playbook = "ansible/waggle_os.yml"
-    ansible.compatibility_mode = "2.0"
-    ansible.verbose = true
-    ansible.extra_vars = {      
-      beekeeper_registration_host: "10.0.2.2" ,  # used in /etc/waggle/config.ini
-      beekeeper_registration_port: "20022"   # used in /etc/waggle/config.ini
-    }
-  end
-
-  # example: vagrant provision --provision-with config
   config.vm.provision "config", type: "ansible" do |ansible|
     ansible.playbook = "ansible/waggle_config.yml"
     ansible.compatibility_mode = "2.0"
     ansible.extra_vars = {
-      node_id: "0000000000000001" , 
-      timezone: timezone   
+      node_id: "0000000000000001" ,
+      timezone: timezone
     }
   end
 
 
-   
+
 end
