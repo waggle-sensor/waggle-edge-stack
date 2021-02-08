@@ -21,16 +21,16 @@ set -x
 
 vagrant up
 
-vagrant package --output waggle-node.box
+vagrant package --output waggle-node-${VERSION}.box
 vagrant destroy --force
 
 
 
 export BOXPATH=`pwd`
-sed -e "s/{{VERSION}}/${VERSION}/" -e "s'{{BOXPATH}}'${BOXPATH}'" ./metadata.json_template > ./metadata.json
+sed -e "s/{{VERSION}}/${VERSION}/" -e "s'{{BOXPATH}}'${BOXPATH}'" ./metadata.json_template > ./metadata-${VERSION}.json
 
 
-vagrant box add waggle/waggle-node metadata.json
+vagrant box add waggle/waggle-node ./metadata-${VERSION}.json
 
 vagrant box list
 

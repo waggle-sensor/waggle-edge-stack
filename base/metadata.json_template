@@ -6,7 +6,7 @@
       "providers": [
         {
           "name": "virtualbox",
-          "url": "file://{{BOXPATH}}/waggle-node.box"
+          "url": "file://{{BOXPATH}}/waggle-node-{{VERSION}}.box"
         }
       ]
     }

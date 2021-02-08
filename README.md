@@ -8,12 +8,20 @@ This repository contains:
 - a Vagrantfile that uses ansible to deploy the full waggle edge stack onto an ubuntu VM
 
 
+# Ansible files
+
+Ansible playbooks are used to a) create an waggle-node image with all required software and, b) to configure the image after the first boot. The playbooks used in the vagrant environment are the same as used later in production deployments of waggle nodes in the field.
+
+
 # Vagrant deployment
 
 The vagrant deployment mechanism is intended mainly for creation of a local testing environment.
 
 
-Requirements: [Vagrant](https://www.vagrantup.com/downloads) , [VirtualBox](https://www.virtualbox.org/wiki/Downloads), [Ansible](https://docs.ansible.com/ansible/latest/installation_guide/intro_installation.html#installing-ansible-with-pip)
+Requirements:
+  - [Vagrant](https://www.vagrantup.com/downloads)
+  - [VirtualBox](https://www.virtualbox.org/wiki/Downloads)
+  - [Ansible](https://docs.ansible.com/ansible/latest/installation_guide/intro_installation.html#installing-ansible-with-pip)
 
 
 Useful commands:
@@ -44,17 +52,6 @@ Also modify the Vagrantfile to enable usb passthrough.
 
 
 
-
-# Ansible
-
-Production deployments will be using ansible playbooks.
-
-1. Deploy software (e.g. to create ISO image)
-2. Deploy config (load config into running system
-
-
-
-
 # Advanced: Run beekeeper and connect vagrant waggle node
 
 ```bash
@@ -72,7 +69,7 @@ docker-compose up -d
 cd bk-config
 ./create_client_files.sh 10.0.2.2 20022 +1500m
 
-# copy registration key 
+# copy registration key
 cp known_hosts register.pem register.pem-cert.pub ~/git/waggle-edge-stack/ansible/private/
 
 # start vagrant waggle node
@@ -80,7 +77,7 @@ cd ~/git/waggle-edge-stack
 vagrant up
 vagrant ssh
 sudo -i
-waggle-list-services 
+waggle-list-services
 ```
 
 

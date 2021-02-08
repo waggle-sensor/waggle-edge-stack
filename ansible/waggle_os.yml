@@ -9,7 +9,7 @@
   vars:
     REGISTRATION_VERSION: 2.1.4  # see https://github.com/waggle-sensor/node-registration-service/releases
     REV_TUNNEL_VERSION: 2.1.5  # see https://github.com/waggle-sensor/node-reverse-tunnel-service/releases
-    NODE_ID_SERVICE_VERSION: 1.0.0  # see https://github.com/waggle-sensor/waggle-nodeid/releases
+    NODE_ID_SERVICE_VERSION: 1.0.2  # see https://github.com/waggle-sensor/waggle-nodeid/releases
     HOSTNAME_SERVICE: 1.0.0      # see https://github.com/waggle-sensor/node-hostname-service/releases
 
   tasks:
