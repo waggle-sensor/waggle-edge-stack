@@ -10,7 +10,7 @@
     REGISTRATION_VERSION: 2.1.4  # see https://github.com/waggle-sensor/node-registration-service/releases
     REV_TUNNEL_VERSION: 2.1.5  # see https://github.com/waggle-sensor/node-reverse-tunnel-service/releases
     NODE_ID_SERVICE_VERSION: 1.0.0  # see https://github.com/waggle-sensor/waggle-nodeid/releases
-
+    HOSTNAME_SERVICE: 1.0.0      # see https://github.com/waggle-sensor/node-hostname-service/releases
 
   tasks:
 
@@ -33,7 +33,7 @@
         - systemd-sysv=245.4-4ubuntu3.3  # is that a good idea? what if another version comes pre-installed ??
         - python3=3.8.2-0ubuntu2
         #- python3-pip=20.0.2-5ubuntu1.1
-        - python3-venv=3.8.2-0ubuntu2  # what package needs this ?
+        #- python3-venv=3.8.2-0ubuntu2  # what package needs this ?
       state: present
     when:
       - ansible_distribution_version == "20.04"
@@ -44,7 +44,7 @@
         - systemd-sysv=237-3ubuntu10.44  # is that a good idea? what if another version comes pre-installed ??
         - python3=3.6.7-1~18.04
         #- python3-pip=9.0.1-2.3~ubuntu1.18.04.4
-        - python3-venv=3.6.7-1~18.04  # what package needs this ?
+        #- python3-venv=3.6.7-1~18.04  # what package needs this ?
       state: present
     when:
       - ansible_distribution_version == "18.04"
@@ -179,10 +179,23 @@
        url: "https://github.com/waggle-sensor/waggle-nodeid/releases/download/v{{NODE_ID_SERVICE_VERSION}}/waggle-nodeid_{{NODE_ID_SERVICE_VERSION}}_all.deb"
        dest: "/tmp/waggle-nodeid_{{NODE_ID_SERVICE_VERSION}}_all.deb"
 
-  - name: Install node id service service (but do not start)
+  - name: Install node-id service (but do not start)
     apt:
       deb: "/tmp/waggle-nodeid_{{NODE_ID_SERVICE_VERSION}}_all.deb"
       policy_rc_d: 101
+
+  # hostname service
+  - name: Download hostname service
+    get_url:
+       url: "https://github.com/waggle-sensor/node-hostname-service/releases/download/v{{HOSTNAME_SERVICE}}/waggle-node-hostname_{{HOSTNAME_SERVICE}}_all.deb"
+       dest: "/tmp/waggle-node-hostname_{{HOSTNAME_SERVICE}}_all.deb"
+
+  - name: Install hostname service (but do not start)
+    apt:
+      deb: "/tmp/waggle-node-hostname_{{HOSTNAME_SERVICE}}_all.deb"
+      policy_rc_d: 101
+
+
 
   # waggle-registration
   - name: Download waggle-registration service
@@ -205,8 +218,6 @@
     apt:
       deb: "/tmp/waggle-reverse-tunnel_{{REV_TUNNEL_VERSION}}_all.deb"
       policy_rc_d: 101
-
-
 
 
 
@@ -254,7 +265,7 @@
       mode: '0755'
       content: |
         #!/bin/sh
-        systemctl list-units -t service --full --all --plain --no-legend | grep '^\(sage\|waggle\)'
+        systemctl list-units -t service --full --all --plain --no-legend | grep '^\(k3s\|waggle\)'
 
  # TODO: (if we keep it) prevent start at this point, start later
 - name: docker
@@ -277,7 +288,7 @@
     - name: install k3s (without starting)
       args:
         warn: false  # ansible is unhappy about curl
-      shell: curl -sfL https://get.k3s.io | INSTALL_K3S_SKIP_START=1 sh -
+      shell: curl -sfL https://get.k3s.io | INSTALL_K3S_SKIP_START=true sh -
       # INSTALL_K3S_SKIP_START this will prevent start of k3s
       # TODO: use INSTALL_K3S_VERSION
 
