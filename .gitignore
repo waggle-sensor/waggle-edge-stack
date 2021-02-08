@@ -1,4 +1,6 @@
 /ansible/private/
 /.vagrant/
 /base/waggle-node.box
+/base/waggle-node-*.box
 /base/metadata.json
+/base/metadata-*.json
