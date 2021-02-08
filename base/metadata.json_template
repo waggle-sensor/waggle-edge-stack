@@ -1,0 +1,14 @@
+{
+  "name": "waggle/waggle-node",
+  "versions": [
+    {
+      "version": "{{VERSION}}",
+      "providers": [
+        {
+          "name": "virtualbox",
+          "url": "file://{{BOXPATH}}/waggle-node.box"
+        }
+      ]
+    }
+  ]
+}
