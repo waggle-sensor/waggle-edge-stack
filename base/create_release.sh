@@ -17,6 +17,12 @@ if [ $(vagrant box list | grep waggle/waggle-node | grep "$VERSION" | wc -l) -ge
     exit 1
 fi
 
+
+if [ -e waggle-node-${VERSION}.box ] ; then
+    echo "File waggle-node-${VERSION}.box already exists."
+    exit 1
+fi
+
 set -x
 
 vagrant up
