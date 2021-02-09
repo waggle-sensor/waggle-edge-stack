@@ -33,7 +33,8 @@ Vagrant.configure("2") do |config|
     ansible.verbose = true
     ansible.extra_vars = {
       beekeeper_registration_host: "10.0.2.2" ,  # used in /etc/waggle/config.ini
-      beekeeper_registration_port: "20022"   # used in /etc/waggle/config.ini
+      beekeeper_registration_port: "20022" ,  # used in /etc/waggle/config.ini
+      nodeid_service_masked: "yes"       # this allows to change the node id after boot (not for production-use)
     }
   end
 
