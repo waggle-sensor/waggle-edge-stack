@@ -13,7 +13,7 @@ spec:
     spec:
       containers:
       - name: data-sharing-service
-        image: waggle/data-sharing-service:0.0.2
+        image: waggle/data-sharing-service:0.0.4
         envFrom:
         - configMapRef:
             name: waggle-config

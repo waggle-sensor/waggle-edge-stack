@@ -37,9 +37,9 @@ spec:
           value: "to-beehive"
         # dest params
         - name: DEST_HOST
-          value: "beehive1.mcs.anl.gov"
+          value: "10.31.81.200"
         - name: DEST_PORT
-          value: "23181"
+          value: "30000"
         - name: DEST_CACERTFILE
           value: "/etc/waggle/cacert.pem"
         - name: DEST_CERTFILE
@@ -47,7 +47,7 @@ spec:
         - name: DEST_KEYFILE
           value: "/etc/waggle/key.pem"
         - name: DEST_EXCHANGE
-          value: "messages"
+          value: "waggle.msg"
         resources:
           limits:
             cpu: 200m
