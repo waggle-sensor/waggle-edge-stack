@@ -3,11 +3,11 @@
   hosts: all
   become: yes
   #remote_user: root
-  vars: 
+  vars:
     timezone_internal: "none"
 
   tasks:
-    
+
 
     - name: set timezone variable if defined
       set_fact:
@@ -18,7 +18,7 @@
       timezone:
         name: "{{timezone_internal}}"
       when: timezone_internal != "none"
-    
+
     - name: Check if sage_registration exists
       stat:
         path: /etc/waggle/sage_registration
@@ -46,12 +46,12 @@
         mode: '0644'
       when: not reg_key_file.stat.exists
 
-    - name: node-id file
-      copy:
-        dest: "/etc/waggle/node-id"
-        content: |
-          ep-{{node_id}}
-      when: not reg_key_file.stat.exists
+    #- name: node-id file
+    #  copy:
+    #    dest: "/etc/waggle/node-id"
+    #    content: |
+    #      ep-{{node_id}}
+    #  when: not reg_key_file.stat.exists
 
 
     - name: config.ini (note that this file is created in the "os" playbook)
@@ -65,12 +65,36 @@
          - { section: 'system', option: 'devmode', value: 'true' }
          - { section: 'system', option: 'node-id-override', value: '{{node_id}}'  }
 
+    #- name: Pause for 1 second (waggle-nodeid reads too fast)
+    #  pause:
+    #    seconds: 1
 
 
-    - name: Make sure k3s is running
-      systemd:
-        state: started
-        name: k3s
+    - shell: cat "/etc/waggle/config.ini"
+      register: data
+
+    - debug: msg="the value of config.ini is {{data}}"
+
+    - name: Unmask waggle-nodeid.service
+      ansible.builtin.shell: |
+        if [ -e /etc/systemd/system/waggle-nodeid.service_disabled ] ; then
+          mv /etc/systemd/system/waggle-nodeid.service_disabled /etc/systemd/system/waggle-nodeid.service
+          systemctl daemon-reload
+          systemctl start waggle-nodeid.service
+        fi
+
+
+    # If this image was provisioned with vagrant, this service was masked. (To allow config of node_id)
+    #- name: Unmask waggle-nodeid.service
+    #  ansible.builtin.systemd:
+    #    name: waggle-nodeid.service
+    #    masked: no
+
+
+    #- name: Make sure k3s is running (this should happen automatically !?)
+    #  systemd:
+    #    state: started
+    #    name: k3s
 
     # speed-up, otherwise have to wait up to 3 minutes
     #- name: Restart sagebk-registration.service
@@ -88,8 +112,8 @@
     - name: Wait for nodes to be ready
       shell: "kubectl get nodes"
       register: nodes
-      until:      
-        - '" Ready "  in nodes.stdout'      
+      until:
+        - '" Ready "  in nodes.stdout'
       retries: 20
       delay: 2
 
@@ -106,4 +130,4 @@
 
 
     - name: load kubernetes resources
-      command: kubectl apply -k /opt/sage/kubernetes/    
+      command: kubectl apply -k /opt/sage/kubernetes/

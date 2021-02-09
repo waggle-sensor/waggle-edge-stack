@@ -7,10 +7,11 @@
   #remote_user: root
 
   vars:
-    REGISTRATION_VERSION: 2.1.4  # see https://github.com/waggle-sensor/node-registration-service/releases
-    REV_TUNNEL_VERSION: 2.1.5  # see https://github.com/waggle-sensor/node-reverse-tunnel-service/releases
-    NODE_ID_SERVICE_VERSION: 1.0.2  # see https://github.com/waggle-sensor/waggle-nodeid/releases
-    HOSTNAME_SERVICE: 1.0.0      # see https://github.com/waggle-sensor/node-hostname-service/releases
+    NODE_ID_SERVICE_VERSION: 1.0.5  # see https://github.com/waggle-sensor/waggle-nodeid/releases
+    REGISTRATION_VERSION: 2.1.8  # see https://github.com/waggle-sensor/node-registration-service/releases
+    REV_TUNNEL_VERSION: 2.1.6  # see https://github.com/waggle-sensor/node-reverse-tunnel-service/releases
+
+    #HOSTNAME_SERVICE: 1.0.1      # see https://github.com/waggle-sensor/node-hostname-service/releases
 
   tasks:
 
@@ -182,18 +183,28 @@
   - name: Install node-id service (but do not start)
     apt:
       deb: "/tmp/waggle-nodeid_{{NODE_ID_SERVICE_VERSION}}_all.deb"
-      policy_rc_d: 101
+
+
+  #- name: Mask waggle-nodeid.service
+  #  ansible.builtin.systemd:
+  #    name: waggle-nodeid.service
+  #    masked: yes
+  #  when: nodeid_service_masked == "yes"
+  - name: Aggressive way of "masking" waggle-nodeid.service
+    shell: |
+      mv /etc/systemd/system/waggle-nodeid.service /etc/systemd/system/waggle-nodeid.service_disabled
+      systemctl daemon-reload
+    when: nodeid_service_masked == "yes"
 
   # hostname service
-  - name: Download hostname service
-    get_url:
-       url: "https://github.com/waggle-sensor/node-hostname-service/releases/download/v{{HOSTNAME_SERVICE}}/waggle-node-hostname_{{HOSTNAME_SERVICE}}_all.deb"
-       dest: "/tmp/waggle-node-hostname_{{HOSTNAME_SERVICE}}_all.deb"
+  #- name: Download hostname service
+  #  get_url:
+  #     url: "https://github.com/waggle-sensor/node-hostname-service/releases/download/v{{HOSTNAME_SERVICE}}/waggle-node-hostname_{{HOSTNAME_SERVICE}}_all.deb"
+  #     dest: "/tmp/waggle-node-hostname_{{HOSTNAME_SERVICE}}_all.deb"
 
-  - name: Install hostname service (but do not start)
-    apt:
-      deb: "/tmp/waggle-node-hostname_{{HOSTNAME_SERVICE}}_all.deb"
-      policy_rc_d: 101
+  #- name: Install hostname service (but do not start)
+  #  apt:
+  #    deb: "/tmp/waggle-node-hostname_{{HOSTNAME_SERVICE}}_all.deb"
 
 
 
@@ -206,7 +217,6 @@
   - name: Install waggle-registration service (but do not start)
     apt:
       deb: "/tmp/waggle-registration_{{REGISTRATION_VERSION}}_all.deb"
-      policy_rc_d: 101
 
   # waggle-reverse-tunnel
   - name: Download waggle-reverse-tunnel service
@@ -217,7 +227,6 @@
   - name: Install waggle-reverse-tunnel service (but do not start)
     apt:
       deb: "/tmp/waggle-reverse-tunnel_{{REV_TUNNEL_VERSION}}_all.deb"
-      policy_rc_d: 101
 
 
 
