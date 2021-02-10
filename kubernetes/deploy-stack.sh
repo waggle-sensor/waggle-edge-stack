@@ -141,10 +141,6 @@ kubectl apply -f playback-server.yaml
 kubectl apply -f data-sharing-service.yaml
 kubectl apply -f node-exporter.yaml
 
-# upload server deployment - should be moved into a "deploy-beehive" script
-echo "deploying upload server"
-kubectl apply -f beehive-upload-server
-
 add_user_to_upload_server() {
   username="$1"
   kubectl exec --stdin deployment/beehive-upload-server -- sh -s <<EOF
