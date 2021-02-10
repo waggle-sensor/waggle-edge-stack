@@ -6,8 +6,8 @@ resources:
   - playback-server/deployment.yaml
   - playback-server/service.yaml
 
-  - rabbitmq-server/deployment.yaml
-  - rabbitmq-server/service.yaml
+  - rabbitmq/deployment.yaml
+  - rabbitmq/service.yaml
 
   - data-sharing-service.yaml
 

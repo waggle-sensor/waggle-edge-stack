@@ -14,7 +14,7 @@ spec:
   - from:
     - podSelector:
         matchLabels:
-          app: rabbitmq-server
+          app: rabbitmq
     ports:
     - protocol: TCP
       port: 5671
@@ -24,7 +24,7 @@ spec:
   - to:
     - podSelector:
         matchLabels:
-          app: rabbitmq-server
+          app: rabbitmq
     ports:
     - protocol: TCP
       port: 5671

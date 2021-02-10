@@ -19,7 +19,7 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s %(message)s', datefm
 WAGGLE_NODE_ID = os.environ['WAGGLE_NODE_ID']
 WAGGLE_BEEHIVE_HOST = os.environ['WAGGLE_BEEHIVE_HOST']
 
-NODE_RABBITMQ_HOST = os.environ.get('NODE_RABBITMQ_HOST', 'rabbitmq-server')
+NODE_RABBITMQ_HOST = os.environ.get('NODE_RABBITMQ_HOST', 'rabbitmq')
 NODE_RABBITMQ_PORT = int(os.environ.get('NODE_RABBITMQ_PORT', '15672'))
 NODE_RABBITMQ_USERNAME = os.environ.get('NODE_RABBITMQ_USERNAME', 'service')
 NODE_RABBITMQ_PASSWORD = os.environ.get('NODE_RABBITMQ_PASSWORD', 'service')
@@ -72,7 +72,7 @@ def enable_shovels():
     for name, config in configs.items():
         logging.info('enabling shovel %s', name)
         subprocess.check_output([
-            'kubectl', 'exec', 'service/rabbitmq-server', '--',
+            'kubectl', 'exec', 'service/rabbitmq', '--',
             'rabbitmqctl', 'set_parameter', 'shovel', name, json.dumps(config)
         ])
 
@@ -84,13 +84,13 @@ def disable_shovels():
     for name in configs.keys():
         logging.info('disabling shovel %s', name)
         subprocess.check_output([
-            'kubectl', 'exec', 'service/rabbitmq-server', '--',
+            'kubectl', 'exec', 'service/rabbitmq', '--',
             'rabbitmqctl', 'clear_parameter', 'shovel', name
         ])
     logging.info('disabled all shovels')
 
 def status():
-    subprocess.check_call(['kubectl', 'exec', 'service/rabbitmq-server', '--', 'rabbitmqctl', 'shovel_status'])
+    subprocess.check_call(['kubectl', 'exec', 'service/rabbitmq', '--', 'rabbitmqctl', 'shovel_status'])
 
 actions = {
     'enable': enable_shovels,

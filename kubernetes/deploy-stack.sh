@@ -86,7 +86,12 @@ else
 fi
 
 echo "creating rabbitmq server"
-kubectl apply -f rabbitmq-server
+kubectl create secret generic rabbitmq-config-secret \
+    --from-file=rabbitmq.conf=../config/rabbitmq/rabbitmq.conf \
+    --from-file=enabled_plugins=../config/rabbitmq/enabled_plugins \
+    --from-file=definitions.json=../config/rabbitmq/definitions.json
+
+kubectl apply -f rabbitmq.yaml
 
 echo "generating rabbitmq service account credentials"
 username=service
@@ -105,12 +110,12 @@ EOF
 
 # TODO this may not be secure over the network. check this later.
 echo "updating rabbitmq service account"
-while ! kubectl exec --stdin service/rabbitmq-server -- rabbitmqctl list_users; do
+while ! kubectl exec --stdin service/rabbitmq -- rabbitmqctl list_users; do
   echo "waiting for rabbitmq server"
   sleep 3
 done
 
-kubectl exec --stdin service/rabbitmq-server -- sh -s <<EOF
+kubectl exec --stdin service/rabbitmq -- sh -s <<EOF
 while ! rabbitmqctl -q authenticate_user "$username" "$password"; do
   echo "refreshing credentials for \"$username\""
   rabbitmqctl -q add_user "$username" "$password" || \

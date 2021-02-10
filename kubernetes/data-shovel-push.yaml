@@ -20,7 +20,7 @@ spec:
         env:
         # src params
         - name: SRC_HOST
-          value: "rabbitmq-server"
+          value: "rabbitmq"
         - name: SRC_PORT
           value: "5672"
         - name: SRC_USERNAME
