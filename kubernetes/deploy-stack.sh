@@ -113,16 +113,16 @@ kubectl apply -f playback-server.yaml
 kubectl apply -f data-sharing-service.yaml
 kubectl apply -f node-exporter.yaml
 
-add_user_to_upload_server() {
-  username="$1"
-  kubectl exec --stdin deployment/upload-server -- sh -s <<EOF
-adduser -D -g "" "$username"
-passwd -u "$username"
-true
-EOF
-}
+# add_user_to_upload_server() {
+#   username="$1"
+#   kubectl exec --stdin deployment/upload-server -- sh -s <<EOF
+# adduser -D -g "" "$username"
+# passwd -u "$username"
+# true
+# EOF
+# }
 
-echo "adding user to upload server"
-while ! add_user_to_upload_server "node$WAGGLE_NODE_ID"; do
-  sleep 3
-done
+# echo "adding user to upload server"
+# while ! add_user_to_upload_server "node$WAGGLE_NODE_ID"; do
+#   sleep 3
+# done
