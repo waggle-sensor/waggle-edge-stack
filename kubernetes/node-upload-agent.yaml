@@ -13,10 +13,6 @@ spec:
       labels:
         app.kubernetes.io/name: node-upload-agent
     spec:
-      hostAliases:
-        - ip: "10.31.81.200"
-          hostnames:
-          - "beehive-upload-server"
       containers:
       - image: waggle/node-upload-agent
         name: node-upload-agent
