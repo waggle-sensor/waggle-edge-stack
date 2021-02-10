@@ -86,6 +86,10 @@ else
 fi
 
 echo "creating rabbitmq server"
+if kubectl get secret rabbitmq-config-secret &> /dev/null; then
+  kubectl delete secret rabbitmq-config-secret
+fi
+
 kubectl create secret generic rabbitmq-config-secret \
     --from-file=rabbitmq.conf=../config/rabbitmq/rabbitmq.conf \
     --from-file=enabled_plugins=../config/rabbitmq/enabled_plugins \
