@@ -12,6 +12,11 @@
             "tags": ""
         },
         {
+            "name": "shovel",
+            "password": "shovel",
+            "tags": ""
+        },
+        {
             "name": "plugin",
             "password": "plugin",
             "tags": ""
@@ -36,6 +41,13 @@
             "configure": ".*",
             "write": ".*",
             "read": ".*"
+        },
+        {
+            "user": "shovel",
+            "vhost": "/",
+            "configure": "^$",
+            "write": "^$",
+            "read": "to-beehive"
         },
         {
             "user": "plugin",

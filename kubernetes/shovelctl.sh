@@ -4,11 +4,8 @@ enable_shovels() {
     nodeID=$(kubectl get cm waggle-config --template={{.data.WAGGLE_NODE_ID}})
     beehive_host=$(kubectl get cm waggle-config --template={{.data.WAGGLE_BEEHIVE_RABBITMQ_HOST}})
     beehive_port=$(kubectl get cm waggle-config --template={{.data.WAGGLE_BEEHIVE_RABBITMQ_PORT}})
-    username=$(kubectl get secret rabbitmq-service-account-secret --template={{.data.USERNAME}} | base64 -d)
-    password=$(kubectl get secret rabbitmq-service-account-secret --template={{.data.PASSWORD}} | base64 -d)
-
     kubectl exec -i svc/rabbitmq -- rabbitmqctl set_parameter shovel push-messages "{
-  \"src-uri\": \"amqp://${username}:${password}@rabbitmq\",
+  \"src-uri\": \"amqp://shovel:shovel@rabbitmq\",
   \"src-queue\": \"to-beehive\",
   \"dest-uri\": \"amqps://${beehive_host}:${beehive_port}?auth_mechanism=external&cacertfile=/etc/waggle/cacert.pem&certfile=/etc/waggle/cert.pem&keyfile=/etc/waggle/key.pem\",
   \"dest-exchange\": \"waggle.msg\",
