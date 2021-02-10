@@ -1,0 +1,25 @@
+
+- name: beekeerper config
+  hosts: all
+  become: yes
+
+  tasks:
+    - fail:
+        msg: "Bailing out: this play requires variable 'beekeeper_registration_host'"
+      when: beekeeper_registration_host is not defined
+
+    - fail:
+        msg: "Bailing out: this play requires variable 'beekeeper_registration_port'"
+      when: beekeeper_registration_port is not defined
+
+
+    - name: config.ini (note that this file is created in the "os" playbook)
+      community.general.ini_file:
+        path: /etc/waggle/config.ini
+        section: "{{ item.section }}"
+        option: "{{ item.option }}"
+        value: "{{ item.value }}"
+        mode: '0600'
+      loop:
+          - { section: 'registration', option: 'host', value: '{{beekeeper_registration_host}}' }
+          - { section: 'registration', option: 'port', value: '{{beekeeper_registration_port}}'  }

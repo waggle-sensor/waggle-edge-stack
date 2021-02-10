@@ -1,0 +1,65 @@
+
+# This playbook copies registration key files from the ansible/private directory
+
+- name: waggle_keys
+  hosts: all
+  become: yes
+
+  tasks:
+
+
+  - name: config.ini (note that this file is created in the "os" playbook)
+    community.general.ini_file:
+      path: /etc/waggle/config.ini
+      section: "{{ item.section }}"
+      option: "{{ item.option }}"
+      value: "{{ item.value }}"
+      mode: '0600'
+    loop:
+         - { section: 'registration', option: 'host', value: '{{beekeeper_registration_host}}' }
+         - { section: 'registration', option: 'port', value: '{{beekeeper_registration_port}}'  }
+
+
+  - name: check private/register.pem-cert.pub
+    become: no
+    local_action: stat path=private/register.pem-cert.pub
+    register: register_cert
+
+  - name: Copy register.pem-cert.pub if exists
+    copy:
+      src: private/register.pem-cert.pub
+      dest: /etc/waggle/sage_registration-cert.pub
+      owner: root
+      group: root
+      mode: '0644'
+    when: register_cert.stat.exists
+
+  - name: check private/register.pem
+    become: no
+    local_action: stat path=private/register.pem
+    register: register_pem
+
+  - name: Copy register.pem if exists
+    copy:
+      src: private/register.pem
+      dest: /etc/waggle/sage_registration
+      owner: root
+      group: root
+      mode: '0600'
+    when: register_pem.stat.exists
+
+  - name: check private/known_hosts
+    become: no
+    local_action: stat path=private/known_hosts
+    register: known_hosts
+
+  # TODO this may not be ideal as it would overwrite an existing file
+  - name: Copy known_hosts if exists
+    copy:
+      src: private/known_hosts
+      dest: /etc/ssh/ssh_known_hosts
+      owner: root
+      group: root
+      mode: '0644'
+    when: known_hosts.stat.exists
+

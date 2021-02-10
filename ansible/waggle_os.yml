@@ -1,17 +1,17 @@
 
-# this playbook mainly installs waggle software and is intended to be used to create a waggle OS image
+
+# This playbook mainly installs waggle software and is intended to be used to create a waggle OS image (production and/or public Vagrant box)
+
+# The ansible playbooks behave slight different between vagrant and production images. The public vagrant image should not contain a
+# registration key, while the private production image will. The default behavior of ansible playbooks is the production use-case, options in Vagrantfile
+# change the default behavior.
 
 - name: waggle_os
   hosts: all
   become: yes
   #remote_user: root
 
-  vars:
-    NODE_ID_SERVICE_VERSION: 1.0.5  # see https://github.com/waggle-sensor/waggle-nodeid/releases
-    REGISTRATION_VERSION: 2.1.8  # see https://github.com/waggle-sensor/node-registration-service/releases
-    REV_TUNNEL_VERSION: 2.1.6  # see https://github.com/waggle-sensor/node-reverse-tunnel-service/releases
 
-    #HOSTNAME_SERVICE: 1.0.1      # see https://github.com/waggle-sensor/node-hostname-service/releases
 
   tasks:
 
@@ -95,61 +95,6 @@
       group: root
       mode: '0755'
 
-
-  - name: check private/register.pem-cert.pub
-    become: no
-    local_action: stat path=private/register.pem-cert.pub
-    register: register_cert
-
-  - name: Copy register.pem-cert.pub if exists
-    copy:
-      src: private/register.pem-cert.pub
-      dest: /etc/waggle/sage_registration-cert.pub
-      owner: root
-      group: root
-      mode: '0644'
-    when: register_cert.stat.exists
-
-  - name: check private/register.pem
-    become: no
-    local_action: stat path=private/register.pem
-    register: register_pem
-
-  - name: Copy register.pem if exists
-    copy:
-      src: private/register.pem
-      dest: /etc/waggle/sage_registration
-      owner: root
-      group: root
-      mode: '0600'
-    when: register_pem.stat.exists
-
-  - name: check private/known_hosts
-    become: no
-    local_action: stat path=private/known_hosts
-    register: known_hosts
-
-  # TODO this may not be ideal as it would overwrite an existing file
-  - name: Copy known_hosts if exists
-    copy:
-      src: private/known_hosts
-      dest: /etc/ssh/ssh_known_hosts
-      owner: root
-      group: root
-      mode: '0644'
-    when: known_hosts.stat.exists
-
-
-  - fail:
-      msg: "Bailing out: this play requires variable 'beekeeper_registration_host'"
-    when: beekeeper_registration_host is not defined
-
-  - fail:
-      msg: "Bailing out: this play requires variable 'beekeeper_registration_port'"
-    when: beekeeper_registration_port is not defined
-
-
-
   # note that further config entries will be added later in the config playbook
   - name: config
     copy:
@@ -164,14 +109,41 @@
         #node-id-override =
 
         [registration]
-        host={{beekeeper_registration_host}}
-        port={{beekeeper_registration_port}}
+        #host=
+        #port=
         user=sage_registration
 
         [hardware]
         # use network-interface if default does not work
         # e.g. enp0s3 , eth0
         # network-interface = {{ ansible_default_ipv4.interface }}
+
+# invoke this only in vagrant test environment
+- name: beekeeper-config
+  import_playbook: deploy_beekeeper_config.yaml
+  when: skip_registration_key != "yes"
+
+
+- name: keys
+  import_playbook: deploy_registration_key.yml
+  when: skip_registration_key != "yes"
+
+- name: other
+  hosts: all
+  become: yes
+
+  vars:
+    NODE_ID_SERVICE_VERSION: 1.0.5  # see https://github.com/waggle-sensor/waggle-nodeid/releases
+    REGISTRATION_VERSION: 2.1.8  # see https://github.com/waggle-sensor/node-registration-service/releases
+    REV_TUNNEL_VERSION: 2.1.7  # see https://github.com/waggle-sensor/node-reverse-tunnel-service/releases
+
+    #HOSTNAME_SERVICE: 1.0.1      # see https://github.com/waggle-sensor/node-hostname-service/releases
+
+  tasks:
+
+
+
+
 
 
   # node id service
@@ -235,34 +207,6 @@
   #  pip:
   #    name: kubernetes==12.0.1
 
-
-  # TODO remove
-  #- name: Get latest waggle-registration.py (for testing purposes)
-  #  get_url:
-  #    url: https://raw.githubusercontent.com/waggle-sensor/node-registration-service/master/waggle-registration.py
-  #    dest: /usr/bin/waggle-registration.py
-  #    mode: '0755'
-  #    force: yes
-
-  # TODO remove
-  #- name: Get latest waggle-reverse-tunnel.sh (for testing purposes)
-  #  get_url:
-  #    url: https://raw.githubusercontent.com/waggle-sensor/node-reverse-tunnel-service/main/waggle-reverse-tunnel.sh
-  #    dest: /usr/bin/waggle-reverse-tunnel.sh
-  #    mode: '0755'
-  #    force: yes
-
-  # TODO remove
-  #- name: Restart sagebk-registration.service
-  #  systemd:
-  #    state: restarted
-  #    name: sagebk-registration.service
-
-  # TODO remove
-  #- name: Restart sagebk-reverse-tunnel.service
-  #  systemd:
-  #    state: restarted
-  #    name: sagebk-reverse-tunnel.service
 
 
 

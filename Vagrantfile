@@ -27,6 +27,8 @@ Vagrant.configure("2") do |config|
     ansible.playbook = "ansible/waggle_config.yml"
     ansible.compatibility_mode = "2.0"
     ansible.extra_vars = {
+      beekeeper_registration_host: "10.0.2.2" ,  # used in /etc/waggle/config.ini
+      beekeeper_registration_port: "20022" ,  # used in /etc/waggle/config.ini
       node_id: "0000000000000001" ,
       timezone: timezone
     }
