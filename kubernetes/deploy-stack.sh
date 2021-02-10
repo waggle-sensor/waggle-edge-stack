@@ -9,7 +9,9 @@ metadata:
   name: waggle-config
 data:
   WAGGLE_NODE_ID: "$WAGGLE_NODE_ID"
-  WAGGLE_BEEHIVE_HOST: "WAGGLE_BEEHIVE_HOST"
+  WAGGLE_BEEHIVE_HOST: "$WAGGLE_BEEHIVE_HOST"
+  WAGGLE_BEEHIVE_RABBITMQ_HOST: "$WAGGLE_BEEHIVE_RABBITMQ_HOST"
+  WAGGLE_BEEHIVE_RABBITMQ_PORT: "$WAGGLE_BEEHIVE_RABBITMQ_PORT"
 EOF
 }
 
@@ -24,6 +26,10 @@ echo "WAGGLE_NODE_ID=$WAGGLE_NODE_ID"
 
 export WAGGLE_BEEHIVE_HOST=${WAGGLE_BEEHIVE_HOST:-beehive1.mcs.anl.gov}
 echo "WAGGLE_BEEHIVE_HOST=$WAGGLE_BEEHIVE_HOST"
+
+# TODO clean this up! for now, we just assume that "beehive" and rabbitmq are on the same host
+export WAGGLE_BEEHIVE_RABBITMQ_HOST="$WAGGLE_BEEHIVE_HOST"
+export WAGGLE_BEEHIVE_RABBITMQ_PORT=${WAGGLE_BEEHIVE_RABBITMQ_PORT:-15671}
 
 create_waggle_config
 create_waggle_data_config
@@ -97,6 +103,8 @@ kubectl create secret generic rabbitmq-config-secret \
 
 kubectl apply -f rabbitmq.yaml
 
+# NOTE would be better to just move this to to per service usernames w/
+# local tls certs that are easy to rollout as needed.
 echo "generating rabbitmq service account credentials"
 username=service
 password=$(openssl rand -hex 12)
@@ -114,12 +122,12 @@ EOF
 
 # TODO this may not be secure over the network. check this later.
 echo "updating rabbitmq service account"
-while ! kubectl exec --stdin service/rabbitmq -- rabbitmqctl list_users; do
+while ! kubectl exec --stdin svc/rabbitmq -- rabbitmqctl list_users; do
   echo "waiting for rabbitmq server"
   sleep 3
 done
 
-kubectl exec --stdin service/rabbitmq -- sh -s <<EOF
+kubectl exec --stdin svc/rabbitmq -- sh -s <<EOF
 while ! rabbitmqctl -q authenticate_user "$username" "$password"; do
   echo "refreshing credentials for \"$username\""
   rabbitmqctl -q add_user "$username" "$password" || \
@@ -128,9 +136,8 @@ done
 EOF
 
 echo "deploying rest of node stack"
-kubectl apply -f data-shovel-push.yaml
 kubectl apply -f node-upload-agent.yaml
-kubectl apply -f playback-server
+kubectl apply -f playback-server.yaml
 kubectl apply -f data-sharing-service.yaml
 kubectl apply -f node-exporter.yaml
 

@@ -1,13 +1,13 @@
 #!/bin/bash
 
 # delete services
+kubectl delete -f playback-server.yaml
 kubectl delete -f data-shovel-push.yaml
 kubectl delete -f node-upload-agent.yaml
-kubectl delete -f playback-server
-kubectl delete -f rabbitmq
-kubectl delete -f beehive-upload-server
 kubectl delete -f data-sharing-service.yaml
+kubectl delete -f rabbitmq.yaml
 kubectl delete -f node-exporter.yaml
+kubectl delete -f beehive-upload-server
 
 # delete config and secrets
 kubectl delete configmap waggle-config
