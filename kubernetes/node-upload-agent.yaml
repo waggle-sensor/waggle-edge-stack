@@ -26,8 +26,15 @@ spec:
         envFrom:
           - configMapRef:
               name: waggle-config
+        # TODO clean this up. accidentally used different endpoint env vars
+        env:
+          - name: BEEHIVE_UPLOAD_SERVER_SERVICE_PORT
+            valueFrom:
+              configMapKeyRef:
+                name: waggle-config
+                key: WAGGLE_BEEHIVE_UPLOAD_PORT
         volumeMounts:
-        - name: waggle-secret
+        - name: waggle-ssh-key-secret
           mountPath: /etc/waggle
           readOnly: true
         - name: uploads
@@ -40,9 +47,9 @@ spec:
           initialDelaySeconds: 5
           periodSeconds: 300
       volumes:
-      - name: waggle-secret
+      - name: waggle-ssh-key-secret
         secret:
-          secretName: waggle-secret
+          secretName: waggle-ssh-key-secret
           defaultMode: 0600
       - name: uploads
         hostPath:
