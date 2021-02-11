@@ -245,6 +245,25 @@
       # INSTALL_K3S_SKIP_START this will prevent start of k3s
       # TODO: use INSTALL_K3S_VERSION
 
+    - name: Create directory /etc/systemd/system/k3s.service.d
+      file:
+        path: /etc/systemd/system/k3s.service.d
+        state: directory
+
+    - name: k3s systemd unit overlay
+      copy:
+        dest: /etc/systemd/system/k3s.service.d/override.conf
+        content: |
+          #[Unit]
+          #After=waggle-nodeid.service
+          #Wants=waggle-nodeid.service
+
+          [Service]
+          # Fail service if Node ID file does not exist
+          ExecStartPre=/usr/bin/test -e /etc/waggle/node-id
+          ExecStart=
+          ExecStart=/bin/bash -ce '/usr/local/bin/k3s server --node-name "$(cat /etc/waggle/node-id)"'
+
 
     - name: copy kubernetes resource files to node
       copy:
