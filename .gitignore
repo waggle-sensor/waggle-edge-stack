@@ -1,5 +1,5 @@
 /ansible/private/
-/.vagrant/
+.vagrant
 /base/waggle-node.box
 /base/waggle-node-*.box
 /base/metadata.json
