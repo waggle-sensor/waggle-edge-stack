@@ -4,7 +4,9 @@ This guide shows you how to deploy the Waggle Edge Stack (WES) and configure to 
 
 ## 1. Install Dependencies
 
-We currently support deploying to Kubernetes. For getting started quickly, we use [k3s](https://k3s.io) in our Vagrant image and recommend this for custom installs.
+We assume you're working on an Ubuntu 18 or 20 based system with a Kubernetes cluster running.
+
+If you're new to Kubernetes and would like to get started quickly, we recommend using [k3s](https://k3s.io).
 
 ## 2. Beehive Config and Credential Files
 
