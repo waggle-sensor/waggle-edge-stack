@@ -112,3 +112,7 @@ kubectl apply -f node-upload-agent.yaml
 kubectl apply -f playback-server.yaml
 kubectl apply -f data-sharing-service.yaml
 kubectl apply -f node-exporter.yaml
+
+while ! ./shovelctl.sh enable; do
+    sleep 3
+done

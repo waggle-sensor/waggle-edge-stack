@@ -13,10 +13,6 @@ export WAGGLE_BEEHIVE_UPLOAD_PORT=30002
 
 ./deploy-stack.sh
 
-while ! ./shovelctl.sh enable; do
-    sleep 3
-done
-
 while ! ./run-plugin.sh waggle/plugin-test-pipeline:0.0.3; do
     sleep 3
 done
