@@ -79,6 +79,7 @@ spec:
     spec:
       containers:
       - image: ${plugin_image}
+        imagePullPolicy: Always
         name: ${plugin_name}
         env:
         - name: WAGGLE_PLUGIN_NAME
