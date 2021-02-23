@@ -39,8 +39,8 @@ plugin_username="plugin.${plugin_name}:${plugin_version}"
 plugin_password="averysecurepassword"
 
 # apply rabbitmq server config
-# TODO make permissions more strict
-kubectl exec --stdin service/rabbitmq -- sh -s <<EOF
+setup_plugin_user() {
+  kubectl exec --stdin service/rabbitmq -- sh -s <<EOF
 while ! rabbitmqctl -q authenticate_user ${plugin_username} ${plugin_password}; do
   echo "adding user ${plugin_username} to rabbitmq"
   rabbitmqctl -q add_user ${plugin_username} ${plugin_password} || \
@@ -49,13 +49,19 @@ done
 
 rabbitmqctl set_permissions ${plugin_username} ".*" ".*" ".*"
 EOF
+}
+
+echo "setting up plugin user"
+while ! setup_plugin_user; do
+  sleep 3
+done
 
 # NOTE this policy currently breaks the ability for plugins to talk to cameras
 # we need to fix this.
 # ensure plugin network policy is in place
 #kubectl apply -f plugin-network-policy.yaml
 
-# apply deployment config
+echo "deploying plugin"
 kubectl apply -f - <<EOF
 apiVersion: apps/v1
 kind: Deployment
