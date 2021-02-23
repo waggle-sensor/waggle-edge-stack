@@ -1,0 +1,169 @@
+{
+    "rabbit_version": "3.8.9",
+    "users": [
+        {
+            "name": "admin",
+            "password": "admin",
+            "tags": "administrator"
+        },
+        {
+            "name": "service",
+            "password": "service",
+            "tags": ""
+        },
+        {
+            "name": "shovel",
+            "password": "shovel",
+            "tags": ""
+        },
+        {
+            "name": "plugin",
+            "password": "plugin",
+            "tags": ""
+        }
+    ],
+    "vhosts": [
+        {
+            "name": "/"
+        }
+    ],
+    "permissions": [
+        {
+            "user": "admin",
+            "vhost": "/",
+            "configure": ".*",
+            "write": ".*",
+            "read": ".*"
+        },
+        {
+            "user": "service",
+            "vhost": "/",
+            "configure": ".*",
+            "write": ".*",
+            "read": ".*"
+        },
+        {
+            "user": "shovel",
+            "vhost": "/",
+            "configure": "^$",
+            "write": "^$",
+            "read": "to-beehive"
+        },
+        {
+            "user": "plugin",
+            "vhost": "/",
+            "configure": ".*",
+            "write": ".*",
+            "read": ".*"
+        }
+    ],
+    "queues": [
+        {
+            "name": "data",
+            "vhost": "/",
+            "durable": true,
+            "auto_delete": false,
+            "arguments": {}
+        },
+        {
+            "name": "messages",
+            "vhost": "/",
+            "durable": true,
+            "auto_delete": false,
+            "arguments": {}
+        },
+        {
+            "name": "to-beehive",
+            "vhost": "/",
+            "durable": true,
+            "auto_delete": false,
+            "arguments": {}
+        },
+        {
+            "name": "resource-manager",
+            "vhost": "/",
+            "durable": true,
+            "auto_delete": false,
+            "arguments": {}
+        },
+        {
+            "name": "ansible",
+            "vhost": "/",
+            "durable": true,
+            "auto_delete": false,
+            "arguments": {}
+        }
+    ],
+    "exchanges": [
+        {
+            "name": "data.topic",
+            "vhost": "/",
+            "type": "topic",
+            "durable": true,
+            "auto_delete": false,
+            "internal": false,
+            "arguments": {}
+        },
+        {
+            "name": "data.fanout",
+            "vhost": "/",
+            "type": "fanout",
+            "durable": true,
+            "auto_delete": false,
+            "internal": false,
+            "arguments": {}
+        },
+        {
+            "name": "messages",
+            "vhost": "/",
+            "type": "fanout",
+            "durable": true,
+            "auto_delete": false,
+            "internal": false,
+            "arguments": {}
+        },
+        {
+            "name": "to-node",
+            "vhost": "/",
+            "type": "topic",
+            "durable": true,
+            "auto_delete": false,
+            "internal": false,
+            "arguments": {}
+        }
+    ],
+    "bindings": [
+        {
+            "source": "data.fanout",
+            "vhost": "/",
+            "destination": "data",
+            "destination_type": "queue",
+            "routing_key": "",
+            "arguments": {}
+        },
+        {
+            "source": "messages",
+            "vhost": "/",
+            "destination": "messages",
+            "destination_type": "queue",
+            "routing_key": "messages",
+            "arguments": {}
+        },
+        {
+            "source": "to-node",
+            "vhost": "/",
+            "destination": "resource-manager",
+            "destination_type": "queue",
+            "routing_key": "*.resource-manager",
+            "arguments": {}
+        },
+        {
+            "source": "to-node",
+            "vhost": "/",
+            "destination": "ansible",
+            "destination_type": "queue",
+            "routing_key": "*.ansible",
+            "arguments": {}
+        }
+    ]
+}

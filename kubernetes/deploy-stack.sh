@@ -9,7 +9,11 @@ metadata:
   name: waggle-config
 data:
   WAGGLE_NODE_ID: "$WAGGLE_NODE_ID"
-  WAGGLE_BEEHIVE_HOST: "WAGGLE_BEEHIVE_HOST"
+  WAGGLE_BEEHIVE_HOST: "$WAGGLE_BEEHIVE_HOST"
+  WAGGLE_BEEHIVE_RABBITMQ_HOST: "$WAGGLE_BEEHIVE_RABBITMQ_HOST"
+  WAGGLE_BEEHIVE_RABBITMQ_PORT: "$WAGGLE_BEEHIVE_RABBITMQ_PORT"
+  WAGGLE_BEEHIVE_UPLOAD_HOST: "$WAGGLE_BEEHIVE_UPLOAD_HOST"
+  WAGGLE_BEEHIVE_UPLOAD_PORT: "$WAGGLE_BEEHIVE_UPLOAD_PORT"
 EOF
 }
 
@@ -19,60 +23,25 @@ create_waggle_data_config() {
   kubectl create configmap waggle-data-config --from-file=data-config.json=data-config.json
 }
 
+# TODO clean up defining this initial config
+
 export WAGGLE_NODE_ID=${WAGGLE_NODE_ID:-0000000000000001}
 echo "WAGGLE_NODE_ID=$WAGGLE_NODE_ID"
 
 export WAGGLE_BEEHIVE_HOST=${WAGGLE_BEEHIVE_HOST:-beehive1.mcs.anl.gov}
 echo "WAGGLE_BEEHIVE_HOST=$WAGGLE_BEEHIVE_HOST"
 
+# TODO clean this up! for now, we just assume that "beehive" and rabbitmq are on the same host
+export WAGGLE_BEEHIVE_RABBITMQ_HOST=${WAGGLE_BEEHIVE_RABBITMQ_HOST:-$WAGGLE_BEEHIVE_HOST}
+export WAGGLE_BEEHIVE_RABBITMQ_PORT=${WAGGLE_BEEHIVE_RABBITMQ_PORT:-15671}
+echo "WAGGLE_BEEHIVE_RABBITMQ $WAGGLE_BEEHIVE_RABBITMQ_HOST:$WAGGLE_BEEHIVE_RABBITMQ_PORT"
+
+export WAGGLE_BEEHIVE_UPLOAD_HOST=${WAGGLE_BEEHIVE_UPLOAD_HOST:-$WAGGLE_BEEHIVE_HOST}
+export WAGGLE_BEEHIVE_UPLOAD_PORT=${WAGGLE_BEEHIVE_UPLOAD_PORT:-20022}
+echo "WAGGLE_BEEHIVE_UPLOAD $WAGGLE_BEEHIVE_UPLOAD_HOST:$WAGGLE_BEEHIVE_UPLOAD_PORT"
+
 create_waggle_config
 create_waggle_data_config
-
-(
-echo "generating test ssh credentials"
-
-# ensure temp dir exists and is empty
-mkdir -p .tmp
-rm -f .tmp/*
-cd .tmp
-
-# generate test ca key pair
-ssh-keygen -C "Beekeeper CA Key" -N "" -f ca
-
-# generate and sign node ssh key
-# do we need different access between beekeeper and the upload server??
-ssh-keygen -C "Node SSH Key" -N "" -f node-ssh-key
-ssh-keygen \
-    -s ca \
-    -t rsa-sha2-256 \
-    -I "Waggle Upload Key" \
-    -n "node$WAGGLE_NODE_ID" \
-    -V "-5m:+365d" \
-    node-ssh-key
-(kubectl delete secret waggle-secret || true) &>/dev/null
-kubectl create secret generic waggle-secret \
-  --from-file=ca.pub=ca.pub \
-  --from-file=ssh-key=node-ssh-key \
-  --from-file=ssh-key.pub=node-ssh-key.pub \
-  --from-file=ssh-key-cert.pub=node-ssh-key-cert.pub
-
-# generate and sign upload server host key
-ssh-keygen -C "Upload Server Key" -N "" -f upload-server-host-key
-ssh-keygen \
-    -s ca \
-    -t rsa-sha2-256 \
-    -I "Upload Server Key" \
-    -n "beehive-upload-server" \
-    -V "-5m:+365d" \
-    -h \
-    upload-server-host-key
-(kubectl delete secret beehive-upload-server-secret || true) &>/dev/null
-kubectl create secret generic beehive-upload-server-secret \
-  --from-file=ca.pub=ca.pub \
-  --from-file=ssh-host-key=upload-server-host-key \
-  --from-file=ssh-host-key.pub=upload-server-host-key.pub \
-  --from-file=ssh-host-key-cert.pub=upload-server-host-key-cert.pub
-)
 
 (kubectl delete secret waggle-shovel-secret || true) &>/dev/null
 if ls /etc/waggle/cacert.pem /etc/waggle/cert.pem /etc/waggle/key.pem; then
@@ -82,12 +51,32 @@ if ls /etc/waggle/cacert.pem /etc/waggle/cert.pem /etc/waggle/key.pem; then
     --from-file=cert.pem=/etc/waggle/cert.pem \
     --from-file=key.pem=/etc/waggle/key.pem
 else
-  echo "rabbitmq shovel credentials not found - will run in local mode only"
+  echo "warning: rabbitmq shovel credentials not found! rabbitmq shovel will fail!"
 fi
 
 echo "creating rabbitmq server"
-kubectl apply -f rabbitmq-server
+(kubectl delete secret rabbitmq-config-secret || true) &>/dev/null
+kubectl create secret generic rabbitmq-config-secret \
+    --from-file=rabbitmq.conf=../config/rabbitmq/rabbitmq.conf \
+    --from-file=enabled_plugins=../config/rabbitmq/enabled_plugins \
+    --from-file=definitions.json=../config/rabbitmq/definitions.json
 
+kubectl apply -f rabbitmq.yaml
+
+(kubectl delete secret waggle-ssh-key-secret || true) &>/dev/null
+if ls /etc/waggle/ssh-key /etc/waggle/ssh-key.pub /etc/waggle/ssh-key-cert.pub; then
+  echo "adding ssh keys /etc/waggle to secret"
+  kubectl create secret generic waggle-ssh-key-secret \
+    --from-file=ca.pub=/etc/waggle/ca.pub \
+    --from-file=ssh-key=/etc/waggle/ssh-key \
+    --from-file=ssh-key.pub=/etc/waggle/ssh-key.pub \
+    --from-file=ssh-key-cert.pub=/etc/waggle/ssh-key-cert.pub
+else
+  echo "warning: ssh keys not found! upload agent will fail."
+fi
+
+# NOTE would be better to just move this to to per service usernames w/
+# local tls certs that are easy to rollout as needed.
 echo "generating rabbitmq service account credentials"
 username=service
 password=$(openssl rand -hex 12)
@@ -105,12 +94,12 @@ EOF
 
 # TODO this may not be secure over the network. check this later.
 echo "updating rabbitmq service account"
-while ! kubectl exec --stdin service/rabbitmq-server -- rabbitmqctl list_users; do
+while ! kubectl exec --stdin svc/rabbitmq -- rabbitmqctl list_users; do
   echo "waiting for rabbitmq server"
   sleep 3
 done
 
-kubectl exec --stdin service/rabbitmq-server -- sh -s <<EOF
+kubectl exec --stdin svc/rabbitmq -- sh -s <<EOF
 while ! rabbitmqctl -q authenticate_user "$username" "$password"; do
   echo "refreshing credentials for \"$username\""
   rabbitmqctl -q add_user "$username" "$password" || \
@@ -119,26 +108,7 @@ done
 EOF
 
 echo "deploying rest of node stack"
-kubectl apply -f data-shovel-push.yaml
 kubectl apply -f node-upload-agent.yaml
-kubectl apply -f playback-server
+kubectl apply -f playback-server.yaml
 kubectl apply -f data-sharing-service.yaml
 kubectl apply -f node-exporter.yaml
-
-# upload server deployment - should be moved into a "deploy-beehive" script
-echo "deploying upload server"
-kubectl apply -f beehive-upload-server
-
-add_user_to_upload_server() {
-  username="$1"
-  kubectl exec --stdin deployment/beehive-upload-server -- sh -s <<EOF
-adduser -D -g "" "$username"
-passwd -u "$username"
-true
-EOF
-}
-
-echo "adding user to upload server"
-while ! add_user_to_upload_server "node$WAGGLE_NODE_ID"; do
-  sleep 3
-done

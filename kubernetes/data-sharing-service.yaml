@@ -13,13 +13,13 @@ spec:
     spec:
       containers:
       - name: data-sharing-service
-        image: waggle/data-sharing-service:0.0.2
+        image: waggle/data-sharing-service:0.0.4
         envFrom:
         - configMapRef:
             name: waggle-config
         env:
         - name: RABBITMQ_HOST
-          value: "rabbitmq-server"
+          value: "rabbitmq"
         - name: RABBITMQ_PORT
           value: "5672"
         - name: RABBITMQ_USERNAME

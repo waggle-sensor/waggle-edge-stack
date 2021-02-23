@@ -14,7 +14,7 @@ spec:
         app.kubernetes.io/name: node-upload-agent
     spec:
       containers:
-      - image: waggle/node-upload-agent:0.0.10
+      - image: waggle/node-upload-agent
         name: node-upload-agent
         resources:
           limits:
@@ -27,7 +27,7 @@ spec:
           - configMapRef:
               name: waggle-config
         volumeMounts:
-        - name: waggle-secret
+        - name: waggle-ssh-key-secret
           mountPath: /etc/waggle
           readOnly: true
         - name: uploads
@@ -40,9 +40,9 @@ spec:
           initialDelaySeconds: 5
           periodSeconds: 300
       volumes:
-      - name: waggle-secret
+      - name: waggle-ssh-key-secret
         secret:
-          secretName: waggle-secret
+          secretName: waggle-ssh-key-secret
           defaultMode: 0600
       - name: uploads
         hostPath:

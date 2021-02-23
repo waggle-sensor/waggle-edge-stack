@@ -22,7 +22,10 @@ if ! echo "$plugin_image" | grep -q ":"; then
   fatal "plugin image tag is required"
 fi
 
+# TODO clean up all this plugin naming convention stuff.
+
 plugin_name=$(basename $1 | sed -e 's/:.*//')
+
 if [ -z "$plugin_name" ]; then
   fatal "plugin name is required"
 fi
@@ -32,12 +35,12 @@ if [ -z "$plugin_version" ]; then
   fatal "plugin version is required"
 fi
 
-plugin_username="${plugin_name}-${plugin_version}"
+plugin_username="plugin.${plugin_name}:${plugin_version}"
 plugin_password="averysecurepassword"
 
 # apply rabbitmq server config
 # TODO make permissions more strict
-kubectl exec --stdin service/rabbitmq-server -- sh -s <<EOF
+kubectl exec --stdin service/rabbitmq -- sh -s <<EOF
 while ! rabbitmqctl -q authenticate_user ${plugin_username} ${plugin_password}; do
   echo "adding user ${plugin_username} to rabbitmq"
   rabbitmqctl -q add_user ${plugin_username} ${plugin_password} || \
@@ -81,7 +84,7 @@ spec:
         - name: WAGGLE_PLUGIN_PASSWORD
           value: "${plugin_password}"
         - name: WAGGLE_PLUGIN_HOST
-          value: "rabbitmq-server"
+          value: "rabbitmq"
         - name: WAGGLE_PLUGIN_PORT
           value: "5672"
         envFrom:

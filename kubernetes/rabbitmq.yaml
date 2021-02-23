@@ -1,22 +1,35 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: rabbitmq
+spec:
+  selector:
+    app: rabbitmq
+  ports:
+    - name: amqp
+      protocol: TCP
+      port: 5672
+    - name: rabbitmq-management
+      protocol: TCP
+      port: 15672
+---
 # TODO use volume for managing private credentials
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: rabbitmq-server
+  name: rabbitmq
 spec:
   selector:
     matchLabels:
-      app: rabbitmq-server
+      app: rabbitmq
   template:
     metadata:
       labels:
-        app: rabbitmq-server
+        app: rabbitmq
     spec:
       containers:
-      - name: rabbitmq-server
-        image: waggle/node-rabbitmq-server:0.0.2
-        # command: ['/bin/sh', '-c']
-        # args: ['rm -rf /etc/waggle; cp -r /etc/certs /etc/waggle; chown -R rabbitmq:rabbitmq /etc/waggle/; chown -R rabbitmq:rabbitmq /etc/rabbitmq/; /docker-entrypoint.sh rabbitmq-server']
+      - name: rabbitmq
+        image: rabbitmq:3.8.11-management-alpine
         ports:
         - containerPort: 5672
         - containerPort: 15672
@@ -24,10 +37,16 @@ spec:
         - configMapRef:
             name: waggle-config
         volumeMounts:
+        - name: config
+          mountPath: /etc/rabbitmq
+          readOnly: true
         - name: waggle-shovel-secret
           mountPath: /etc/waggle
           readOnly: true
       volumes:
+      - name: config
+        secret:
+          secretName: rabbitmq-config-secret
       - name: waggle-shovel-secret
         secret:
           secretName: waggle-shovel-secret
