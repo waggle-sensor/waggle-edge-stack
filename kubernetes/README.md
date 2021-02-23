@@ -2,11 +2,11 @@
 
 This guide shows you how to deploy the Waggle Edge Stack (WES) and configure to work with a Beehive.
 
-## 0. Dependencies
+## 1. Install Dependencies
 
 We currently support deploying to Kubernetes. For getting started quickly, we use [k3s](https://k3s.io) for our Vagrant image and recommend this for custom installs.
 
-## 1. Beehive Config and Credential Files
+## 2. Beehive Config and Credential Files
 
 Before running the deploy script, we need to configure WES to talk to the right Beehive endpoints. Please tweak the following configuration to match your Beehive's setup.
 
@@ -28,9 +28,13 @@ Next, you'll need to place your credential files in `/etc/waggle`. These should 
 * `ssh-key.pub`
 * `ssh-key-cert.pub`
 
-Now, you can run `./deploy-stack.sh`.
+*ToDo: Add reference to how to generates or get these from Beehive / Beekeeper.*
 
-## 2. Running a Test Plugin
+## 3. Deploy Stack
+
+Now run `./deploy-stack.sh`. This will automatically set up all your Kubernetes resources
+
+## 4. Running a Test Plugin
 
 We can use the `run-plugin.sh` command to start a plugin in WES. As an example, we'll run version 0.0.3 of this [test plugin](https://github.com/waggle-sensor/plugin-test-pipeline):
 
