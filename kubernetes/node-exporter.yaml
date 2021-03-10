@@ -19,13 +19,13 @@ spec:
     spec:
       containers:
       - args:
-        - --web.listen-address=127.0.0.1:9100
-        - --path.procfs=/host/proc
-        - --path.sysfs=/host/sys
-        - --path.rootfs=/host/root
-        - --no-collector.wifi
-        - --no-collector.hwmon
-        - --collector.filesystem.ignored-mount-points=^/(dev|proc|sys|var/lib/docker/.+|var/lib/kubelet/pods/.+)($|/)
+        - "--web.listen-address=$(HOST_IP):9100"
+        - "--path.procfs=/host/proc"
+        - "--path.sysfs=/host/sys"
+        - "--path.rootfs=/host/root"
+        - "--collector.netdev.device-blacklist=^veth"
+        - "--collector.netclass.ignored-devices=^veth"
+        - "--collector.filesystem.ignored-mount-points=^/(dev|proc|run|sys|var/lib/docker/.+|var/lib/kubelet/pods/.+)($|/)"
         image: prom/node-exporter:v1.0.1
         name: node-exporter
         resources:
@@ -39,6 +39,11 @@ spec:
         - name: http
           containerPort: 9100
           hostPort: 9100
+        env:
+          - name: HOST_IP
+            valueFrom:
+              fieldRef:
+                fieldPath: status.hostIP
         volumeMounts:
         - mountPath: /host/proc
           mountPropagation: HostToContainer
