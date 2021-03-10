@@ -113,6 +113,7 @@ kubectl apply -f audio-server.yaml
 kubectl apply -f playback-server.yaml
 kubectl apply -f data-sharing-service.yaml
 kubectl apply -f node-exporter.yaml
+kubectl apply -f wes-metrics-agent.yaml
 
 echo "configuring data shovel"
 while ! ./shovelctl.sh enable; do
