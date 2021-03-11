@@ -63,13 +63,19 @@ def main():
         level=logging.INFO,
         format='%(asctime)s %(message)s',
         datefmt='%Y/%m/%d %H:%M:%S')
+    # pika logging is too verbose, so we turn it down.
+    logging.getLogger('pika').setLevel(logging.CRITICAL)
+
+    logging.info("metrics agent started")
 
     while True:
+        time.sleep(60)
+
         timestamp = time.time_ns()
 
         messages = []
 
-        logging.info("scraping %s", args.metrics_url)
+        logging.info("collecting system metrics from %s", args.metrics_url)
         text = get_node_exporter_metrics(args.metrics_url)
 
         for family in text_string_to_metric_families(text):
@@ -86,6 +92,7 @@ def main():
                     meta=sample.labels,
                 ))
 
+        logging.info("collecting uptime metrics")
         messages.append(message.Message(
             name="sys.uptime",
             value=get_uptime_seconds(),
@@ -93,6 +100,7 @@ def main():
             meta={},
         ))
 
+        logging.info("tagging metrics with node metadata")
         for msg in messages:
             msg.meta["node"] = args.waggle_node_id
             msg.meta["host"] = "vagrant"
@@ -106,17 +114,16 @@ def main():
                 username=args.rabbitmq_username,
                 password=args.rabbitmq_password,
             ),
+            connection_attempts=3,
+            retry_delay=3.0,
+            socket_timeout=3.0,
         )
 
-        logging.info('connecting to rabbitmq server at %s:%d as %s.', params.host, params.port, params.credentials.username)
-        
-        # connect to rabbitmq and publish all messages
+        logging.info("publishing metrics to rabbitmq server at %s:%d as %s.", params.host, params.port, params.credentials.username)
         with pika.BlockingConnection(params) as connection:
             channel = connection.channel()
             for msg in messages:
                 channel.basic_publish(exchange=args.rabbitmq_exchange, routing_key=msg.name, body=message.dump(msg))
-
-        time.sleep(60)
 
 
 if __name__ == "__main__":
