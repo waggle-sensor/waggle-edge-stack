@@ -5,7 +5,7 @@ enable_shovels() {
     beehive_host=$(kubectl get cm waggle-config --template={{.data.WAGGLE_BEEHIVE_RABBITMQ_HOST}})
     beehive_port=$(kubectl get cm waggle-config --template={{.data.WAGGLE_BEEHIVE_RABBITMQ_PORT}})
     kubectl exec -i svc/wes-rabbitmq -- rabbitmqctl set_parameter shovel push-messages "{
-  \"src-uri\": \"amqp://shovel:shovel@rabbitmq\",
+  \"src-uri\": \"amqp://shovel:shovel@wes-rabbitmq\",
   \"src-queue\": \"to-beehive\",
   \"dest-uri\": \"amqps://${beehive_host}:${beehive_port}?auth_mechanism=external&cacertfile=/etc/waggle/cacert.pem&certfile=/etc/waggle/cert.pem&keyfile=/etc/waggle/key.pem\",
   \"dest-exchange\": \"waggle.msg\",
