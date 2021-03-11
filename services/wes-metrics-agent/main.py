@@ -55,6 +55,7 @@ def main():
     parser.add_argument('--rabbitmq-port', default=int(getenv('RABBITMQ_PORT', '5672')), type=int, help='rabbitmq port')
     parser.add_argument('--rabbitmq-username', default=getenv('RABBITMQ_USERNAME', 'guest'), help='rabbitmq username')
     parser.add_argument('--rabbitmq-password', default=getenv('RABBITMQ_PASSWORD', 'guest'), help='rabbitmq password')
+    parser.add_argument('--rabbitmq-exchange', default=getenv('RABBITMQ_EXCHANGE', 'metrics'), help='rabbitmq exchange to publish to')
     parser.add_argument('--metrics-url', default=getenv("METRICS_URL", "http://localhost:9100/metrics"), help='node exporter metrics url')
     args = parser.parse_args()
 
@@ -113,7 +114,7 @@ def main():
         with pika.BlockingConnection(params) as connection:
             channel = connection.channel()
             for msg in messages:
-                channel.basic_publish(exchange='to-beehive', routing_key=msg.name, body=message.dump(msg))
+                channel.basic_publish(exchange=args.rabbitmq_exchange, routing_key=msg.name, body=message.dump(msg))
 
         time.sleep(60)
 

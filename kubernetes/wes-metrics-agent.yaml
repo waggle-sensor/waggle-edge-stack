@@ -44,6 +44,8 @@ spec:
                 key: PASSWORD
           - name: METRICS_URL
             value: "http://$(HOST_IP):9100/metrics"
+          - name: RABBITMQ_EXCHANGE
+            value: "to-beehive"
         envFrom:
           - configMapRef:
               name: waggle-config
