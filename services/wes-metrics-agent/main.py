@@ -57,6 +57,7 @@ def main():
     parser.add_argument('--rabbitmq-password', default=getenv('RABBITMQ_PASSWORD', 'guest'), help='rabbitmq password')
     parser.add_argument('--rabbitmq-exchange', default=getenv('RABBITMQ_EXCHANGE', 'metrics'), help='rabbitmq exchange to publish to')
     parser.add_argument('--metrics-url', default=getenv("METRICS_URL", "http://localhost:9100/metrics"), help='node exporter metrics url')
+    parser.add_argument('--metrics-collect-interval', default=float(getenv("METRICS_COLLECT_INTERVAL", "60.0")), help='interval in seconds to collect metrics')
     args = parser.parse_args()
 
     logging.basicConfig(
@@ -66,10 +67,10 @@ def main():
     # pika logging is too verbose, so we turn it down.
     logging.getLogger('pika').setLevel(logging.CRITICAL)
 
-    logging.info("metrics agent started")
+    logging.info("metrics agent started. will collect metrics every %s seconds.", args.metrics_collect_interval)
 
     while True:
-        time.sleep(60)
+        time.sleep(args.metrics_collect_interval)
 
         timestamp = time.time_ns()
 
