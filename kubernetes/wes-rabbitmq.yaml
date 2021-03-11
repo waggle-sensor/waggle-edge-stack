@@ -210,10 +210,11 @@ data:
     }
 ---
 apiVersion: apps/v1
-kind: Deployment
+kind: StatefulSet
 metadata:
   name: wes-rabbitmq
 spec:
+  serviceName: wes-rabbitmq
   selector:
     matchLabels:
       app: wes-rabbitmq
