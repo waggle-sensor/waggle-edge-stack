@@ -10,7 +10,7 @@
         "handler": {
             "type": "image",
             "args": {
-                "url": "http://playback:8090/bottom/image.jpg"
+                "url": "http://wes-playback-server:8090/bottom/image.jpg"
             }
         }
     },
@@ -25,7 +25,7 @@
         "handler": {
             "type": "image",
             "args": {
-                "url": "http://playback:8090/top/image.jpg"
+                "url": "http://wes-playback-server:8090/top/image.jpg"
             }
         }
     },
@@ -40,7 +40,7 @@
         "handler": {
             "type": "video",
             "args": {
-                "url": "http://playback:8090/bottom/live.mp4"
+                "url": "http://wes-playback-server:8090/bottom/live.mp4"
             }
         }
     },
@@ -55,7 +55,7 @@
         "handler": {
             "type": "video",
             "args": {
-                "url": "http://playback:8090/top/live.mp4"
+                "url": "http://wes-playback-server:8090/top/live.mp4"
             }
         }
     },

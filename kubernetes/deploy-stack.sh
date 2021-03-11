@@ -55,13 +55,7 @@ else
 fi
 
 echo "creating rabbitmq server"
-(kubectl delete secret rabbitmq-config-secret || true) &>/dev/null
-kubectl create secret generic rabbitmq-config-secret \
-    --from-file=rabbitmq.conf=../config/rabbitmq/rabbitmq.conf \
-    --from-file=enabled_plugins=../config/rabbitmq/enabled_plugins \
-    --from-file=definitions.json=../config/rabbitmq/definitions.json
-
-kubectl apply -f rabbitmq.yaml
+kubectl apply -f wes-rabbitmq.yaml
 
 (kubectl delete secret waggle-ssh-key-secret || true) &>/dev/null
 if ls /etc/waggle/ssh-key /etc/waggle/ssh-key.pub /etc/waggle/ssh-key-cert.pub; then
@@ -85,7 +79,7 @@ kubectl apply -f - <<EOF
 apiVersion: v1
 kind: Secret
 metadata:
-  name: rabbitmq-service-account-secret
+  name: wes-rabbitmq-service-account-secret
 type: Opaque
 stringData:
     USERNAME: "$username"
@@ -94,12 +88,12 @@ EOF
 
 # TODO this may not be secure over the network. check this later.
 echo "updating rabbitmq service account"
-while ! kubectl exec --stdin svc/rabbitmq -- rabbitmqctl list_users; do
+while ! kubectl exec --stdin svc/wes-rabbitmq -- rabbitmqctl list_users; do
   echo "waiting for rabbitmq server"
   sleep 3
 done
 
-kubectl exec --stdin svc/rabbitmq -- sh -s <<EOF
+kubectl exec --stdin svc/wes-rabbitmq -- sh -s <<EOF
 while ! rabbitmqctl -q authenticate_user "$username" "$password"; do
   echo "refreshing credentials for \"$username\""
   rabbitmqctl -q add_user "$username" "$password" || \
@@ -109,8 +103,8 @@ EOF
 
 echo "deploying rest of node stack"
 kubectl apply -f node-upload-agent.yaml
-kubectl apply -f audio-server.yaml
-kubectl apply -f playback-server.yaml
+kubectl apply -f wes-audio-server.yaml
+kubectl apply -f wes-playback-server.yaml
 kubectl apply -f data-sharing-service.yaml
 kubectl apply -f node-exporter.yaml
 kubectl apply -f wes-metrics-agent.yaml

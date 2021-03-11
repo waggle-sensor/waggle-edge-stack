@@ -91,7 +91,7 @@ spec:
         - name: WAGGLE_PLUGIN_PASSWORD
           value: "${plugin_password}"
         - name: WAGGLE_PLUGIN_HOST
-          value: "rabbitmq"
+          value: "wes-rabbitmq"
         - name: WAGGLE_PLUGIN_PORT
           value: "5672"
         envFrom:
