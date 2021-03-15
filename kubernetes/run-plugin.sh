@@ -40,7 +40,7 @@ plugin_password="averysecurepassword"
 
 # apply rabbitmq server config
 setup_plugin_user() {
-  kubectl exec --stdin service/rabbitmq -- sh -s <<EOF
+  kubectl exec --stdin service/wes-rabbitmq -- sh -s <<EOF
 while ! rabbitmqctl -q authenticate_user ${plugin_username} ${plugin_password}; do
   echo "adding user ${plugin_username} to rabbitmq"
   rabbitmqctl -q add_user ${plugin_username} ${plugin_password} || \
