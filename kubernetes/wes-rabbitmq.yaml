@@ -233,14 +233,21 @@ spec:
         - name: config
           mountPath: /etc/rabbitmq
           readOnly: true
-        - name: waggle-shovel-secret
-          mountPath: /etc/waggle
+        - name: beehive-ca-certificate
+          mountPath: /etc/ca
+          readOnly: true
+        - name: beehive-rabbitmq-tls
+          mountPath: /etc/tls
           readOnly: true
       volumes:
       - name: config
         configMap:
           name: wes-rabbitmq-config
-      - name: waggle-shovel-secret
+      - name: beehive-ca-certificate
+        configMap:
+          name: beehive-ca-certificate
+          optional: true
+      - name: beehive-rabbitmq-tls
         secret:
-          secretName: waggle-shovel-secret
+          secretName: wes-beehive-rabbitmq-tls
           optional: true

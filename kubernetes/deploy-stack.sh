@@ -75,6 +75,7 @@ echo "generating rabbitmq service account credentials"
 username=service
 password=$(openssl rand -hex 12)
 
+# may be better to just properly stand this up as real ssl users, especially since some data movement happens across devices
 kubectl apply -f - <<EOF
 apiVersion: v1
 kind: Secret
