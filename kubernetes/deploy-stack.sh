@@ -57,6 +57,10 @@ fi
 echo "creating rabbitmq server"
 kubectl apply -f wes-rabbitmq.yaml
 
+echo "generating rabbitmq service account credentials"
+./update-rabbitmq-auth.sh wes-rabbitmq-service-account-secret service '.*' '.*' '.*'
+./update-rabbitmq-auth.sh wes-rabbitmq-shovel-account-secret service '^$' '^$' '^to-beehive|to-beekeeper$'
+
 (kubectl delete secret waggle-ssh-key-secret || true) &>/dev/null
 if ls /etc/waggle/ssh-key /etc/waggle/ssh-key.pub /etc/waggle/ssh-key-cert.pub; then
   echo "adding ssh keys /etc/waggle to secret"
@@ -69,39 +73,6 @@ else
   echo "warning: ssh keys not found! upload agent will fail."
 fi
 
-# NOTE would be better to just move this to to per service usernames w/
-# local tls certs that are easy to rollout as needed.
-echo "generating rabbitmq service account credentials"
-username=service
-password=$(openssl rand -hex 12)
-
-# may be better to just properly stand this up as real ssl users, especially since some data movement happens across devices
-kubectl apply -f - <<EOF
-apiVersion: v1
-kind: Secret
-metadata:
-  name: wes-rabbitmq-service-account-secret
-type: Opaque
-stringData:
-    USERNAME: "$username"
-    PASSWORD: "$password"
-EOF
-
-# TODO this may not be secure over the network. check this later.
-echo "updating rabbitmq service account"
-while ! kubectl exec --stdin svc/wes-rabbitmq -- rabbitmqctl list_users; do
-  echo "waiting for rabbitmq server"
-  sleep 3
-done
-
-kubectl exec --stdin svc/wes-rabbitmq -- sh -s <<EOF
-while ! rabbitmqctl -q authenticate_user "$username" "$password"; do
-  echo "refreshing credentials for \"$username\""
-  rabbitmqctl -q add_user "$username" "$password" || \
-  rabbitmqctl -q change_password "$username" "$password"
-done
-EOF
-
 echo "deploying rest of node stack"
 kubectl apply -f node-upload-agent.yaml
 kubectl apply -f wes-audio-server.yaml
@@ -110,7 +81,5 @@ kubectl apply -f data-sharing-service.yaml
 kubectl apply -f node-exporter.yaml
 kubectl apply -f wes-metrics-agent.yaml
 
-echo "configuring data shovel"
-while ! ./shovelctl.sh enable; do
-    sleep 3
-done
+echo "enabling data shovel"
+./shovelctl.sh enable

@@ -26,12 +26,12 @@ spec:
           valueFrom:
             secretKeyRef:
               name: wes-rabbitmq-service-account-secret
-              key: USERNAME
+              key: username
         - name: RABBITMQ_PASSWORD
           valueFrom:
             secretKeyRef:
               name: wes-rabbitmq-service-account-secret
-              key: PASSWORD
+              key: password
         resources:
           limits:
             cpu: 200m

@@ -41,16 +41,6 @@ data:
                 "tags": "administrator"
             },
             {
-                "name": "service",
-                "password": "service",
-                "tags": ""
-            },
-            {
-                "name": "shovel",
-                "password": "shovel",
-                "tags": ""
-            },
-            {
                 "name": "plugin",
                 "password": "plugin",
                 "tags": ""
@@ -68,20 +58,6 @@ data:
                 "configure": ".*",
                 "write": ".*",
                 "read": ".*"
-            },
-            {
-                "user": "service",
-                "vhost": "/",
-                "configure": ".*",
-                "write": ".*",
-                "read": ".*"
-            },
-            {
-                "user": "shovel",
-                "vhost": "/",
-                "configure": "^$",
-                "write": "^$",
-                "read": "to-beehive|to-beekeeper"
             },
             {
                 "user": "plugin",
