@@ -19,18 +19,18 @@ spec:
             name: waggle-config
         env:
         - name: RABBITMQ_HOST
-          value: "rabbitmq"
+          value: "wes-rabbitmq"
         - name: RABBITMQ_PORT
           value: "5672"
         - name: RABBITMQ_USERNAME
           valueFrom:
             secretKeyRef:
-              name: rabbitmq-service-account-secret
+              name: wes-rabbitmq-service-account-secret
               key: USERNAME
         - name: RABBITMQ_PASSWORD
           valueFrom:
             secretKeyRef:
-              name: rabbitmq-service-account-secret
+              name: wes-rabbitmq-service-account-secret
               key: PASSWORD
         resources:
           limits:

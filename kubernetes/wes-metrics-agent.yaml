@@ -1,0 +1,64 @@
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: wes-metrics-agent
+  labels:
+    app.kubernetes.io/name: wes-metrics-agent
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: wes-metrics-agent
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: wes-metrics-agent
+    spec:
+      containers:
+      - image: waggle/wes-metrics-agent
+        name: wes-metrics-agent
+        resources:
+          limits:
+            cpu: 200m
+            memory: 20Mi
+          requests:
+            cpu: 100m
+            memory: 10Mi
+        env:
+          - name: WAGGLE_HOST_ID
+            valueFrom:
+              fieldRef:
+                fieldPath: spec.nodeName
+          - name: HOST_IP
+            valueFrom:
+              fieldRef:
+                fieldPath: status.hostIP
+          - name: RABBITMQ_HOST
+            value: "wes-rabbitmq"
+          - name: RABBITMQ_PORT
+            value: "5672"
+          - name: RABBITMQ_USERNAME
+            valueFrom:
+              secretKeyRef:
+                name: wes-rabbitmq-service-account-secret
+                key: USERNAME
+          - name: RABBITMQ_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: wes-rabbitmq-service-account-secret
+                key: PASSWORD
+          - name: METRICS_URL
+            value: "http://$(HOST_IP):9100/metrics"
+          - name: RABBITMQ_EXCHANGE
+            value: "to-beehive"
+        envFrom:
+          - configMapRef:
+              name: waggle-config
+        volumeMounts:
+        - mountPath: /host/proc
+          mountPropagation: HostToContainer
+          name: proc
+          readOnly: true
+      volumes:
+      - hostPath:
+          path: /proc
+        name: proc

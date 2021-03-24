@@ -140,6 +140,5 @@
         src: ../kubernetes
         dest: /opt/sage/
 
-
-    - name: load kubernetes resources
-      command: kubectl apply -k /opt/sage/kubernetes/
+    # - name: load kubernetes resources
+    #   command: kubectl apply -k /opt/sage/kubernetes/

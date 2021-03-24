@@ -1,0 +1,2 @@
+https://github.com/waggle-sensor/pywaggle/archive/v0.40.4.zip
+prometheus_client

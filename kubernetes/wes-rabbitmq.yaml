@@ -1,0 +1,253 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: wes-rabbitmq
+spec:
+  selector:
+    app: wes-rabbitmq
+  ports:
+    - name: amqp
+      protocol: TCP
+      port: 5672
+    - name: rabbitmq-management
+      protocol: TCP
+      port: 15672
+---
+# TODO generate random tokens / certs for local clients to make more secure
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: wes-rabbitmq-config
+data:
+  enabled_plugins: |
+    [rabbitmq_prometheus,rabbitmq_management,rabbitmq_management_agent,rabbitmq_auth_mechanism_ssl,rabbitmq_shovel,rabbitmq_shovel_management].
+  rabbitmq.conf: |
+    # server config
+    listeners.tcp.default = 5672
+
+    # management config
+    management.load_definitions = /etc/rabbitmq/definitions.json
+    management.tcp.ip   = 0.0.0.0
+    management.tcp.port = 15672
+
+    # disable logging to file to prevent runaway disk usage
+    log.file = false
+  definitions.json: |
+    {
+        "users": [
+            {
+                "name": "admin",
+                "password": "admin",
+                "tags": "administrator"
+            },
+            {
+                "name": "service",
+                "password": "service",
+                "tags": ""
+            },
+            {
+                "name": "shovel",
+                "password": "shovel",
+                "tags": ""
+            },
+            {
+                "name": "plugin",
+                "password": "plugin",
+                "tags": ""
+            }
+        ],
+        "vhosts": [
+            {
+                "name": "/"
+            }
+        ],
+        "permissions": [
+            {
+                "user": "admin",
+                "vhost": "/",
+                "configure": ".*",
+                "write": ".*",
+                "read": ".*"
+            },
+            {
+                "user": "service",
+                "vhost": "/",
+                "configure": ".*",
+                "write": ".*",
+                "read": ".*"
+            },
+            {
+                "user": "shovel",
+                "vhost": "/",
+                "configure": "^$",
+                "write": "^$",
+                "read": "to-beehive|to-beekeeper"
+            },
+            {
+                "user": "plugin",
+                "vhost": "/",
+                "configure": ".*",
+                "write": ".*",
+                "read": ".*"
+            }
+        ],
+        "queues": [
+            {
+                "name": "data",
+                "vhost": "/",
+                "durable": true,
+                "auto_delete": false,
+                "arguments": {}
+            },
+            {
+                "name": "messages",
+                "vhost": "/",
+                "durable": true,
+                "auto_delete": false,
+                "arguments": {}
+            },
+            {
+                "name": "to-beehive",
+                "vhost": "/",
+                "durable": true,
+                "auto_delete": false,
+                "arguments": {}
+            },
+            {
+                "name": "to-beekeeper",
+                "vhost": "/",
+                "durable": true,
+                "auto_delete": false,
+                "arguments": {}
+            },
+            {
+                "name": "resource-manager",
+                "vhost": "/",
+                "durable": true,
+                "auto_delete": false,
+                "arguments": {}
+            },
+            {
+                "name": "ansible",
+                "vhost": "/",
+                "durable": true,
+                "auto_delete": false,
+                "arguments": {}
+            }
+        ],
+        "exchanges": [
+            {
+                "name": "data.topic",
+                "vhost": "/",
+                "type": "topic",
+                "durable": true,
+                "auto_delete": false,
+                "internal": false,
+                "arguments": {}
+            },
+            {
+                "name": "data.fanout",
+                "vhost": "/",
+                "type": "fanout",
+                "durable": true,
+                "auto_delete": false,
+                "internal": false,
+                "arguments": {}
+            },
+            {
+                "name": "messages",
+                "vhost": "/",
+                "type": "fanout",
+                "durable": true,
+                "auto_delete": false,
+                "internal": false,
+                "arguments": {}
+            },
+            {
+                "name": "to-node",
+                "vhost": "/",
+                "type": "topic",
+                "durable": true,
+                "auto_delete": false,
+                "internal": false,
+                "arguments": {}
+            }
+        ],
+        "bindings": [
+            {
+                "source": "data.fanout",
+                "vhost": "/",
+                "destination": "data",
+                "destination_type": "queue",
+                "routing_key": "",
+                "arguments": {}
+            },
+            {
+                "source": "messages",
+                "vhost": "/",
+                "destination": "messages",
+                "destination_type": "queue",
+                "routing_key": "messages",
+                "arguments": {}
+            },
+            {
+                "source": "to-node",
+                "vhost": "/",
+                "destination": "resource-manager",
+                "destination_type": "queue",
+                "routing_key": "*.resource-manager",
+                "arguments": {}
+            },
+            {
+                "source": "to-node",
+                "vhost": "/",
+                "destination": "ansible",
+                "destination_type": "queue",
+                "routing_key": "*.ansible",
+                "arguments": {}
+            }
+        ]
+    }
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: wes-rabbitmq
+spec:
+  serviceName: wes-rabbitmq
+  selector:
+    matchLabels:
+      app: wes-rabbitmq
+  template:
+    metadata:
+      labels:
+        app: wes-rabbitmq
+    spec:
+      containers:
+      - name: wes-rabbitmq
+        image: rabbitmq:3.8.11-management-alpine
+        ports:
+        - containerPort: 5672
+        - containerPort: 15672
+        volumeMounts:
+        - name: config
+          mountPath: /etc/rabbitmq
+          readOnly: true
+        - name: beehive-ca-certificate
+          mountPath: /etc/ca
+          readOnly: true
+        - name: beehive-rabbitmq-tls
+          mountPath: /etc/tls
+          readOnly: true
+      volumes:
+      - name: config
+        configMap:
+          name: wes-rabbitmq-config
+      - name: beehive-ca-certificate
+        configMap:
+          name: beehive-ca-certificate
+          optional: true
+      - name: beehive-rabbitmq-tls
+        secret:
+          secretName: wes-beehive-rabbitmq-tls
+          optional: true

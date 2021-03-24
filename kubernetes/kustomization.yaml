@@ -2,8 +2,8 @@ apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 resources:
   - node-upload-agent.yaml
-  - playback-server.yaml
-  - rabbitmq.yaml
+  - wes-playback-server.yaml
+  - wes-rabbitmq.yaml
   - data-sharing-service.yaml
   # - node-exporter.yaml
 

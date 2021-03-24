@@ -1,10 +1,10 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: playback-server
+  name: wes-playback-server
 spec:
   selector:
-    app: playback-server
+    app: wes-playback-server
   ports:
     - name: stream
       protocol: TCP
@@ -14,18 +14,18 @@ spec:
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: playback-server
+  name: wes-playback-server
 spec:
   selector:
     matchLabels:
-      app: playback-server
+      app: wes-playback-server
   template:
     metadata:
       labels:
-        app: playback-server
+        app: wes-playback-server
     spec:
       containers:
       - image: waggle/playback-server:0.0.1
-        name: playback-server
+        name: wes-playback-server
         ports:
         - containerPort: 8090

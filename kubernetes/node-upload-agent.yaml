@@ -23,11 +23,21 @@ spec:
           requests:
             cpu: 100m
             memory: 10Mi
+        env:
+        - name: SSH_CA_PUBKEY
+          value: "/etc/ca/ca.pub"
+        - name: SSH_HOST_KEY
+          value: "/etc/waggle/ssh-host-key"
+        - name: SSH_HOST_CERT
+          value: "/etc/waggle/ssh-host-key-cert.pub"
         envFrom:
           - configMapRef:
               name: waggle-config
         volumeMounts:
-        - name: waggle-ssh-key-secret
+        - name: ssh-ca-key
+          mountPath: /etc/ca
+          readOnly: true
+        - name: ssh-upload-key
           mountPath: /etc/waggle
           readOnly: true
         - name: uploads
@@ -40,9 +50,12 @@ spec:
           initialDelaySeconds: 5
           periodSeconds: 300
       volumes:
-      - name: waggle-ssh-key-secret
+      - name: ssh-ca-key
+        configMap:
+          name: beehive-ssh-ca
+      - name: ssh-upload-key
         secret:
-          secretName: waggle-ssh-key-secret
+          secretName: wes-beehive-upload-ssh-key
           defaultMode: 0600
       - name: uploads
         hostPath:
