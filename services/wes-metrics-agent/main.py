@@ -50,7 +50,7 @@ prom2waggle = {
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--waggle-node-id', default=getenv('WAGGLE_NODE_ID', '0000000000000000'), help='waggle node id')
-    # parser.add_argument('--waggle-host-id', default=getenv('WAGGLE_HOST_ID', ''), help='waggle host id')
+    parser.add_argument('--waggle-host-id', default=getenv('WAGGLE_HOST_ID', ''), help='waggle host id')
     parser.add_argument('--rabbitmq-host', default=getenv('RABBITMQ_HOST', 'localhost'), help='rabbitmq host')
     parser.add_argument('--rabbitmq-port', default=int(getenv('RABBITMQ_PORT', '5672')), type=int, help='rabbitmq port')
     parser.add_argument('--rabbitmq-username', default=getenv('RABBITMQ_USERNAME', 'guest'), help='rabbitmq username')
@@ -67,7 +67,7 @@ def main():
     # pika logging is too verbose, so we turn it down.
     logging.getLogger('pika').setLevel(logging.CRITICAL)
 
-    logging.info("metrics agent started. will collect metrics every %s seconds.", args.metrics_collect_interval)
+    logging.info("metrics agent started on %s. will collect metrics every %s seconds.", args.waggle_host_id, args.metrics_collect_interval)
 
     while True:
         time.sleep(args.metrics_collect_interval)
@@ -104,7 +104,7 @@ def main():
         logging.info("tagging metrics with node metadata")
         for msg in messages:
             msg.meta["node"] = args.waggle_node_id
-            msg.meta["host"] = "vagrant"
+            msg.meta["host"] = args.waggle_host_id
             # TODO get node / host name
             logging.info("metric %s", message.dump(msg))
 
