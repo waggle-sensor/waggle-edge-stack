@@ -11,6 +11,8 @@ spec:
       labels:
         app: data-sharing-service
     spec:
+      nodeSelector:
+        node-role.kubernetes.io/master: "true"
       containers:
       - name: data-sharing-service
         image: waggle/data-sharing-service:0.0.4

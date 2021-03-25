@@ -199,6 +199,8 @@ spec:
       labels:
         app: wes-rabbitmq
     spec:
+      nodeSelector:
+        node-role.kubernetes.io/master: "true"
       containers:
       - name: wes-rabbitmq
         image: rabbitmq:3.8.11-management-alpine
