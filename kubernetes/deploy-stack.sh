@@ -59,7 +59,7 @@ kubectl apply -f wes-rabbitmq.yaml
 
 echo "generating rabbitmq service account credentials"
 ./update-rabbitmq-auth.sh wes-rabbitmq-service-account-secret service '.*' '.*' '.*'
-./update-rabbitmq-auth.sh wes-rabbitmq-shovel-account-secret service '^$' '^$' '^to-beehive|to-beekeeper$'
+./update-rabbitmq-auth.sh wes-rabbitmq-shovel-account-secret shovel '^$' '^$' '^to-beehive|to-beekeeper$'
 
 (kubectl delete secret waggle-ssh-key-secret || true) &>/dev/null
 if ls /etc/waggle/ssh-key /etc/waggle/ssh-key.pub /etc/waggle/ssh-key-cert.pub; then
