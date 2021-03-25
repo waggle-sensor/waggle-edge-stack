@@ -41,16 +41,6 @@ data:
                 "tags": "administrator"
             },
             {
-                "name": "service",
-                "password": "service",
-                "tags": ""
-            },
-            {
-                "name": "shovel",
-                "password": "shovel",
-                "tags": ""
-            },
-            {
                 "name": "plugin",
                 "password": "plugin",
                 "tags": ""
@@ -68,20 +58,6 @@ data:
                 "configure": ".*",
                 "write": ".*",
                 "read": ".*"
-            },
-            {
-                "user": "service",
-                "vhost": "/",
-                "configure": ".*",
-                "write": ".*",
-                "read": ".*"
-            },
-            {
-                "user": "shovel",
-                "vhost": "/",
-                "configure": "^$",
-                "write": "^$",
-                "read": "to-beehive|to-beekeeper"
             },
             {
                 "user": "plugin",
@@ -239,6 +215,8 @@ spec:
         - name: beehive-rabbitmq-tls
           mountPath: /etc/tls
           readOnly: true
+        - name: data
+          mountPath: /var/lib/rabbitmq
       volumes:
       - name: config
         configMap:
@@ -251,3 +229,11 @@ spec:
         secret:
           secretName: wes-beehive-rabbitmq-tls
           optional: true
+  volumeClaimTemplates:
+  - metadata:
+      name: data
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      resources:
+        requests:
+          storage: 1Gi

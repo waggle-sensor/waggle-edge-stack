@@ -40,12 +40,12 @@ spec:
             valueFrom:
               secretKeyRef:
                 name: wes-rabbitmq-service-account-secret
-                key: USERNAME
+                key: username
           - name: RABBITMQ_PASSWORD
             valueFrom:
               secretKeyRef:
                 name: wes-rabbitmq-service-account-secret
-                key: PASSWORD
+                key: password
           - name: METRICS_URL
             value: "http://$(HOST_IP):9100/metrics"
           - name: RABBITMQ_EXCHANGE
