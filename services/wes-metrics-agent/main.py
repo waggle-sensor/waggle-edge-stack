@@ -18,7 +18,7 @@ def get_node_exporter_metrics(url):
 
 
 def get_uptime_seconds():
-    text = Path("/proc/uptime").read_text()
+    text = Path("/host/proc/uptime").read_text()
     fs = text.split()
     return float(fs[0])
 
@@ -84,7 +84,7 @@ def add_version_metrics(args, messages):
     logging.info("collecting version metrics")
 
     try:
-        version = Path("/etc/waggle_version_os").read_text().strip()
+        version = Path("/host/etc/waggle_version_os").read_text().strip()
         messages.append(message.Message(
             name="sys.version.os",
             value=version,
@@ -95,7 +95,7 @@ def add_version_metrics(args, messages):
         pass
 
     try:
-        version = Path("/etc/waggle_version_provision").read_text().strip()
+        version = Path("/host/etc/waggle_version_provision").read_text().strip()
         messages.append(message.Message(
             name="sys.version.provision",
             value=version,
