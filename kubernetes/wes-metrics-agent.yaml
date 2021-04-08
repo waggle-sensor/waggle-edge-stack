@@ -58,7 +58,14 @@ spec:
           mountPropagation: HostToContainer
           name: proc
           readOnly: true
+        - mountPath: /host/etc
+          mountPropagation: HostToContainer
+          name: etc
+          readOnly: true
       volumes:
       - hostPath:
           path: /proc
         name: proc
+      - hostPath:
+          path: /etc
+        name: etc
