@@ -156,7 +156,7 @@ def flush_messages_to_rabbitmq(args, messages):
                 messages.popleft()
                 published_total += 1
     except Exception:
-        logging.warning("rabbitmq connection failed. will resume next round")
+        logging.warning("rabbitmq connection failed. %d metrics buffered for retry", len(messages))
 
     logging.info("published %d metrics", published_total)
 
