@@ -62,6 +62,9 @@ spec:
           mountPropagation: HostToContainer
           name: etc
           readOnly: true
+        - mountPath: /run/metrics
+          mountPropagation: HostToContainer
+          name: metrics-data-dir
       volumes:
       - hostPath:
           path: /proc
@@ -69,3 +72,6 @@ spec:
       - hostPath:
           path: /etc
         name: etc
+      - hostPath:
+          path: /run/metrics
+        name: metrics-data-dir
