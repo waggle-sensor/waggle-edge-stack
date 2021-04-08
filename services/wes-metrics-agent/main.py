@@ -82,6 +82,8 @@ def add_uptime_metrics(args, messages):
             timestamp=timestamp,
             meta={},
         ))
+    except FileNotFoundError:
+        logging.warning("could not access /host/proc/uptime")
     except Exception:
         logging.exception("failed to get uptime")
 
@@ -103,6 +105,22 @@ def add_version_metrics(args, messages):
         logging.info("os version not found. skipping...")
     except Exception:
         logging.exception("failed to get os version")
+
+
+def add_metrics_data_dir(args, messages):
+    for path in args.metrics_data_dir.glob("*/*"):
+        if path.name.startswith("."):
+            continue
+        try:
+            msg = message.load(path.read_text())
+            messages.append(msg)
+            logging.info("added metric in %s", path)
+        except Exception:
+            logging.exception("failed to parse metric in %s", path)
+        finally:
+            # TODO we expect this to work right now. if we can't unlink this then
+            # this metric will keep getting queued up
+            path.unlink()
 
 
 def flush_messages_to_rabbitmq(args, messages):
@@ -157,7 +175,8 @@ def main():
     parser.add_argument('--rabbitmq-password', default=getenv('RABBITMQ_PASSWORD', 'guest'), help='rabbitmq password')
     parser.add_argument('--rabbitmq-exchange', default=getenv('RABBITMQ_EXCHANGE', 'metrics'), help='rabbitmq exchange to publish to')
     parser.add_argument('--metrics-url', default=getenv("METRICS_URL", "http://localhost:9100/metrics"), help='node exporter metrics url')
-    parser.add_argument('--metrics-collect-interval', default=float(getenv("METRICS_COLLECT_INTERVAL", "60.0")), help='interval in seconds to collect metrics')
+    parser.add_argument('--metrics-collect-interval', default=float(getenv("METRICS_COLLECT_INTERVAL", "60.0")), type=float, help='interval in seconds to collect metrics')
+    parser.add_argument('--metrics-data-dir', default=getenv("METRICS_DATA_DIR", "/run/metrics"), type=Path, help='metrics data directory')
     args = parser.parse_args()
 
     logging.basicConfig(
@@ -178,6 +197,11 @@ def main():
 
     while True:
         time.sleep(args.metrics_collect_interval)
+
+        try:
+            add_metrics_data_dir(args, messages)
+        except Exception:
+            logging.exception("failed to add data dir metrics")
 
         try:
             add_system_metrics(args, messages)
