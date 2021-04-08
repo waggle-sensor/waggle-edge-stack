@@ -73,21 +73,29 @@ def add_system_metrics(args, messages):
 
 def add_uptime_metrics(args, messages):
     logging.info("collecting uptime metrics")
-    messages.append(message.Message(
-        name="sys.uptime",
-        value=get_uptime_seconds(),
-        meta={},
-    ))
+    timestamp = time.time_ns()
+    try:
+        uptime = get_uptime_seconds()
+        messages.append(message.Message(
+            name="sys.uptime",
+            value=uptime,
+            timestamp=timestamp,
+            meta={},
+        ))
+    except Exception:
+        logging.exception("failed to get uptime")
 
 
 def add_version_metrics(args, messages):
     logging.info("collecting version metrics")
+    timestamp = time.time_ns()
 
     try:
         version = Path("/host/etc/waggle_version_os").read_text().strip()
         messages.append(message.Message(
             name="sys.version.os",
             value=version,
+            timestamp=timestamp,
             meta={},
         ))
         logging.info("added os version")
@@ -101,6 +109,7 @@ def add_version_metrics(args, messages):
         messages.append(message.Message(
             name="sys.version.provision",
             value=version,
+            timestamp=timestamp,
             meta={},
         ))
         logging.info("added provision version")
