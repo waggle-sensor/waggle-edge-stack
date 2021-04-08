@@ -91,8 +91,10 @@ def add_version_metrics(args, messages):
             meta={},
         ))
         logging.info("added os version")
+    except FileNotFoundError:
+        logging.info("os version not found. skipping...")
     except Exception:
-        pass
+        logging.exception("failed to get os version")
 
     try:
         version = Path("/host/etc/waggle_version_provision").read_text().strip()
@@ -102,8 +104,10 @@ def add_version_metrics(args, messages):
             meta={},
         ))
         logging.info("added provision version")
+    except FileNotFoundError:
+        logging.info("provision version not found. skipping...")
     except Exception:
-        pass
+        logging.exception("failed to get provision version")
 
 
 def flush_messages_to_rabbitmq(args, messages):
