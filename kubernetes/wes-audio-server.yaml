@@ -25,7 +25,7 @@ spec:
         app: wes-audio-server
     spec:
       containers:
-      - image: waggle/node-audio-server:0.0.2
+      - image: waggle/wes-audio-server:0.1.0
         name: wes-audio-server
         ports:
         - containerPort: 4713

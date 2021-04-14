@@ -14,7 +14,7 @@ spec:
         app.kubernetes.io/name: wes-metrics-agent
     spec:
       containers:
-      - image: waggle/wes-metrics-agent
+      - image: waggle/wes-metrics-agent:0.1.0
         name: wes-metrics-agent
         resources:
           limits:

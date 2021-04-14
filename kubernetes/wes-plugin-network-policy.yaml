@@ -1,7 +1,7 @@
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
-  name: plugin-network-policy
+  name: wes-plugin-network-policy
   namespace: default
 spec:
   podSelector:
