@@ -43,40 +43,21 @@ echo "WAGGLE_BEEHIVE_UPLOAD $WAGGLE_BEEHIVE_UPLOAD_HOST:$WAGGLE_BEEHIVE_UPLOAD_P
 create_waggle_config
 create_waggle_data_config
 
-(kubectl delete secret waggle-shovel-secret || true) &>/dev/null
-if ls /etc/waggle/cacert.pem /etc/waggle/cert.pem /etc/waggle/key.pem; then
-  echo "adding rabbitmq shovel credentials in /etc/waggle to secret"
-  kubectl create secret generic waggle-shovel-secret \
-    --from-file=cacert.pem=/etc/waggle/cacert.pem \
-    --from-file=cert.pem=/etc/waggle/cert.pem \
-    --from-file=key.pem=/etc/waggle/key.pem
-else
-  echo "warning: rabbitmq shovel credentials not found! rabbitmq shovel will fail!"
-fi
+echo "deploying network policies"
+kubectl apply -f wes-plugin-network-policy.yaml
 
-echo "creating rabbitmq server"
+echo "deploying rabbitmq server"
 kubectl apply -f wes-rabbitmq.yaml
 
 echo "generating rabbitmq service account credentials"
 ./update-rabbitmq-auth.sh wes-rabbitmq-service-account-secret service '.*' '.*' '.*'
 ./update-rabbitmq-auth.sh wes-rabbitmq-shovel-account-secret shovel '^$' '^$' '^to-beehive|to-beekeeper$'
 
-(kubectl delete secret waggle-ssh-key-secret || true) &>/dev/null
-if ls /etc/waggle/ssh-key /etc/waggle/ssh-key.pub /etc/waggle/ssh-key-cert.pub; then
-  echo "adding ssh keys /etc/waggle to secret"
-  kubectl create secret generic waggle-ssh-key-secret \
-    --from-file=ca.pub=/etc/waggle/ca.pub \
-    --from-file=ssh-key=/etc/waggle/ssh-key \
-    --from-file=ssh-key.pub=/etc/waggle/ssh-key.pub \
-    --from-file=ssh-key-cert.pub=/etc/waggle/ssh-key-cert.pub
-else
-  echo "warning: ssh keys not found! upload agent will fail."
-fi
-
 echo "deploying rest of node stack"
 kubectl apply -f node-exporter.yaml
 kubectl apply -f wes-upload-agent.yaml
 kubectl apply -f wes-audio-server.yaml
+# playback server is not needed for field deployment, but we'll leave it in for testing
 kubectl apply -f wes-playback-server.yaml
 kubectl apply -f wes-data-sharing-service.yaml
 kubectl apply -f wes-metrics-agent.yaml
