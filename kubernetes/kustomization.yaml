@@ -4,7 +4,7 @@ resources:
   - node-upload-agent.yaml
   - wes-playback-server.yaml
   - wes-rabbitmq.yaml
-  - data-sharing-service.yaml
+  - wes-data-sharing-service.yaml
   # - node-exporter.yaml
 
   # see https://kubectl.docs.kubernetes.io/references/kustomize/images/
