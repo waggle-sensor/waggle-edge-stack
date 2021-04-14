@@ -74,11 +74,11 @@ else
 fi
 
 echo "deploying rest of node stack"
-kubectl apply -f node-upload-agent.yaml
+kubectl apply -f node-exporter.yaml
+kubectl apply -f wes-upload-agent.yaml
 kubectl apply -f wes-audio-server.yaml
 kubectl apply -f wes-playback-server.yaml
 kubectl apply -f wes-data-sharing-service.yaml
-kubectl apply -f node-exporter.yaml
 kubectl apply -f wes-metrics-agent.yaml
 
 echo "enabling data shovel"
