@@ -1,21 +1,21 @@
 apiVersion: apps/v1
 kind: DaemonSet
 metadata:
-  name: node-upload-agent
+  name: wes-upload-agent
   labels:
-    app.kubernetes.io/name: node-upload-agent
+    app.kubernetes.io/name: wes-upload-agent
 spec:
   selector:
     matchLabels:
-      app.kubernetes.io/name: node-upload-agent
+      app.kubernetes.io/name: wes-upload-agent
   template:
     metadata:
       labels:
-        app.kubernetes.io/name: node-upload-agent
+        app.kubernetes.io/name: wes-upload-agent
     spec:
       containers:
-      - image: waggle/node-upload-agent
-        name: node-upload-agent
+      - image: waggle/wes-upload-agent:0.1.0
+        name: wes-upload-agent
         resources:
           limits:
             cpu: 200m

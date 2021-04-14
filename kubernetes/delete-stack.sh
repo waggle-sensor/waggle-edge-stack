@@ -4,7 +4,7 @@
 kubectl delete -f wes-playback-server.yaml
 kubectl delete -f data-shovel-push.yaml
 kubectl delete -f node-upload-agent.yaml
-kubectl delete -f data-sharing-service.yaml
+kubectl delete -f wes-data-sharing-service.yaml
 kubectl delete -f wes-rabbitmq.yaml
 kubectl delete -f node-exporter.yaml
 

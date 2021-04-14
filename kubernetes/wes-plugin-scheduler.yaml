@@ -1,0 +1,41 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: wes-plugin-scheduler
+spec:
+  selector:
+    matchLabels:
+      app: wes-plugin-scheduler
+  template:
+    metadata:
+      labels:
+        app: wes-plugin-scheduler
+    spec:
+      serviceAccountName: wes-plugin-scheduler
+      containers:
+      # TODO change to the real scheduler image :)
+      - image: ubuntu
+        name: wes-plugin-scheduler
+        command: ['sh', '-c']
+        args: ['while sleep 10; do echo scheduling; done']
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: wes-plugin-scheduler-view
+  namespace: default
+roleRef:
+  kind: ClusterRole
+  name: edit
+  apiGroup: rbac.authorization.k8s.io
+  # `edit` is a built-in cluster role. more info about these can be found here:
+  # https://kubernetes.io/docs/reference/access-authn-authz/rbac/#user-facing-roles
+subjects:
+- kind: ServiceAccount
+  name: wes-plugin-scheduler
+  namespace: default
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: wes-plugin-scheduler

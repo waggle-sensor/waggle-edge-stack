@@ -1,9 +1,11 @@
 #!/bin/bash
 
-kubectl apply -f node-0000000000000001.yaml
-
 # define beehive endpoints
+# TODO may be good to bake this into kube bundle we ship.
 export WAGGLE_NODE_ID=0000000000000001
+
+kubectl apply -f "node-${WAGGLE_NODE_ID}.yaml"
+
 # not actually using subdomain - just as a standin
 export WAGGLE_BEEHIVE_HOST=beehive.honeyhouse.one
 # not actually using subdomain - just as a standin
