@@ -24,6 +24,8 @@ spec:
       labels:
         app: wes-audio-server
     spec:
+      nodeSelector:
+        resource.microphone: "true"
       containers:
       - image: waggle/wes-audio-server:0.1.0
         name: wes-audio-server

@@ -46,6 +46,12 @@ create_waggle_data_config
 echo "deploying network policies"
 kubectl apply -f wes-plugin-network-policy.yaml
 
+echo "updating node labels"
+# label all rpis as having a microphone
+for node in $(kubectl get node | awk '/ws-rpi/ {print $1}'); do
+    kubectl label nodes "$node" resource.microphone=true || true
+done
+
 echo "deploying rabbitmq server"
 kubectl apply -f wes-rabbitmq.yaml
 
