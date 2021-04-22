@@ -30,7 +30,7 @@ spec:
   - to:
     - podSelector:
         matchLabels:
-          role: backend
+          app: wes-rabbitmq
     ports:
     - protocol: TCP
       port: 5672
