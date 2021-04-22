@@ -31,6 +31,9 @@ spec:
     - podSelector:
         matchLabels:
           role: backend
+    ports:
+    - protocol: TCP
+      port: 5672
 ---
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
@@ -47,6 +50,9 @@ spec:
     - podSelector:
         matchLabels:
           app: wes-audio-server
+    ports:
+    - protocol: TCP
+      port: 4713
 ---
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
@@ -63,3 +69,6 @@ spec:
     - podSelector:
         matchLabels:
           app: wes-playback-server
+    ports:
+    - protocol: TCP
+      port: 8090
