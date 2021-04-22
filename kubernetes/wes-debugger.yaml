@@ -1,3 +1,5 @@
+# NOTE(sean) this deploys a privileged alpine container to each device in the cluster to allow
+# debugging via kubernetes. we could eventually add tools to this image we may want later.
 apiVersion: apps/v1
 kind: DaemonSet
 metadata:
