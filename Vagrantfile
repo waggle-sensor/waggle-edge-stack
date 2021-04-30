@@ -9,7 +9,7 @@ timezone = ENV["TZ"]
 Vagrant.configure("2") do |config|
 
   config.vm.box = "waggle/waggle-node"
-  config.vm.box_version = "0.0.9"
+  config.vm.box_version = "0.0.12"
 
   config.vm.hostname = "waggle-node"
   config.vm.network "private_network", ip: "10.31.81.10"
