@@ -1,5 +1,5 @@
 
-- name: beekeerper config
+- name: beekeeper config
   hosts: all
   become: yes
 
@@ -21,5 +21,7 @@
         value: "{{ item.value }}"
         mode: '0600'
       loop:
+          - { section: 'reverse-tunnel', option: 'host', value: '{{beekeeper_registration_host}}' }
+          - { section: 'reverse-tunnel', option: 'port', value: '{{beekeeper_registration_port}}' }
           - { section: 'registration', option: 'host', value: '{{beekeeper_registration_host}}' }
           - { section: 'registration', option: 'port', value: '{{beekeeper_registration_port}}'  }
