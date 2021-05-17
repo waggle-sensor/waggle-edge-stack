@@ -25,7 +25,12 @@ create_waggle_data_config() {
 
 # TODO clean up defining this initial config
 
-export WAGGLE_NODE_ID=${WAGGLE_NODE_ID:-0000000000000001}
+if [ ! -s /etc/waggle/node-id ] ; then
+  echo "/etc/waggle/node-id missing or empty"
+  exit 1
+fi
+
+export WAGGLE_NODE_ID=`cat /etc/waggle/node-id`
 echo "WAGGLE_NODE_ID=$WAGGLE_NODE_ID"
 
 export WAGGLE_BEEHIVE_HOST=${WAGGLE_BEEHIVE_HOST:-beehive1.mcs.anl.gov}
