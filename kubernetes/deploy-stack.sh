@@ -30,7 +30,8 @@ if [ ! -s /etc/waggle/node-id ] ; then
   exit 1
 fi
 
-export WAGGLE_NODE_ID=`cat /etc/waggle/node-id`
+# TODO(sean) document upper / lower conventions and where they're used
+export WAGGLE_NODE_ID=$(awk '{print tolower($0)}' /etc/waggle/node-id)
 echo "WAGGLE_NODE_ID=$WAGGLE_NODE_ID"
 
 export WAGGLE_BEEHIVE_HOST=${WAGGLE_BEEHIVE_HOST:-beehive1.mcs.anl.gov}
