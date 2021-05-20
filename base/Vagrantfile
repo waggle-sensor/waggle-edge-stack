@@ -8,7 +8,7 @@ Vagrant.configure("2") do |config|
 
   #config.vm.box = "ubuntu/focal64"  # if you use 20.04, comment out the two shell provisioners below
 
-  config.ssh.insert_key = false  # this make sure a custom secure key is generated once the user start the box
+  config.ssh.insert_key = false  # this make sure a custom secure key is generated once the user starts the box
   #config.vm.hostname = "waggle-node"
   #config.vm.network "private_network", ip: "10.31.81.10"
 

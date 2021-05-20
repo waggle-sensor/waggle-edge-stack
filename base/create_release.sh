@@ -43,7 +43,7 @@ vagrant box list
 set +x
 
 echo ""
-echo "Please upload and release:"
-echo "vagrant cloud provider upload waggle/waggle-node virtualbox ${VERSION} ./waggle-node-${VERSION}.box"
+echo "Please runs these command:"
 echo "vagrant cloud publish --release --force waggle/waggle-node ${VERSION} virtualbox ./metadata-${VERSION}.json"
+echo "vagrant cloud provider upload waggle/waggle-node virtualbox ${VERSION} ./waggle-node-${VERSION}.box"
 echo ""

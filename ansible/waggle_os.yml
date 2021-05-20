@@ -256,6 +256,18 @@
         #!/bin/sh
         systemctl list-units -t service --full --all --plain --no-legend | grep '^\(k3s\|waggle\)'
 
+
+  - name: Configure sshd
+    lineinfile:
+      path: "/etc/ssh/sshd_config"
+      regex: "^(#)?{{item.key}}"
+      line: "{{item.key}} {{item.value}}"
+      state: present
+    loop:
+      - { key: "PermitRootLogin", value: "without-password" }
+      - { key: "PasswordAuthentication", value: "no" }
+
+
  # TODO: (if we keep it) prevent start at this point, start later
 - name: docker
   import_playbook: install-docker-playbook.yml

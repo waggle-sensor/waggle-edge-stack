@@ -9,7 +9,7 @@ timezone = ENV["TZ"]
 Vagrant.configure("2") do |config|
 
   config.vm.box = "waggle/waggle-node"
-  config.vm.box_version = "0.0.12"
+  config.vm.box_version = "0.0.13"
 
   config.vm.hostname = "waggle-node"
   config.vm.network "private_network", ip: "10.31.81.10"
@@ -22,6 +22,9 @@ Vagrant.configure("2") do |config|
     # VBoxManage controlvm :id webcam attach
   end
 
+
+  config.vm.provision "shell",
+    inline: "mkdir -p /root/.ssh/ && cp /home/vagrant/.ssh/authorized_keys /root/.ssh/ && chmod 600 /root/.ssh/authorized_keys"
 
   config.vm.provision "config", type: "ansible" do |ansible|
     ansible.playbook = "ansible/waggle_config.yml"
