@@ -5,21 +5,9 @@
 Vagrant.configure("2") do |config|
   # Currently we use bionic64 (18.04) because NVIDIA software (NVIDIA JetPack) does not support newer ubuntu yet
   config.vm.box = "hashicorp/bionic64"
-
   #config.vm.box = "ubuntu/focal64"  # if you use 20.04, comment out the two shell provisioners below
 
   config.ssh.insert_key = false  # this make sure a custom secure key is generated once the user starts the box
-  #config.vm.hostname = "waggle-node"
-  #config.vm.network "private_network", ip: "10.31.81.10"
-
-  #config.vm.provider "virtualbox" do |vb|
-  #  vb.memory = "2048"
-    # enable usb passthrough (optional)
-    # vb.customize ["modifyvm", :id, "--usb", "on"]
-    # vb.customize ["modifyvm", :id, "--usbxhci", "on"]
-    # VBoxManage controlvm :id webcam attach
-  #end
-
 
 
   # only for 18.04 (ansible complains about python3 missing in 18.04)
