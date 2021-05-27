@@ -25,29 +25,33 @@ create_waggle_data_config() {
 
 # TODO clean up defining this initial config
 
-if [ ! -s /etc/waggle/node-id ] ; then
-  echo "/etc/waggle/node-id missing or empty"
-  exit 1
+if [ "${1}_" != "skip-env_" ] ; then
+
+  if [ ! -s /etc/waggle/node-id ] ; then
+    echo "/etc/waggle/node-id missing or empty"
+    exit 1
+  fi
+
+  # TODO(sean) document upper / lower conventions and where they're used
+  export WAGGLE_NODE_ID=$(awk '{print tolower($0)}' /etc/waggle/node-id)
+  echo "WAGGLE_NODE_ID=$WAGGLE_NODE_ID"
+
+  export WAGGLE_BEEHIVE_HOST=${WAGGLE_BEEHIVE_HOST:-beehive1.mcs.anl.gov}
+  echo "WAGGLE_BEEHIVE_HOST=$WAGGLE_BEEHIVE_HOST"
+
+  # TODO clean this up! for now, we just assume that "beehive" and rabbitmq are on the same host
+  export WAGGLE_BEEHIVE_RABBITMQ_HOST=${WAGGLE_BEEHIVE_RABBITMQ_HOST:-$WAGGLE_BEEHIVE_HOST}
+  export WAGGLE_BEEHIVE_RABBITMQ_PORT=${WAGGLE_BEEHIVE_RABBITMQ_PORT:-15671}
+  echo "WAGGLE_BEEHIVE_RABBITMQ $WAGGLE_BEEHIVE_RABBITMQ_HOST:$WAGGLE_BEEHIVE_RABBITMQ_PORT"
+
+  export WAGGLE_BEEHIVE_UPLOAD_HOST=${WAGGLE_BEEHIVE_UPLOAD_HOST:-$WAGGLE_BEEHIVE_HOST}
+  export WAGGLE_BEEHIVE_UPLOAD_PORT=${WAGGLE_BEEHIVE_UPLOAD_PORT:-20022}
+  echo "WAGGLE_BEEHIVE_UPLOAD $WAGGLE_BEEHIVE_UPLOAD_HOST:$WAGGLE_BEEHIVE_UPLOAD_PORT"
+
+  create_waggle_config
+  create_waggle_data_config
+
 fi
-
-# TODO(sean) document upper / lower conventions and where they're used
-export WAGGLE_NODE_ID=$(awk '{print tolower($0)}' /etc/waggle/node-id)
-echo "WAGGLE_NODE_ID=$WAGGLE_NODE_ID"
-
-export WAGGLE_BEEHIVE_HOST=${WAGGLE_BEEHIVE_HOST:-beehive1.mcs.anl.gov}
-echo "WAGGLE_BEEHIVE_HOST=$WAGGLE_BEEHIVE_HOST"
-
-# TODO clean this up! for now, we just assume that "beehive" and rabbitmq are on the same host
-export WAGGLE_BEEHIVE_RABBITMQ_HOST=${WAGGLE_BEEHIVE_RABBITMQ_HOST:-$WAGGLE_BEEHIVE_HOST}
-export WAGGLE_BEEHIVE_RABBITMQ_PORT=${WAGGLE_BEEHIVE_RABBITMQ_PORT:-15671}
-echo "WAGGLE_BEEHIVE_RABBITMQ $WAGGLE_BEEHIVE_RABBITMQ_HOST:$WAGGLE_BEEHIVE_RABBITMQ_PORT"
-
-export WAGGLE_BEEHIVE_UPLOAD_HOST=${WAGGLE_BEEHIVE_UPLOAD_HOST:-$WAGGLE_BEEHIVE_HOST}
-export WAGGLE_BEEHIVE_UPLOAD_PORT=${WAGGLE_BEEHIVE_UPLOAD_PORT:-20022}
-echo "WAGGLE_BEEHIVE_UPLOAD $WAGGLE_BEEHIVE_UPLOAD_HOST:$WAGGLE_BEEHIVE_UPLOAD_PORT"
-
-create_waggle_config
-create_waggle_data_config
 
 echo "deploying network policies"
 kubectl apply -f wes-plugin-network-policy.yaml
