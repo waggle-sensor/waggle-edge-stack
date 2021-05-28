@@ -53,6 +53,9 @@ if [ "${1}_" != "skip-env_" ] ; then
 
 fi
 
+echo "deploying default resource limits"
+kubectl apply -f wes-default-limits.yaml
+
 echo "deploying network policies"
 kubectl apply -f wes-plugin-network-policy.yaml
 
