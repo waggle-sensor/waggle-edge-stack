@@ -1,9 +1,12 @@
 
-# This Dockerimage simulates a waggle node without k3s or the higher edge code
+# This Dockerimage simulates a waggle node without k3s or the higher-level edge code
 
 # docker build -t waggle/wes-minimal .
+
+# mount ansible files into container on start:
 # docker run -ti --rm -v ${PWD}/ansible/:/ansible:ro -w /ansible waggle/wes-minimal
 
+# This container will be used in the beekeeper docker-compose enviornment for testing purposes.
 
 FROM ubuntu:18.04
 
