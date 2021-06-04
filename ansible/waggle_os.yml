@@ -22,33 +22,39 @@
   - name: apt-get update
     apt:
       update_cache: yes
+
+  - name: install locales
+    apt:
+      name:
+        - locales
+      state: present
+
   - name: Ensure a locale exists
     community.general.locale_gen:
       name: en_US.UTF-8
       state: present
 
 
-  - name: Install ubuntu packages
-    apt:
-      name:
-        - systemd-sysv  # is that a good idea? what if another version comes pre-installed ??
-        - python3=3.8.2-0ubuntu2
-        #- python3-pip=20.0.2-5ubuntu1.1
-        #- python3-venv=3.8.2-0ubuntu2  # what package needs this ?
-      state: present
-    when:
-      - ansible_distribution_version == "20.04"
 
-  - name: Install ubuntu packages
+  - name: Install Systemd packages
     apt:
       name:
-        - systemd-sysv  # is that a good idea? what if another version comes pre-installed ??
-        - python3=3.6.7-1~18.04
-        #- python3-pip=9.0.1-2.3~ubuntu1.18.04.4
-        #- python3-venv=3.6.7-1~18.04  # what package needs this ?
+        - systemd-sysv
       state: present
     when:
-      - ansible_distribution_version == "18.04"
+      - use_systemd == "yes"
+
+  - name: Install other ubuntu packages
+    apt:
+      name:
+
+        - python3
+        - openssh-server
+      state: present
+    #when:
+    #  - ansible_distribution_version == "18.04"
+
+
 
 
         #- ansible  # maybe needed if we run asyncronous (long-running) playbooks locally
@@ -76,6 +82,11 @@
       path: /etc/waggle/
       state: directory
 
+  #  motd-news
+  - name: check if motd-news file exists
+    stat:
+      path: /etc/default/motd-news
+    register: motd_news
 
   - name: disable ubuntu motd-news
     lineinfile:
@@ -83,6 +94,9 @@
       state: present
       regexp: '^ENABLED='
       line: 'ENABLED=0'
+    when: motd_news.stat.exists == true
+
+
   - name: Creates directory
     file:
       path: /etc/update-motd.d/
@@ -178,21 +192,19 @@
   tasks:
 
 
-
-
-
-
   # node id service
   - name: Download node id service
     get_url:
        url: "https://github.com/waggle-sensor/waggle-nodeid/releases/download/v{{NODE_ID_SERVICE_VERSION}}/waggle-nodeid_{{NODE_ID_SERVICE_VERSION}}_all.deb"
        dest: "/tmp/waggle-nodeid_{{NODE_ID_SERVICE_VERSION}}_all.deb"
+    when: use_systemd == "yes"
 
   - name: Install node-id service (but do not start)
     apt:
       deb: "/tmp/waggle-nodeid_{{NODE_ID_SERVICE_VERSION}}_all.deb"
+    when: use_systemd == "yes"
 
-
+  # If we do not mask waggle-nodeid.service, this service will start on next boot, and a manual config is too late.
   #- name: Mask waggle-nodeid.service
   #  ansible.builtin.systemd:
   #    name: waggle-nodeid.service
@@ -202,7 +214,7 @@
     shell: |
       mv /etc/systemd/system/waggle-nodeid.service /etc/systemd/system/waggle-nodeid.service_disabled
       systemctl daemon-reload
-    when: nodeid_service_masked == "yes"
+    when: nodeid_service_masked == "yes" and use_systemd == "yes"
 
   # hostname service
   #- name: Download hostname service
@@ -221,20 +233,24 @@
     get_url:
        url: "https://github.com/waggle-sensor/beekeeper-registration/releases/download/v{{REGISTRATION_VERSION}}/waggle-bk-registration_{{REGISTRATION_VERSION}}_all.deb"
        dest: "/tmp/waggle-bk-registration_{{REGISTRATION_VERSION}}_all.deb"
+    when: use_systemd == "yes"
 
   - name: Install waggle-registration service (but do not start)
     apt:
       deb: "/tmp/waggle-bk-registration_{{REGISTRATION_VERSION}}_all.deb"
+    when: use_systemd == "yes"
 
   # waggle-reverse-tunnel
   - name: Download waggle-reverse-tunnel service
     get_url:
        url: "https://github.com/waggle-sensor/node-reverse-tunnel-service/releases/download/v{{REV_TUNNEL_VERSION}}/waggle-bk-reverse-tunnel_{{REV_TUNNEL_VERSION}}_all.deb"
        dest: "/tmp/waggle-bk-reverse-tunnel_{{REV_TUNNEL_VERSION}}_all.deb"
+    when: use_systemd == "yes"
 
   - name: Install waggle-reverse-tunnel service (but do not start)
     apt:
       deb: "/tmp/waggle-bk-reverse-tunnel_{{REV_TUNNEL_VERSION}}_all.deb"
+    when: use_systemd == "yes"
 
 
 
@@ -267,13 +283,28 @@
       - { key: "PermitRootLogin", value: "without-password" }
       - { key: "PasswordAuthentication", value: "no" }
 
+  #- name: workaround
+  #  set_fact:
+  #    #install_docker: '{{install_docker == "yes"}}'
+  #    install_docker: 'no'
+  #  delegate_to: localhost
+  #  delegate_facts: yes
+
+- hosts: all,localhost
+  gather_facts: no
+  run_once: True
+  tasks:
+   - set_fact:
+        install_docker_: '{{install_docker == "yes"}}'
+        #install_k3s_: '{{install_k3s == "yes"}}'
+     delegate_to: localhost
+     delegate_facts: yes
+
 
  # TODO: (if we keep it) prevent start at this point, start later
 - name: docker
   import_playbook: install-docker-playbook.yml
-
-
-
+  when: hostvars.localhost.install_docker_
 
 
 
@@ -286,6 +317,9 @@
   # https://github.com/rancher/k3s-ansible
 
   tasks:
+    - meta: end_play
+      when: install_k3s != "yes"
+
     - name: install k3s (without starting)
       args:
         warn: false  # ansible is unhappy about curl
@@ -322,6 +356,9 @@
         # ansible expects files in subfolder "files" (which does not exist), but we can get outside using "../"
         src: ../kubernetes
         dest: /opt/waggle/
+
+  #when: hostvars.localhost.install_k3s_
+    #when: install_k3s == "yes"
 
 
 
