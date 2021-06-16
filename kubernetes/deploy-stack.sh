@@ -1,5 +1,10 @@
 #!/bin/bash -e
 
+redeploy() {
+  kubectl delete -f "$1" &> /dev/null || true
+  kubectl apply -f "$1"
+}
+
 create_waggle_config() {
   echo "creating waggle config"
   kubectl apply -f - <<EOF
@@ -50,7 +55,6 @@ if [ "${1}_" != "skip-env_" ] ; then
 
   create_waggle_config
   create_waggle_data_config
-
 fi
 
 echo "deploying default resource limits"
@@ -60,10 +64,17 @@ echo "deploying network policies"
 kubectl apply -f wes-plugin-network-policy.yaml
 
 echo "updating node labels"
-# label all rpis as having a microphone
+for node in $(kubectl get node | awk '/ws-nxcore/ {print $1}'); do
+    kubectl label nodes "$node" resource.bme280=true || true
+done
 for node in $(kubectl get node | awk '/ws-rpi/ {print $1}'); do
     kubectl label nodes "$node" resource.microphone=true || true
+    kubectl label nodes "$node" resource.raingauge=true || true
+    kubectl label nodes "$node" resource.bme680=true || true
 done
+
+echo "deploying prometheus node exporter"
+kubectl apply -f node-exporter.yaml
 
 echo "deploying rabbitmq server"
 kubectl apply -f wes-rabbitmq.yaml
@@ -73,13 +84,13 @@ echo "generating rabbitmq service account credentials"
 ./update-rabbitmq-auth.sh wes-rabbitmq-shovel-account-secret shovel '^$' '^$' '^to-beehive|to-beekeeper$'
 
 echo "deploying rest of node stack"
-kubectl apply -f node-exporter.yaml
-kubectl apply -f wes-upload-agent.yaml
-kubectl apply -f wes-audio-server.yaml
-# playback server is not needed for field deployment, but we'll leave it in for testing
-kubectl apply -f wes-playback-server.yaml
-kubectl apply -f wes-data-sharing-service.yaml
-kubectl apply -f wes-metrics-agent.yaml
+# NOTE we redeploy these to make sure they are restarted with any updated configs / secrets
+redeploy wes-upload-agent.yaml
+redeploy wes-audio-server.yaml
+# NOTE playback server is not needed for field deployment, but we'll leave it in for testing
+redeploy wes-playback-server.yaml
+redeploy wes-data-sharing-service.yaml
+redeploy wes-metrics-agent.yaml
 
 echo "enabling data shovel"
 ./shovelctl.sh enable
