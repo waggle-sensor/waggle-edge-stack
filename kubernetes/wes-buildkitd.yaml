@@ -1,0 +1,64 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: wes-buildkitd-config
+  labels:
+    app.kubernetes.io/part-of: waggle-edge-stack
+data:
+  buildkitd.toml: |
+    [worker.oci]
+      enabled = false
+
+    [worker.containerd]
+      enabled = true
+      address = "/host/root/run/k3s/containerd/containerd.sock"
+      namespace = "k8s.io"
+---
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: wes-buildkitd
+  labels:
+    app.kubernetes.io/name: wes-buildkitd
+    app.kubernetes.io/version: "0.1.0"
+    app.kubernetes.io/part-of: waggle-edge-stack
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: wes-buildkitd
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: wes-buildkitd
+    spec:
+      containers:
+      - name: wes-buildkitd
+        image: moby/buildkit:master
+        args:
+          - --addr
+          - tcp://0.0.0.0:1234
+        securityContext:
+          privileged: true
+        ports:
+          - containerPort: 1234
+        volumeMounts:
+        - name: config
+          mountPath: /etc/buildkit
+          readOnly: true
+        - mountPath: /host/root
+          mountPropagation: HostToContainer
+          name: root
+          readOnly: true
+        - mountPath: /var/lib/rancher
+          mountPropagation: HostToContainer
+          name: rancher
+      volumes:
+      - name: config
+        configMap:
+          name: wes-buildkitd-config
+      - hostPath:
+          path: /
+        name: root
+      - hostPath:
+          path: /var/lib/rancher
+        name: rancher
