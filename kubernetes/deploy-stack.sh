@@ -60,6 +60,9 @@ fi
 echo "deploying default resource limits"
 kubectl apply -f wes-default-limits.yaml
 
+echo "deploying priority classes"
+kubectl apply -f wes-priority-classes.yaml
+
 echo "deploying network policies"
 kubectl apply -f wes-plugin-network-policy.yaml
 
