@@ -14,7 +14,7 @@ spec:
         app.kubernetes.io/name: wes-upload-agent
     spec:
       containers:
-      - image: waggle/wes-upload-agent:0.1.0
+      - image: waggle/wes-upload-agent:0.1.1
         name: wes-upload-agent
         resources:
           limits:
