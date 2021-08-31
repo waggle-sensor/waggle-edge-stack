@@ -199,6 +199,7 @@ spec:
       labels:
         app: wes-rabbitmq
     spec:
+      priorityClassName: wes-high-priority
       nodeSelector:
         node-role.kubernetes.io/master: "true"
       containers:

@@ -13,6 +13,7 @@ spec:
       labels:
         app.kubernetes.io/name: wes-upload-agent
     spec:
+      priorityClassName: wes-high-priority
       containers:
       - image: waggle/wes-upload-agent:0.1.1
         name: wes-upload-agent

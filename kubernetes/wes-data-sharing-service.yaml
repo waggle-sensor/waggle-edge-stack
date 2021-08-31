@@ -11,6 +11,7 @@ spec:
       labels:
         app: wes-data-sharing-service
     spec:
+      priorityClassName: wes-high-priority
       nodeSelector:
         node-role.kubernetes.io/master: "true"
       containers:

@@ -13,6 +13,7 @@ spec:
       labels:
         app.kubernetes.io/name: wes-metrics-agent
     spec:
+      priorityClassName: wes-high-priority
       containers:
       - image: waggle/wes-metrics-agent:0.1.0
         name: wes-metrics-agent

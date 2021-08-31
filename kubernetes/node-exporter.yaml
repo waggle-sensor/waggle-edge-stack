@@ -17,6 +17,7 @@ spec:
         app.kubernetes.io/name: node-exporter
         app.kubernetes.io/version: v1.0.1
     spec:
+      priorityClassName: wes-high-priority
       containers:
       - args:
         - "--web.listen-address=$(HOST_IP):9100"

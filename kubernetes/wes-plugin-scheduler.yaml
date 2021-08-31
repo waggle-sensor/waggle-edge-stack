@@ -11,6 +11,7 @@ spec:
       labels:
         app: wes-plugin-scheduler
     spec:
+      priorityClassName: wes-high-priority
       serviceAccountName: wes-plugin-scheduler
       containers:
       # TODO change to the real scheduler image :)

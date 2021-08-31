@@ -87,8 +87,6 @@ echo "deploying rest of node stack"
 # NOTE we redeploy these to make sure they are restarted with any updated configs / secrets
 redeploy wes-upload-agent.yaml
 redeploy wes-audio-server.yaml
-# NOTE playback server is not needed for field deployment, but we'll leave it in for testing
-redeploy wes-playback-server.yaml
 redeploy wes-data-sharing-service.yaml
 redeploy wes-metrics-agent.yaml
 

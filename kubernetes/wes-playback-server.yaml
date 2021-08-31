@@ -16,6 +16,7 @@ kind: Deployment
 metadata:
   name: wes-playback-server
 spec:
+  priorityClassName: wes-high-priority
   selector:
     matchLabels:
       app: wes-playback-server
