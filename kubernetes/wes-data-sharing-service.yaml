@@ -44,7 +44,15 @@ spec:
             cpu: 100m
             memory: 10Mi
 ---
-# wes-data-sharing svc must be able to *read* Pod metadata.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: wes-data-sharing-service-svc-cluster-role
+rules:
+- apiGroups: [""]
+  resources: ["pods"]
+  verbs: ["get", "watch", "list"]
+---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
@@ -52,7 +60,7 @@ metadata:
   namespace: default
 roleRef:
   kind: ClusterRole
-  name: view
+  name: wes-data-sharing-service-svc-cluster-role
   apiGroup: rbac.authorization.k8s.io
 subjects:
 - kind: ServiceAccount
