@@ -45,22 +45,13 @@ spec:
             memory: 10Mi
 ---
 apiVersion: rbac.authorization.k8s.io/v1
-kind: ClusterRole
-metadata:
-  name: wes-data-sharing-service-svc-cluster-role
-rules:
-- apiGroups: [""]
-  resources: ["pods"]
-  verbs: ["get", "watch", "list"]
----
-apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
   name: wes-data-sharing-service-svc-account-read
   namespace: default
 roleRef:
   kind: ClusterRole
-  name: wes-data-sharing-service-svc-cluster-role
+  name: view
   apiGroup: rbac.authorization.k8s.io
 subjects:
 - kind: ServiceAccount
