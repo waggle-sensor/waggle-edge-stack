@@ -6,7 +6,6 @@ redeploy() {
 }
 
 create_waggle_config() {
-  echo "creating waggle config"
   kubectl apply -f - <<EOF
 apiVersion: v1
 kind: ConfigMap
@@ -20,12 +19,6 @@ data:
   WAGGLE_BEEHIVE_UPLOAD_HOST: "$WAGGLE_BEEHIVE_UPLOAD_HOST"
   WAGGLE_BEEHIVE_UPLOAD_PORT: "$WAGGLE_BEEHIVE_UPLOAD_PORT"
 EOF
-}
-
-create_waggle_data_config() {
-  echo "creating waggle data config"
-  (kubectl delete configmap waggle-data-config || true) &>/dev/null
-  kubectl create configmap waggle-data-config --from-file=data-config.json=data-config.json
 }
 
 # TODO clean up defining this initial config
@@ -53,9 +46,12 @@ if [ "${1}_" != "skip-env_" ] ; then
   export WAGGLE_BEEHIVE_UPLOAD_PORT=${WAGGLE_BEEHIVE_UPLOAD_PORT:-20022}
   echo "WAGGLE_BEEHIVE_UPLOAD $WAGGLE_BEEHIVE_UPLOAD_HOST:$WAGGLE_BEEHIVE_UPLOAD_PORT"
 
+  echo "creating waggle config"
   create_waggle_config
-  create_waggle_data_config
 fi
+
+echo "creating default waggle-data-config, if doesn't already exist."
+kubectl create configmap waggle-data-config --from-file=data-config.json=data-config.json || true
 
 echo "deploying default resource limits"
 kubectl apply -f wes-default-limits.yaml
