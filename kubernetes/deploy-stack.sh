@@ -13,6 +13,7 @@ metadata:
   name: waggle-config
 data:
   WAGGLE_NODE_ID: "$WAGGLE_NODE_ID"
+  WAGGLE_NODE_VSN: "$WAGGLE_NODE_VSN"
   WAGGLE_BEEHIVE_HOST: "$WAGGLE_BEEHIVE_HOST"
   WAGGLE_BEEHIVE_RABBITMQ_HOST: "$WAGGLE_BEEHIVE_RABBITMQ_HOST"
   WAGGLE_BEEHIVE_RABBITMQ_PORT: "$WAGGLE_BEEHIVE_RABBITMQ_PORT"
@@ -21,18 +22,23 @@ data:
 EOF
 }
 
-# TODO clean up defining this initial config
-
-if [ "${1}_" != "skip-env_" ] ; then
-
-  if [ ! -s /etc/waggle/node-id ] ; then
-    echo "/etc/waggle/node-id missing or empty"
+file_must_exist() {
+  if [ ! -s "$1" ] ; then
+    echo "file $1 is missing or empty"
     exit 1
   fi
+}
 
+# TODO clean up defining this initial config
+if [ "${1}_" != "skip-env_" ] ; then
+  file_must_exist /etc/waggle/node-id
   # TODO(sean) document upper / lower conventions and where they're used
   export WAGGLE_NODE_ID=$(awk '{print tolower($0)}' /etc/waggle/node-id)
   echo "WAGGLE_NODE_ID=$WAGGLE_NODE_ID"
+
+  file_must_exist /etc/waggle/vsn
+  export WAGGLE_NODE_VSN=$(awk '{print toupper($0)}' /etc/waggle/vsn)
+  echo "WAGGLE_NODE_VSN=$WAGGLE_NODE_VSN"
 
   export WAGGLE_BEEHIVE_HOST=${WAGGLE_BEEHIVE_HOST:-beehive1.mcs.anl.gov}
   echo "WAGGLE_BEEHIVE_HOST=$WAGGLE_BEEHIVE_HOST"
