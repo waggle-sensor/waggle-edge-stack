@@ -1,10 +1,16 @@
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
+commonLabels:
+  app.kubernetes.io/part-of: waggle-edge-stack
 resources:
-  - node-upload-agent.yaml
-  - wes-playback-server.yaml
-  - wes-rabbitmq.yaml
+  # common constraints and limits
+  - wes-default-limits.yaml
+  - wes-priority-classes.yaml
+  - wes-plugin-network-policy.yaml
+  # main components
+  - node-exporter.yaml
+  - wes-audio-server.yaml
   - wes-data-sharing-service.yaml
-  # - node-exporter.yaml
-
-  # see https://kubectl.docs.kubernetes.io/references/kustomize/images/
+  - wes-rabbitmq.yaml
+  - wes-upload-agent.yaml
+  - wes-metrics-agent.yaml
