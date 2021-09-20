@@ -15,64 +15,72 @@ spec:
     spec:
       priorityClassName: wes-high-priority
       containers:
-      - image: waggle/wes-metrics-agent:0.2.0
-        name: wes-metrics-agent
-        resources:
-          limits:
-            cpu: 200m
-            memory: 20Mi
-          requests:
-            cpu: 100m
-            memory: 10Mi
-        env:
-          - name: WAGGLE_HOST_ID
-            valueFrom:
-              fieldRef:
-                fieldPath: spec.nodeName
-          - name: HOST_IP
-            valueFrom:
-              fieldRef:
-                fieldPath: status.hostIP
-          - name: RABBITMQ_HOST
-            value: "wes-rabbitmq"
-          - name: RABBITMQ_PORT
-            value: "5672"
-          - name: RABBITMQ_USERNAME
-            valueFrom:
-              secretKeyRef:
-                name: wes-rabbitmq-service-account-secret
-                key: username
-          - name: RABBITMQ_PASSWORD
-            valueFrom:
-              secretKeyRef:
-                name: wes-rabbitmq-service-account-secret
-                key: password
-          - name: METRICS_URL
-            value: "http://$(HOST_IP):9100/metrics"
-          - name: RABBITMQ_EXCHANGE
-            value: "to-beehive"
-        envFrom:
-          - configMapRef:
-              name: waggle-config
-        volumeMounts:
-        - mountPath: /host/proc
-          mountPropagation: HostToContainer
-          name: proc
-          readOnly: true
-        - mountPath: /host/etc
-          mountPropagation: HostToContainer
-          name: etc
-          readOnly: true
-        - mountPath: /run/metrics
-          mountPropagation: HostToContainer
-          name: metrics-data-dir
+        - image: waggle/wes-metrics-agent:0.2.0
+          name: wes-metrics-agent
+          resources:
+            limits:
+              cpu: 200m
+              memory: 20Mi
+            requests:
+              cpu: 100m
+              memory: 10Mi
+          env:
+            - name: WAGGLE_HOST_ID
+              valueFrom:
+                fieldRef:
+                  fieldPath: spec.nodeName
+            - name: HOST_IP
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.hostIP
+            - name: RABBITMQ_HOST
+              value: "wes-rabbitmq"
+            - name: RABBITMQ_PORT
+              value: "5672"
+            - name: RABBITMQ_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: wes-rabbitmq-service-account-secret
+                  key: username
+            - name: RABBITMQ_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: wes-rabbitmq-service-account-secret
+                  key: password
+            - name: METRICS_URL
+              value: "http://$(HOST_IP):9100/metrics"
+            - name: RABBITMQ_EXCHANGE
+              value: "to-beehive"
+          envFrom:
+            - configMapRef:
+                name: waggle-config
+          volumeMounts:
+            - name: proc
+              mountPath: /host/proc
+              mountPropagation: HostToContainer
+              readOnly: true
+            - name: etc
+              mountPath: /host/etc
+              mountPropagation: HostToContainer
+              readOnly: true
+            - name: metrics-data-dir
+              mountPath: /run/metrics
+              mountPropagation: HostToContainer
+            - name: sys-kernel-debug
+              mountPath: /sys/kernel/debug
+              mountPropagation: HostToContainer
+              readOnly: true
       volumes:
-      - hostPath:
-          path: /proc
-        name: proc
-      - hostPath:
-          path: /etc
-        name: etc
-      - hostPath:
-          path: /run/metrics
-        name: metrics-data-dir
+        - name: proc
+          hostPath:
+            path: /proc
+        - name: etc
+          hostPath:
+            path: /etc
+        - name: metrics-data-dir
+          hostPath:
+            path: /run/metrics
+        # required for gpu information to be read
+        - name: sys-kernel-debug
+          hostPath:
+            path: /sys/kernel/debug
