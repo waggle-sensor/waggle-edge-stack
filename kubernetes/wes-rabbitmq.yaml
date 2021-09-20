@@ -203,40 +203,40 @@ spec:
       nodeSelector:
         node-role.kubernetes.io/master: "true"
       containers:
-      - name: wes-rabbitmq
-        image: rabbitmq:3.8.11-management-alpine
-        ports:
-        - containerPort: 5672
-        - containerPort: 15672
-        volumeMounts:
-        - name: config
-          mountPath: /etc/rabbitmq
-          readOnly: true
-        - name: beehive-ca-certificate
-          mountPath: /etc/ca
-          readOnly: true
-        - name: beehive-rabbitmq-tls
-          mountPath: /etc/tls
-          readOnly: true
-        - name: data
-          mountPath: /var/lib/rabbitmq
+        - name: wes-rabbitmq
+          image: rabbitmq:3.8.11-management-alpine
+          ports:
+            - containerPort: 5672
+            - containerPort: 15672
+          volumeMounts:
+            - name: config
+              mountPath: /etc/rabbitmq
+              readOnly: true
+            - name: beehive-ca-certificate
+              mountPath: /etc/ca
+              readOnly: true
+            - name: beehive-rabbitmq-tls
+              mountPath: /etc/tls
+              readOnly: true
+            - name: data
+              mountPath: /var/lib/rabbitmq
       volumes:
-      - name: config
-        configMap:
-          name: wes-rabbitmq-config
-      - name: beehive-ca-certificate
-        configMap:
-          name: beehive-ca-certificate
-          optional: true
-      - name: beehive-rabbitmq-tls
-        secret:
-          secretName: wes-beehive-rabbitmq-tls
-          optional: true
+        - name: config
+          configMap:
+            name: wes-rabbitmq-config
+        - name: beehive-ca-certificate
+          configMap:
+            name: beehive-ca-certificate
+            optional: true
+        - name: beehive-rabbitmq-tls
+          secret:
+            secretName: wes-beehive-rabbitmq-tls
+            optional: true
   volumeClaimTemplates:
-  - metadata:
-      name: data
-    spec:
-      accessModes: [ "ReadWriteOnce" ]
-      resources:
-        requests:
-          storage: 1Gi
+    - metadata:
+        name: data
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        resources:
+          requests:
+            storage: 1Gi
