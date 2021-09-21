@@ -1,5 +1,7 @@
 #!/bin/sh
 
+cd $(dirname $0)
+
 fatal() {
     echo $*
     exit 1
