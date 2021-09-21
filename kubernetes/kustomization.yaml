@@ -1,9 +1,10 @@
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
-commonLabels:
-  app.kubernetes.io/part-of: waggle-edge-stack
-  # NOTE maybe bake in version too?
-  # app.kubernetes.io/part-of: waggle-edge-stack-0.1.0
+# commonLabels:
+# NOTE would use this but kubectl apply will not work on statefulstates without manual step
+# app.kubernetes.io/part-of: waggle-edge-stack
+# NOTE maybe bake in version too?
+# app.kubernetes.io/part-of: waggle-edge-stack-0.1.0
 resources:
   # common constraints and limits
   - wes-default-limits.yaml
