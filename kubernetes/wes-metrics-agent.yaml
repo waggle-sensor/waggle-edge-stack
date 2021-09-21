@@ -15,17 +15,17 @@ spec:
     spec:
       priorityClassName: wes-high-priority
       containers:
-        - image: waggle/wes-metrics-agent:0.4.0
+        - image: waggle/wes-metrics-agent:0.4.1
           name: wes-metrics-agent
           securityContext:
             privileged: true
           resources:
             limits:
               cpu: 200m
-              memory: 20Mi
+              memory: 40Mi
             requests:
               cpu: 100m
-              memory: 10Mi
+              memory: 20Mi
           env:
             - name: WAGGLE_HOST_ID
               valueFrom:
