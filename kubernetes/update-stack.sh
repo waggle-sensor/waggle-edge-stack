@@ -24,4 +24,8 @@ if ! arch=$(getarch); then
     fatal "failed to get arch"
 fi
 
-(cd /root && wget -N "https://github.com/sagecontinuum/ses/releases/download/0.6.3/runplugin-${arch}")
+(
+    cd /root && \
+    wget -N "https://github.com/sagecontinuum/ses/releases/download/0.6.3/runplugin-${arch}" && \
+    chmod +x runplugin-*
+)
