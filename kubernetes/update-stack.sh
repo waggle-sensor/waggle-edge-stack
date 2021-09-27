@@ -27,4 +27,4 @@ fi
 )
 
 # update / prune kubernetes resources that are part of waggle-edge-stack
-kubectl apply -k . --prune --selector app.kubernetes.io/part-of=waggle-edge-stack
+kubectl apply -k . #--prune --selector app.kubernetes.io/part-of=waggle-edge-stack
