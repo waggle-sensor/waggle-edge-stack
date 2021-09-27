@@ -1,10 +1,5 @@
 #!/bin/bash -e
 
-redeploy() {
-  kubectl delete -f "$1" &> /dev/null || true
-  kubectl apply -f "$1"
-}
-
 create_waggle_config() {
   kubectl apply -f - <<EOF
 apiVersion: v1
@@ -59,15 +54,6 @@ fi
 echo "creating default waggle-data-config, if doesn't already exist."
 kubectl create configmap waggle-data-config --from-file=data-config.json=data-config.json || true
 
-echo "deploying default resource limits"
-kubectl apply -f wes-default-limits.yaml
-
-echo "deploying priority classes"
-kubectl apply -f wes-priority-classes.yaml
-
-echo "deploying network policies"
-kubectl apply -f wes-plugin-network-policy.yaml
-
 echo "updating node labels"
 for node in $(kubectl get node | awk '/ws-nxcore/ {print $1}'); do
     kubectl label nodes "$node" resource.bme280=true || true
@@ -78,22 +64,12 @@ for node in $(kubectl get node | awk '/ws-rpi/ {print $1}'); do
     kubectl label nodes "$node" resource.bme680=true || true
 done
 
-echo "deploying prometheus node exporter"
-kubectl apply -f node-exporter.yaml
-
-echo "deploying rabbitmq server"
-kubectl apply -f wes-rabbitmq.yaml
+echo "updating stack"
+./update-stack.sh
 
 echo "generating rabbitmq service account credentials"
 ./update-rabbitmq-auth.sh wes-rabbitmq-service-account-secret service '.*' '.*' '.*'
 ./update-rabbitmq-auth.sh wes-rabbitmq-shovel-account-secret shovel '^$' '^$' '^to-beehive|to-beekeeper$'
-
-echo "deploying rest of node stack"
-# NOTE we redeploy these to make sure they are restarted with any updated configs / secrets
-redeploy wes-upload-agent.yaml
-redeploy wes-audio-server.yaml
-redeploy wes-data-sharing-service.yaml
-redeploy wes-metrics-agent.yaml
 
 echo "enabling data shovel"
 ./shovelctl.sh enable

@@ -15,9 +15,6 @@ getarch() {
     esac
 }
 
-# update / prune kubernetes resources that are part of waggle-edge-stack
-kubectl apply -k . --prune --selector app.kubernetes.io/part-of=waggle-edge-stack
-
 # pull latest compatible version of runplugin
 if ! arch=$(getarch); then
     fatal "failed to get arch"
@@ -28,3 +25,6 @@ fi
     wget -N "https://github.com/sagecontinuum/ses/releases/download/0.6.3/runplugin-${arch}" && \
     chmod +x runplugin-*
 )
+
+# update / prune kubernetes resources that are part of waggle-edge-stack
+kubectl apply -k . --prune --selector app.kubernetes.io/part-of=waggle-edge-stack
