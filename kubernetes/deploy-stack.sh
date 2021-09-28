@@ -35,15 +35,15 @@ if [ "${1}_" != "skip-env_" ] ; then
   export WAGGLE_NODE_VSN=$(awk '{print toupper($0)}' /etc/waggle/vsn)
   echo "WAGGLE_NODE_VSN=$WAGGLE_NODE_VSN"
 
-  export WAGGLE_BEEHIVE_HOST=${WAGGLE_BEEHIVE_HOST:-beehive.honeyhouse.one}
+  export WAGGLE_BEEHIVE_HOST=${WAGGLE_BEEHIVE_HOST:-beehive.sagecontinuum.org}
   echo "WAGGLE_BEEHIVE_HOST=$WAGGLE_BEEHIVE_HOST"
 
   # TODO clean this up! for now, we just assume that "beehive" and rabbitmq are on the same host
-  export WAGGLE_BEEHIVE_RABBITMQ_HOST=${WAGGLE_BEEHIVE_RABBITMQ_HOST:-beehive.honeyhouse.one}
+  export WAGGLE_BEEHIVE_RABBITMQ_HOST=${WAGGLE_BEEHIVE_RABBITMQ_HOST:-beehive.sagecontinuum.org}
   export WAGGLE_BEEHIVE_RABBITMQ_PORT=${WAGGLE_BEEHIVE_RABBITMQ_PORT:-49191}
   echo "WAGGLE_BEEHIVE_RABBITMQ $WAGGLE_BEEHIVE_RABBITMQ_HOST:$WAGGLE_BEEHIVE_RABBITMQ_PORT"
 
-  export WAGGLE_BEEHIVE_UPLOAD_HOST=${WAGGLE_BEEHIVE_UPLOAD_HOST:-upload.honeyhouse.one}
+  export WAGGLE_BEEHIVE_UPLOAD_HOST=${WAGGLE_BEEHIVE_UPLOAD_HOST:-upload.sagecontinuum.org}
   export WAGGLE_BEEHIVE_UPLOAD_PORT=${WAGGLE_BEEHIVE_UPLOAD_PORT:-49192}
   echo "WAGGLE_BEEHIVE_UPLOAD $WAGGLE_BEEHIVE_UPLOAD_HOST:$WAGGLE_BEEHIVE_UPLOAD_PORT"
 
