@@ -53,6 +53,10 @@ spec:
               value: "http://$(HOST_IP):9100/metrics"
             - name: RABBITMQ_EXCHANGE
               value: "to-beehive"
+            - name: GPSD_HOST
+              value: "wes-gps-server"
+            - name: GPSD_PORT
+              value: "2947"
           envFrom:
             - configMapRef:
                 name: waggle-config
