@@ -77,3 +77,22 @@ spec:
     ports:
     - protocol: TCP
       port: 8090
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: wes-plugin-network-policy-gps-server
+spec:
+  podSelector:
+    matchLabels:
+      role: plugin
+  policyTypes:
+  - Egress
+  egress:
+  - to:
+    - podSelector:
+        matchLabels:
+          app: wes-gps-server
+    ports:
+    - protocol: TCP
+      port: 2947
