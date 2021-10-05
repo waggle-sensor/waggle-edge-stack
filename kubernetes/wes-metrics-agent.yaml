@@ -22,10 +22,10 @@ spec:
           resources:
             limits:
               cpu: 200m
-              memory: 40Mi
+              memory: 60Mi
             requests:
               cpu: 100m
-              memory: 20Mi
+              memory: 30Mi
           env:
             - name: WAGGLE_HOST_ID
               valueFrom:
