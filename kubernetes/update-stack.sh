@@ -15,6 +15,16 @@ getarch() {
     esac
 }
 
+for node in $(kubectl get node | awk '/ws-nxcore/ {print $1}'); do
+    kubectl label nodes "$node" resource.bme280=true || true
+    kubectl label nodes "$node" resource.gps=true || true
+done
+for node in $(kubectl get node | awk '/ws-rpi/ {print $1}'); do
+    kubectl label nodes "$node" resource.microphone=true || true
+    kubectl label nodes "$node" resource.raingauge=true || true
+    kubectl label nodes "$node" resource.bme680=true || true
+done
+
 # pull latest compatible version of runplugin
 if ! arch=$(getarch); then
     fatal "failed to get arch"
