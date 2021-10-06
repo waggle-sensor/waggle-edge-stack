@@ -41,9 +41,26 @@ spec:
             - containerPort: 4713
           securityContext:
             privileged: true
-          # the main purpose of this service is the multiplex the usb microphone,
-          # so we tie the readiness and liveness state to wheter or not we can see
-          # the usb microphone.
+          # NOTE The main purpose of this service is the multiplex the usb microphone
+          # so I use a liveness probe to tie the health of this service to whether a
+          # usb microphone is available.
+          #
+          # NOTE I am *not* using a readiness probe because I haven't found a way to
+          # get kuberetes to "hand off" ownership of the mic when updating the service.
+          # Basically, Kubernetes uses a readiness probe to decide when a Pod is ready
+          # to receive traffic. During an update it does a swicth:
+          #
+          #       /[A]
+          #  [svc]
+          #        [B waiting for readiness probe...]
+          #
+          #        [A terminating...]
+          #  [svc]
+          #       \[B ready!]
+          #
+          # Unfortunately, if "A" is kept alive in this case, it holds onto the mic causing
+          # it to appear busy. This may not be a big deal, but I just wanted to document how
+          # what's usually the right behavior affects this service a little differently.
           livenessProbe:
             exec:
               command:
