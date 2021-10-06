@@ -44,14 +44,6 @@ spec:
           # the main purpose of this service is the multiplex the usb microphone,
           # so we tie the readiness and liveness state to wheter or not we can see
           # the usb microphone.
-          readinessProbe:
-            exec:
-              command:
-                - "/bin/sh"
-                - "-c"
-                - "pactl list sources | grep -q 'USB Audio'"
-            initialDelaySeconds: 5
-            periodSeconds: 5
           livenessProbe:
             exec:
               command:
@@ -59,5 +51,6 @@ spec:
                 - "-c"
                 - "pactl list sources | grep -q 'USB Audio'"
             initialDelaySeconds: 5
-            periodSeconds: 15
+            periodSeconds: 5
+            failureThreshold: 1
 # TODO(sean) use device plugin to run on all devices with microphones
