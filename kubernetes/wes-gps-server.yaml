@@ -28,7 +28,7 @@ spec:
       nodeSelector:
         resource.gps: "true"
       containers:
-        - image: waggle/wes-gps-server:0.1.0
+        - image: waggle/wes-gps-server:0.1.1
           name: wes-gps-server
           ports:
             - containerPort: 2947
@@ -52,6 +52,18 @@ spec:
               mountPath: /host/dev
               mountPropagation: HostToContainer
               readOnly: true
+          # Ensure GPSD is still allowing clients to connect
+          livenessProbe:
+            exec:
+              command:
+                - "/bin/sh"
+                - "-c"
+                - "gpspipe -n20 -w wes-gps-server | grep -q -m1 TPV"
+            timeoutSeconds: 10
+            initialDelaySeconds: 30
+            periodSeconds: 30
+            successThreshold: 1
+            failureThreshold: 3
       volumes:
         - name: dev
           hostPath:
