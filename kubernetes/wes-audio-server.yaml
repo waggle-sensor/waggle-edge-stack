@@ -28,7 +28,7 @@ spec:
       nodeSelector:
         resource.microphone: "true"
       containers:
-        - image: waggle/wes-audio-server:0.2.0
+        - image: waggle/wes-audio-server:0.3.0
           name: wes-audio-server
           resources:
             limits:
