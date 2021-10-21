@@ -32,7 +32,7 @@ fi
 
 (
     cd /root && \
-    wget -N "https://github.com/sagecontinuum/ses/releases/download/0.6.3/runplugin-${arch}" && \
+    wget -N "https://github.com/sagecontinuum/ses/releases/download/0.6.4/runplugin-${arch}" && \
     chmod +x runplugin-*
 )
 
