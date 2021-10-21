@@ -71,3 +71,24 @@ spec:
             periodSeconds: 5
             failureThreshold: 1
 # TODO(sean) use device plugin to run on all devices with microphones
+---
+# NOTE this configmap will be mounted into plugins at /etc/asound.conf by runplugin
+# so they expect a pulseaudio backend.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: wes-audio-server-asound-conf
+data:
+  asound.conf: |
+    pcm.pulse {
+        type pulse
+    }
+    ctl.pulse {
+        type pulse
+    }
+    pcm.!default {
+        type pulse
+    }
+    ctl.!default {
+        type pulse
+    }
