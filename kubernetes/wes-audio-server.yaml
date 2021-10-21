@@ -77,7 +77,7 @@ spec:
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: wes-audio-server-asound-conf
+  name: wes-audio-server-plugin-conf
 data:
   asound.conf: |
     pcm.pulse {
