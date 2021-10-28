@@ -40,6 +40,12 @@ fi
     chmod +x runplugin-*
 )
 
+# create waggle-data-config, if it doesn't exist.
+# NOTE must not overwrite updated waggle-data-config managed by any device discover services!
+if ! kubectl get configmap waggle-data-config &> /dev/null; then
+    kubectl create configmap waggle-data-config --from-file=data-config.json=data-config.json
+fi
+
 # NOTE the following section is really just a big reshaping of various configs and secrets
 # into bits that will be managed by kustomize. they're arguably simpler than before and we
 # could consider eventually just shipping the files as a tar / zip in rather than this:
@@ -290,12 +296,6 @@ kubectl get secret wes-beehive-upload-ssh-key -o jsonpath='{.data.ssh-key}' | ba
 kubectl get secret wes-beehive-upload-ssh-key -o jsonpath='{.data.ssh-key-cert\.pub}' | base64 -d > configs/upload-agent/ssh-key-cert.pub
 kubectl get secret wes-beehive-upload-ssh-key -o jsonpath='{.data.ssh-key\.pub}' | base64 -d > configs/upload-agent/ssh-key.pub
 
-# create waggle-data-config if it doesn't exist.
-# NOTE must not overwrite updated waggle-data-config managed by any device discover services!
-# if ! kubectl get configmap waggle-data-config &> /dev/null; then
-#     kubectl create configmap waggle-data-config --from-file=data-config.json=data-config.json
-# fi
-
 # HACK at some point, kustomize deprecated env: for envs: in the configmap / secret generators.
 # i'm generating the kustomization.yaml file just to use literals instead of envs which are
 # backwards compatible...
@@ -349,5 +349,5 @@ resources:
   - wes-gps-server.yaml
 EOF
 
-# update / prune kubernetes resources that are part of waggle-edge-stack
+# update and prune kubernetes resources that are part of waggle-edge-stack
 kubectl apply -k . --prune --selector app.kubernetes.io/part-of=waggle-edge-stack
