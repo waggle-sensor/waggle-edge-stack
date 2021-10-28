@@ -54,8 +54,8 @@ find configs -type d | xargs chmod 700
 
 # generate identity config for kustomize
 # NOTE we are ignoring the WAGGLE_NODE_ID in waggle-config and creating from local file
-WAGGLE_NODE_ID=$(cat "${WAGGLE_CONFIG_DIR}/node-id")
-WAGGLE_NODE_VSN=$(cat "${WAGGLE_CONFIG_DIR}/vsn")
+WAGGLE_NODE_ID=$(awk '{print tolower($0)}' "${WAGGLE_CONFIG_DIR}/node-id")
+WAGGLE_NODE_VSN=$(awk '{print toupper($0)}' "${WAGGLE_CONFIG_DIR}/vsn")
 cat > configs/wes-identity.env <<EOF
 WAGGLE_NODE_ID=${WAGGLE_NODE_ID}
 WAGGLE_NODE_VSN=${WAGGLE_NODE_VSN}
