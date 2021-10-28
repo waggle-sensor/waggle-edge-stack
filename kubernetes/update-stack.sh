@@ -292,9 +292,62 @@ kubectl get secret wes-beehive-upload-ssh-key -o jsonpath='{.data.ssh-key\.pub}'
 
 # create waggle-data-config if it doesn't exist.
 # NOTE must not overwrite updated waggle-data-config managed by any device discover services!
-if ! kubectl get configmap waggle-data-config &> /dev/null; then
-    kubectl create configmap waggle-data-config --from-file=data-config.json=data-config.json
-fi
+# if ! kubectl get configmap waggle-data-config &> /dev/null; then
+#     kubectl create configmap waggle-data-config --from-file=data-config.json=data-config.json
+# fi
+
+# HACK at some point, kustomize deprecated env: for envs: in the configmap / secret generators.
+# i'm generating the kustomization.yaml file just to use literals instead of envs which are
+# backwards compatible...
+# you'll see this as the error:
+# error: json: unknown field "envs"
+cat > kustomization.yaml <<EOF
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+commonLabels:
+  app.kubernetes.io/part-of: waggle-edge-stack
+configMapGenerator:
+  - name: wes-identity
+    literals:
+      - WAGGLE_NODE_ID=${WAGGLE_NODE_ID}
+      - WAGGLE_NODE_VSN=${WAGGLE_NODE_VSN}
+  - name: wes-upload-agent-env
+    literals:
+      - WAGGLE_BEEHIVE_UPLOAD_HOST=${WAGGLE_BEEHIVE_UPLOAD_HOST}
+      - WAGGLE_BEEHIVE_UPLOAD_PORT=${WAGGLE_BEEHIVE_UPLOAD_PORT}
+      - SSH_CA_PUBKEY=/etc/upload-agent/ca.pub
+      - SSH_KEY=/etc/upload-agent/ssh-key
+      - SSH_CERT=/etc/upload-agent/ssh-key-cert.pub
+secretGenerator:
+  - name: wes-rabbitmq-config
+    files:
+      - configs/rabbitmq/rabbitmq.conf
+      - configs/rabbitmq/definitions.json
+      - configs/rabbitmq/enabled_plugins
+      - configs/rabbitmq/cacert.pem
+      - configs/rabbitmq/cert.pem
+      - configs/rabbitmq/key.pem
+  - name: wes-upload-agent-config
+    files:
+      - configs/upload-agent/ca.pub
+      - configs/upload-agent/ca-cert.pub
+      - configs/upload-agent/ssh-key
+      - configs/upload-agent/ssh-key-cert.pub
+      - configs/upload-agent/ssh-key.pub
+resources:
+  # common constraints and limits
+  - wes-default-limits.yaml
+  - wes-priority-classes.yaml
+  - wes-plugin-network-policy.yaml
+  # main components
+  - node-exporter.yaml
+  - wes-audio-server.yaml
+  - wes-data-sharing-service.yaml
+  - wes-rabbitmq.yaml
+  - wes-upload-agent.yaml
+  - wes-metrics-agent.yaml
+  - wes-gps-server.yaml
+EOF
 
 # update / prune kubernetes resources that are part of waggle-edge-stack
 kubectl apply -k . --prune --selector app.kubernetes.io/part-of=waggle-edge-stack
