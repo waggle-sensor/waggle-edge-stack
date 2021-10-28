@@ -46,7 +46,7 @@ spec:
               value: "/host/dev/gps"
           envFrom:
             - configMapRef:
-                name: waggle-config
+                name: wes-identity
           volumeMounts:
             - name: dev
               mountPath: /host/dev
@@ -68,4 +68,3 @@ spec:
         - name: dev
           hostPath:
             path: /dev
-
