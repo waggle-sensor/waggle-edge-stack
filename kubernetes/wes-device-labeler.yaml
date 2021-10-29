@@ -17,7 +17,7 @@ spec:
       containers:
         - name: wes-device-labeler
           # NOTE there was a typo in the repo name... labeller -> labeler
-          image: waggle/wes-device-labeller:0.1.0
+          image: waggle/wes-device-labeller:0.1.1
           args:
             - "--dry-run"
             - "--root=/host"
