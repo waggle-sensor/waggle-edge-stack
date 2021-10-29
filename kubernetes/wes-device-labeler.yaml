@@ -16,8 +16,7 @@ spec:
       priorityClassName: wes-high-priority
       containers:
         - name: wes-device-labeler
-          # NOTE there was a typo in the repo name... labeller -> labeler
-          image: waggle/wes-device-labeller:0.1.1
+          image: waggle/wes-device-labeler:0.1.1
           args:
             - "--dry-run"
             - "--root=/host"
