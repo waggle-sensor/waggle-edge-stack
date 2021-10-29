@@ -20,6 +20,8 @@ update_resource_labels() {
 
 # TODO move into automated discovery service
 update_node_labels() {
+    echo "updating node labels"
+
     for node in $(kubectl get node | awk '/ws-nxcore/ {print $1}'); do
         update_resource_labels "$node" bme280 gps
     done
@@ -38,17 +40,20 @@ getarch() {
 }
 
 update_runplugin() {
-    # pull latest compatible version of runplugin
+    echo "updating runplugin"
+
     if ! arch=$(getarch); then
         fatal "failed to get arch"
     fi
 
-    wget -q -N -P "${WAGGLE_BIN_DIR}" "https://github.com/sagecontinuum/ses/releases/download/0.7.0/runplugin-${arch}"
+    wget -N -P "${WAGGLE_BIN_DIR}" "https://github.com/sagecontinuum/ses/releases/download/0.7.0/runplugin-${arch}"
     chmod +x "${WAGGLE_BIN_DIR}/runplugin-${arch}"
     ln -f "${WAGGLE_BIN_DIR}/runplugin-${arch}" "${WAGGLE_BIN_DIR}/runplugin"
 }
 
 update_data_config() {
+    echo "updating waggle-data-config"
+
     if output=$(kubectl create configmap waggle-data-config --from-file=data-config.json=data-config.json 2>&1); then
         echo "waggle-data-config created"
     elif echo "$output" | grep -q "already exists"; then
@@ -66,6 +71,10 @@ update_data_config() {
 # 3. load generated configs / secrets using kustomize
 # if we buy into just using kustomize from the get go, then mostly only need step 3.
 update_wes() {
+    echo "updating wes"
+
+    echo "generating wes configs"
+
     mkdir -p configs configs/rabbitmq configs/upload-agent
     # make all config directories private
     find configs -type d | xargs chmod 700
@@ -361,7 +370,7 @@ resources:
   - wes-gps-server.yaml
 EOF
 
-    # update and prune kubernetes resources that are part of waggle-edge-stack
+    echo "deploying wes stack"
     kubectl apply -k . --prune --selector app.kubernetes.io/part-of=waggle-edge-stack
 }
 
