@@ -1,4 +1,4 @@
-#!/bin/sh -e
+#!/bin/bash -e
 
 WAGGLE_CONFIG_DIR=${WAGGLE_CONFIG_DIR:-/etc/waggle}
 WAGGLE_BIN_DIR=${WAGGLE_BIN_DIR:-/usr/bin}
