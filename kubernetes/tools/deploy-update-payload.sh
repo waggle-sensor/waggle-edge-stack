@@ -17,5 +17,17 @@ if ! ./deploy-stack.sh; then
     ./deploy-stack.sh
 fi
 
-# restart plugins (hack until we understand occasional problem in some cases where plugin stops sending data)
-kubectl get deployment -o name | grep -E 'iio|raingauge|sampler|test-pipeline|objectcounter' | xargs -L1 kubectl rollout restart
+# # restart plugins (hack until we understand occasional problem in some cases where plugin stops sending data)
+# kubectl get deployment -o name | grep -E 'iio|raingauge|sampler|test-pipeline|objectcounter|cloudcover|yamnet' | xargs -L1 kubectl rollout restart
+
+# # manually deploy hses stuff, if it exists
+# if test -e /root/ses/plugins; then
+#     for f in /root/ses/plugins/*; do
+#         $f
+#     done
+# fi
+
+# cleanup
+rm /root/runplugin-arm64 || true
+rm /root/runplugin-amd64 || true
+rm -rf /root/waggle-edge-stack || true

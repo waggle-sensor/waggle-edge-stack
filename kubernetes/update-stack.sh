@@ -325,8 +325,8 @@ EOF
     cat > kustomization.yaml <<EOF
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
-commonLabels:
-  app.kubernetes.io/part-of: waggle-edge-stack
+#commonLabels:
+#  app.kubernetes.io/part-of: waggle-edge-stack
 configMapGenerator:
   - name: wes-identity
     literals:
@@ -371,7 +371,8 @@ resources:
 EOF
 
     echo "deploying wes stack"
-    kubectl apply -k . --prune --selector app.kubernetes.io/part-of=waggle-edge-stack
+    kubectl apply -k .
+    # kubectl apply -k . --prune --selector app.kubernetes.io/part-of=waggle-edge-stack
 }
 
 cd $(dirname $0)
