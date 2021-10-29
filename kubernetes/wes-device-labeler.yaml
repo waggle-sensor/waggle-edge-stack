@@ -1,0 +1,52 @@
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: wes-device-labeler
+  labels:
+    app.kubernetes.io/name: wes-device-labeler
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: wes-device-labeler
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: wes-device-labeler
+    spec:
+      priorityClassName: wes-high-priority
+      containers:
+        - name: wes-device-labeler
+          # NOTE there was a typo in the repo name... labeller -> labeler
+          image: waggle/wes-device-labeller:0.1.0
+          args:
+            - "--root=/host"
+          securityContext:
+            privileged: true
+          resources:
+            limits:
+              cpu: 200m
+              memory: 20Mi
+            requests:
+              cpu: 100m
+              memory: 10Mi
+          env:
+            - name: KUBENODE
+              valueFrom:
+                fieldRef:
+                  fieldPath: spec.nodeName
+          volumeMounts:
+            - name: dev
+              mountPath: /host/dev
+              mountPropagation: HostToContainer
+              readOnly: true
+            - name: sys
+              mountPath: /host/sys
+              mountPropagation: HostToContainer
+              readOnly: true
+      volumes:
+        - name: dev
+          hostPath:
+            path: /dev
+        - name: sys
+          hostPath:
+            path: /sys
