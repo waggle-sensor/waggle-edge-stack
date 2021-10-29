@@ -1,4 +1,4 @@
-#!/bin/sh -e
+#!/bin/bash -e
 
 # this is intended to help test wes in a docker desktop environment
 
