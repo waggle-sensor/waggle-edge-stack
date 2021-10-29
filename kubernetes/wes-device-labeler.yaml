@@ -13,6 +13,7 @@ spec:
       labels:
         app.kubernetes.io/name: wes-device-labeler
     spec:
+      serviceAccountName: wes-device-labeler-svc-account
       priorityClassName: wes-high-priority
       containers:
         - name: wes-device-labeler
