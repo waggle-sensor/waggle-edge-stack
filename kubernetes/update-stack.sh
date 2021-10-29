@@ -14,7 +14,7 @@ update_resource_labels() {
     args=""
     for r in $*; do
         label="resource.${r}=true"
-        kubectl label nodes "$node" "$label" &> /dev/null || kubectl label --overwrite nodes "$node" "$label" &> /dev/null
+        kubectl label nodes "$node" "$label" || kubectl label --overwrite nodes "$node" "$label"
     done
 }
 
@@ -23,11 +23,11 @@ update_node_labels() {
     echo "updating node labels"
 
     for node in $(kubectl get node | awk '/ws-nxcore/ {print $1}'); do
-        update_resource_labels "$node" bme280 gps
+        update_resource_labels "$node" bme280 gps &> /dev/null
     done
 
     for node in $(kubectl get node | awk '/ws-rpi/ {print $1}'); do
-        update_resource_labels "$node" microphone raingauge bme680
+        update_resource_labels "$node" microphone raingauge bme680 &> /dev/null
     done
 }
 
