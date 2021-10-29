@@ -18,15 +18,23 @@ getarch() {
     esac
 }
 
+update_resource_labels() {
+    node="$1"
+    shift
+    args=""
+    for r in $*; do
+        label="resource.${r}=true"
+        kubectl label nodes "$node" "$label" &> /dev/null || kubectl label --overwrite nodes "$node" "$label" &> /dev/null
+    done
+}
+
 # TODO move into automated discovery service
 for node in $(kubectl get node | awk '/ws-nxcore/ {print $1}'); do
-    kubectl label nodes "$node" resource.bme280=true || true
-    kubectl label nodes "$node" resource.gps=true || true
+    update_node_labels "$node" bme280 gps
 done
+
 for node in $(kubectl get node | awk '/ws-rpi/ {print $1}'); do
-    kubectl label nodes "$node" resource.microphone=true || true
-    kubectl label nodes "$node" resource.raingauge=true || true
-    kubectl label nodes "$node" resource.bme680=true || true
+    update_node_labels "$node" microphone raingauge bme680
 done
 
 # pull latest compatible version of runplugin
@@ -41,9 +49,13 @@ fi
 )
 
 # create waggle-data-config, if it doesn't exist.
-# NOTE must not overwrite updated waggle-data-config managed by any device discover services!
-if ! kubectl get configmap waggle-data-config &> /dev/null; then
-    kubectl create configmap waggle-data-config --from-file=data-config.json=data-config.json
+# NOTE must not overwrite waggle-data-config since will be managed by device discover service
+if output=$(kubectl create configmap waggle-data-config --from-file=data-config.json=data-config.json 2>&1); then
+    echo "waggle-data-config created"
+elif echo "$output" | grep -q "already exists"; then
+    echo "waggle-data-config already exists"
+else
+    fatal "error when setting up waggle-data-config"
 fi
 
 # NOTE the following section is really just a big reshaping of various configs and secrets
