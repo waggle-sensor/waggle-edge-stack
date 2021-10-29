@@ -20,22 +20,16 @@ spec:
           image: waggle/wes-data-sharing-service:0.6.2
           envFrom:
             - configMapRef:
-                name: waggle-config
+                name: wes-identity
           env:
             - name: RABBITMQ_HOST
               value: "wes-rabbitmq"
             - name: RABBITMQ_PORT
               value: "5672"
             - name: RABBITMQ_USERNAME
-              valueFrom:
-                secretKeyRef:
-                  name: wes-rabbitmq-service-account-secret
-                  key: username
+              value: service
             - name: RABBITMQ_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: wes-rabbitmq-service-account-secret
-                  key: password
+              value: service
           resources:
             limits:
               cpu: 200m

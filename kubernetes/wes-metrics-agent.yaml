@@ -40,15 +40,9 @@ spec:
             - name: RABBITMQ_PORT
               value: "5672"
             - name: RABBITMQ_USERNAME
-              valueFrom:
-                secretKeyRef:
-                  name: wes-rabbitmq-service-account-secret
-                  key: username
+              value: service
             - name: RABBITMQ_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: wes-rabbitmq-service-account-secret
-                  key: password
+              value: service
             - name: METRICS_URL
               value: "http://$(HOST_IP):9100/metrics"
             - name: RABBITMQ_EXCHANGE
@@ -59,7 +53,7 @@ spec:
               value: "2947"
           envFrom:
             - configMapRef:
-                name: waggle-config
+                name: wes-identity
           volumeMounts:
             - name: proc
               mountPath: /host/proc
