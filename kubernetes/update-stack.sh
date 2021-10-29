@@ -1,21 +1,11 @@
 #!/bin/sh -e
 
 WAGGLE_CONFIG_DIR=${WAGGLE_CONFIG_DIR:-/etc/waggle}
-WAGGLE_BIN_DIR=${WAGGLE_BIN_DIR:-/root}
-
-cd $(dirname $0)
+WAGGLE_BIN_DIR=${WAGGLE_BIN_DIR:-/usr/bin}
 
 fatal() {
     echo $*
     exit 1
-}
-
-getarch() {
-    case $(uname -m) in
-    x86_64) echo amd64 ;;
-    aarch64) echo arm64 ;;
-    * ) return 1 ;;
-    esac
 }
 
 update_resource_labels() {
@@ -29,34 +19,44 @@ update_resource_labels() {
 }
 
 # TODO move into automated discovery service
-for node in $(kubectl get node | awk '/ws-nxcore/ {print $1}'); do
-    update_resource_labels "$node" bme280 gps
-done
+update_node_labels() {
+    for node in $(kubectl get node | awk '/ws-nxcore/ {print $1}'); do
+        update_resource_labels "$node" bme280 gps
+    done
 
-for node in $(kubectl get node | awk '/ws-rpi/ {print $1}'); do
-    update_resource_labels "$node" microphone raingauge bme680
-done
+    for node in $(kubectl get node | awk '/ws-rpi/ {print $1}'); do
+        update_resource_labels "$node" microphone raingauge bme680
+    done
+}
 
-# pull latest compatible version of runplugin
-if ! arch=$(getarch); then
-    fatal "failed to get arch"
-fi
+getarch() {
+    case $(uname -m) in
+    x86_64) echo amd64 ;;
+    aarch64) echo arm64 ;;
+    * ) return 1 ;;
+    esac
+}
 
-(
-    cd "${WAGGLE_BIN_DIR}" && \
-    wget -q -N "https://github.com/sagecontinuum/ses/releases/download/0.7.0/runplugin-${arch}" && \
-    chmod +x runplugin-*
-)
+update_runplugin() {
+    # pull latest compatible version of runplugin
+    if ! arch=$(getarch); then
+        fatal "failed to get arch"
+    fi
 
-# create waggle-data-config, if it doesn't exist.
-# NOTE must not overwrite waggle-data-config since will be managed by device discover service
-if output=$(kubectl create configmap waggle-data-config --from-file=data-config.json=data-config.json 2>&1); then
-    echo "waggle-data-config created"
-elif echo "$output" | grep -q "already exists"; then
-    echo "waggle-data-config already exists"
-else
-    fatal "error when setting up waggle-data-config"
-fi
+    wget -q -N -P "${WAGGLE_BIN_DIR}" "https://github.com/sagecontinuum/ses/releases/download/0.7.0/runplugin-${arch}"
+    chmod +x "${WAGGLE_BIN_DIR}/runplugin-${arch}"
+    ln -f "${WAGGLE_BIN_DIR}/runplugin-${arch}" "${WAGGLE_BIN_DIR}/runplugin"
+}
+
+update_data_config() {
+    if output=$(kubectl create configmap waggle-data-config --from-file=data-config.json=data-config.json 2>&1); then
+        echo "waggle-data-config created"
+    elif echo "$output" | grep -q "already exists"; then
+        echo "waggle-data-config already exists"
+    else
+        fatal "error when setting up waggle-data-config"
+    fi
+}
 
 # NOTE the following section is really just a big reshaping of various configs and secrets
 # into bits that will be managed by kustomize. they're arguably simpler than before and we
@@ -65,26 +65,26 @@ fi
 # 2. extract and reshape relevant parts into generated configs
 # 3. load generated configs / secrets using kustomize
 # if we buy into just using kustomize from the get go, then mostly only need step 3.
+update_wes() {
+    mkdir -p configs configs/rabbitmq configs/upload-agent
+    # make all config directories private
+    find configs -type d | xargs chmod 700
 
-mkdir -p configs configs/rabbitmq configs/upload-agent
-# make all config directories private
-find configs -type d | xargs chmod 700
-
-# generate identity config for kustomize
-# NOTE we are ignoring the WAGGLE_NODE_ID in waggle-config and creating from local file
-WAGGLE_NODE_ID=$(awk '{print tolower($0)}' "${WAGGLE_CONFIG_DIR}/node-id")
-WAGGLE_NODE_VSN=$(awk '{print toupper($0)}' "${WAGGLE_CONFIG_DIR}/vsn")
-cat > configs/wes-identity.env <<EOF
+    # generate identity config for kustomize
+    # NOTE we are ignoring the WAGGLE_NODE_ID in waggle-config and creating from local file
+    WAGGLE_NODE_ID=$(awk '{print tolower($0)}' "${WAGGLE_CONFIG_DIR}/node-id")
+    WAGGLE_NODE_VSN=$(awk '{print toupper($0)}' "${WAGGLE_CONFIG_DIR}/vsn")
+    cat > configs/wes-identity.env <<EOF
 WAGGLE_NODE_ID=${WAGGLE_NODE_ID}
 WAGGLE_NODE_VSN=${WAGGLE_NODE_VSN}
 EOF
 
-# generate rabbitmq configs / secrets for kustomize
-cat > configs/rabbitmq/enabled_plugins <<EOF
+    # generate rabbitmq configs / secrets for kustomize
+    cat > configs/rabbitmq/enabled_plugins <<EOF
 [rabbitmq_prometheus,rabbitmq_management,rabbitmq_management_agent,rabbitmq_auth_mechanism_ssl,rabbitmq_shovel,rabbitmq_shovel_management].
 EOF
 
-cat > configs/rabbitmq/rabbitmq.conf <<EOF
+    cat > configs/rabbitmq/rabbitmq.conf <<EOF
 # server config
 listeners.tcp.default = 5672
 
@@ -97,9 +97,9 @@ management.tcp.port = 15672
 log.file = false
 EOF
 
-WAGGLE_BEEHIVE_RABBITMQ_HOST=$(kubectl get cm waggle-config -o jsonpath='{.data.WAGGLE_BEEHIVE_RABBITMQ_HOST}')
-WAGGLE_BEEHIVE_RABBITMQ_PORT=$(kubectl get cm waggle-config -o jsonpath='{.data.WAGGLE_BEEHIVE_RABBITMQ_PORT}')
-cat > configs/rabbitmq/definitions.json <<EOF
+    WAGGLE_BEEHIVE_RABBITMQ_HOST=$(kubectl get cm waggle-config -o jsonpath='{.data.WAGGLE_BEEHIVE_RABBITMQ_HOST}')
+    WAGGLE_BEEHIVE_RABBITMQ_PORT=$(kubectl get cm waggle-config -o jsonpath='{.data.WAGGLE_BEEHIVE_RABBITMQ_PORT}')
+    cat > configs/rabbitmq/definitions.json <<EOF
 {
     "users": [
         {
@@ -287,14 +287,14 @@ cat > configs/rabbitmq/definitions.json <<EOF
 }
 EOF
 
-kubectl get cm beehive-ca-certificate -o jsonpath="{.data.cacert\.pem}" > configs/rabbitmq/cacert.pem
-kubectl get secret wes-beehive-rabbitmq-tls -o jsonpath='{.data.cert\.pem}' | base64 -d > configs/rabbitmq/cert.pem
-kubectl get secret wes-beehive-rabbitmq-tls -o jsonpath='{.data.key\.pem}' | base64 -d > configs/rabbitmq/key.pem
+    kubectl get cm beehive-ca-certificate -o jsonpath="{.data.cacert\.pem}" > configs/rabbitmq/cacert.pem
+    kubectl get secret wes-beehive-rabbitmq-tls -o jsonpath='{.data.cert\.pem}' | base64 -d > configs/rabbitmq/cert.pem
+    kubectl get secret wes-beehive-rabbitmq-tls -o jsonpath='{.data.key\.pem}' | base64 -d > configs/rabbitmq/key.pem
 
-# generate upload agent configs / secrets for kustomize
-WAGGLE_BEEHIVE_UPLOAD_HOST=$(kubectl get cm waggle-config -o jsonpath='{.data.WAGGLE_BEEHIVE_UPLOAD_HOST}')
-WAGGLE_BEEHIVE_UPLOAD_PORT=$(kubectl get cm waggle-config -o jsonpath='{.data.WAGGLE_BEEHIVE_UPLOAD_PORT}')
-cat > configs/upload-agent/wes-upload-agent.env <<EOF
+    # generate upload agent configs / secrets for kustomize
+    WAGGLE_BEEHIVE_UPLOAD_HOST=$(kubectl get cm waggle-config -o jsonpath='{.data.WAGGLE_BEEHIVE_UPLOAD_HOST}')
+    WAGGLE_BEEHIVE_UPLOAD_PORT=$(kubectl get cm waggle-config -o jsonpath='{.data.WAGGLE_BEEHIVE_UPLOAD_PORT}')
+    cat > configs/upload-agent/wes-upload-agent.env <<EOF
 WAGGLE_BEEHIVE_UPLOAD_HOST=${WAGGLE_BEEHIVE_UPLOAD_HOST}
 WAGGLE_BEEHIVE_UPLOAD_PORT=${WAGGLE_BEEHIVE_UPLOAD_PORT}
 SSH_CA_PUBKEY=/etc/upload-agent/ca.pub
@@ -302,18 +302,18 @@ SSH_KEY=/etc/upload-agent/ssh-key
 SSH_CERT=/etc/upload-agent/ssh-key-cert.pub
 EOF
 
-kubectl get cm beehive-ssh-ca -o jsonpath="{.data.ca\.pub}" > configs/upload-agent/ca.pub
-kubectl get cm beehive-ssh-ca -o jsonpath="{.data.ca-cert\.pub}" > configs/upload-agent/ca-cert.pub
-kubectl get secret wes-beehive-upload-ssh-key -o jsonpath='{.data.ssh-key}' | base64 -d > configs/upload-agent/ssh-key
-kubectl get secret wes-beehive-upload-ssh-key -o jsonpath='{.data.ssh-key-cert\.pub}' | base64 -d > configs/upload-agent/ssh-key-cert.pub
-kubectl get secret wes-beehive-upload-ssh-key -o jsonpath='{.data.ssh-key\.pub}' | base64 -d > configs/upload-agent/ssh-key.pub
+    kubectl get cm beehive-ssh-ca -o jsonpath="{.data.ca\.pub}" > configs/upload-agent/ca.pub
+    kubectl get cm beehive-ssh-ca -o jsonpath="{.data.ca-cert\.pub}" > configs/upload-agent/ca-cert.pub
+    kubectl get secret wes-beehive-upload-ssh-key -o jsonpath='{.data.ssh-key}' | base64 -d > configs/upload-agent/ssh-key
+    kubectl get secret wes-beehive-upload-ssh-key -o jsonpath='{.data.ssh-key-cert\.pub}' | base64 -d > configs/upload-agent/ssh-key-cert.pub
+    kubectl get secret wes-beehive-upload-ssh-key -o jsonpath='{.data.ssh-key\.pub}' | base64 -d > configs/upload-agent/ssh-key.pub
 
-# HACK at some point, kustomize deprecated env: for envs: in the configmap / secret generators.
-# i'm generating the kustomization.yaml file just to use literals instead of envs which are
-# backwards compatible...
-# you'll see this as the error:
-# error: json: unknown field "envs"
-cat > kustomization.yaml <<EOF
+    # HACK at some point, kustomize deprecated env: for envs: in the configmap / secret generators.
+    # i'm generating the kustomization.yaml file just to use literals instead of envs which are
+    # backwards compatible...
+    # you'll see this as the error:
+    # error: json: unknown field "envs"
+    cat > kustomization.yaml <<EOF
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 commonLabels:
@@ -361,5 +361,12 @@ resources:
   - wes-gps-server.yaml
 EOF
 
-# update and prune kubernetes resources that are part of waggle-edge-stack
-kubectl apply -k . --prune --selector app.kubernetes.io/part-of=waggle-edge-stack
+    # update and prune kubernetes resources that are part of waggle-edge-stack
+    kubectl apply -k . --prune --selector app.kubernetes.io/part-of=waggle-edge-stack
+}
+
+cd $(dirname $0)
+update_node_labels
+update_runplugin
+update_data_config
+update_wes
