@@ -30,11 +30,11 @@ update_resource_labels() {
 
 # TODO move into automated discovery service
 for node in $(kubectl get node | awk '/ws-nxcore/ {print $1}'); do
-    update_node_labels "$node" bme280 gps
+    update_resource_labels "$node" bme280 gps
 done
 
 for node in $(kubectl get node | awk '/ws-rpi/ {print $1}'); do
-    update_node_labels "$node" microphone raingauge bme680
+    update_resource_labels "$node" microphone raingauge bme680
 done
 
 # pull latest compatible version of runplugin
