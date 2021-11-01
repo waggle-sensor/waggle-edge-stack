@@ -79,4 +79,4 @@ roleRef:
 subjects:
   - kind: ServiceAccount
     name: wes-device-labeler-svc-account
-    apiGroup: rbac.authorization.k8s.io
+    namespace: default
