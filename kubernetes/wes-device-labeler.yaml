@@ -19,7 +19,7 @@ spec:
         - name: wes-device-labeler
           image: waggle/wes-device-labeler:0.1.1
           args:
-            # - "--dry-run"
+            - "--dry-run"
             - "--root=/host"
           securityContext:
             privileged: true
@@ -58,10 +58,10 @@ metadata:
   name: wes-device-labeler-svc-account
 ---
 apiVersion: rbac.authorization.k8s.io/v1
-kind: Role
+kind: ClusterRole
 metadata:
+  name: wes-node-labeler
   namespace: default
-  name: wes-role-node-labeler
 rules:
   - apiGroups: [""] # "" indicates the core API group
     resources: ["nodes"]
@@ -70,13 +70,13 @@ rules:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
-  name: wes-device-labeler-svc-account-edit
+  name: wes-node-labeler
   namespace: default
 roleRef:
-  kind: Role
-  name: wes-role-node-labeler
+  kind: ClusterRole
+  name: wes-node-labeler
   apiGroup: rbac.authorization.k8s.io
 subjects:
   - kind: ServiceAccount
     name: wes-device-labeler-svc-account
-    namespace: default
+    apiGroup: rbac.authorization.k8s.io
