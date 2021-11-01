@@ -19,7 +19,7 @@ spec:
         - name: wes-device-labeler
           image: waggle/wes-device-labeler:0.1.1
           args:
-            - "--dry-run"
+            # - "--dry-run"
             - "--root=/host"
           securityContext:
             privileged: true
