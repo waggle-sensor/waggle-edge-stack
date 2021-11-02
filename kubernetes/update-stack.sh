@@ -8,29 +8,6 @@ fatal() {
     exit 1
 }
 
-update_resource_labels() {
-    node="$1"
-    shift
-    args=""
-    for r in $*; do
-        label="resource.${r}=true"
-        kubectl label nodes "$node" "$label" || kubectl label --overwrite nodes "$node" "$label"
-    done
-}
-
-# TODO move into automated discovery service
-update_node_labels() {
-    echo "updating node labels"
-
-    for node in $(kubectl get node | awk '/ws-nxcore/ {print $1}'); do
-        update_resource_labels "$node" bme280 gps &> /dev/null
-    done
-
-    for node in $(kubectl get node | awk '/ws-rpi/ {print $1}'); do
-        update_resource_labels "$node" microphone raingauge bme680 &> /dev/null
-    done
-}
-
 getarch() {
     case $(uname -m) in
     x86_64) echo amd64 ;;
@@ -325,8 +302,6 @@ EOF
     cat > kustomization.yaml <<EOF
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
-#commonLabels:
-#  app.kubernetes.io/part-of: waggle-edge-stack
 configMapGenerator:
   - name: wes-identity
     literals:
@@ -362,6 +337,7 @@ resources:
   - wes-plugin-network-policy.yaml
   # main components
   - node-exporter.yaml
+  - wes-device-labeler.yaml
   - wes-audio-server.yaml
   - wes-data-sharing-service.yaml
   - wes-rabbitmq.yaml
@@ -372,11 +348,9 @@ EOF
 
     echo "deploying wes stack"
     kubectl apply -k .
-    # kubectl apply -k . --prune --selector app.kubernetes.io/part-of=waggle-edge-stack
 }
 
 cd $(dirname $0)
-update_node_labels
 update_runplugin
 update_data_config
 update_wes
