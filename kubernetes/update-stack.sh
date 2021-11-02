@@ -23,7 +23,7 @@ update_runplugin() {
         fatal "failed to get arch"
     fi
 
-    wget -q -N -P "${WAGGLE_BIN_DIR}" "https://github.com/sagecontinuum/ses/releases/download/0.7.0/runplugin-${arch}"
+    wget -q -N -P "${WAGGLE_BIN_DIR}" "https://github.com/sagecontinuum/ses/releases/download/0.8.0/runplugin-${arch}"
     chmod +x "${WAGGLE_BIN_DIR}/runplugin-${arch}"
     ln -f "${WAGGLE_BIN_DIR}/runplugin-${arch}" "${WAGGLE_BIN_DIR}/runplugin"
 }
