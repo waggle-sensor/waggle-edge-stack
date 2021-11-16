@@ -24,13 +24,71 @@ spec:
       labels:
         app: wes-audio-server
     spec:
+      priorityClassName: wes-high-priority
       nodeSelector:
         resource.microphone: "true"
       containers:
-      - image: waggle/wes-audio-server:0.1.0
-        name: wes-audio-server
-        ports:
-        - containerPort: 4713
-        securityContext:
-          privileged: true
+        - image: waggle/wes-audio-server:0.3.0
+          name: wes-audio-server
+          resources:
+            limits:
+              cpu: 500m
+              memory: 50Mi
+            requests:
+              cpu: 100m
+              memory: 10Mi
+          ports:
+            - containerPort: 4713
+          securityContext:
+            privileged: true
+          # NOTE The main purpose of this service is the multiplex the usb microphone
+          # so I use a liveness probe to tie the health of this service to whether a
+          # usb microphone is available.
+          #
+          # NOTE I am *not* using a readiness probe because I haven't found a way to
+          # get kuberetes to "hand off" ownership of the mic when updating the service.
+          # Basically, Kubernetes uses a readiness probe to decide when a Pod is ready
+          # to receive traffic. During an update it does a swicth:
+          #
+          #       /[A]
+          #  [svc]
+          #        [B waiting for readiness probe...]
+          #
+          #        [A terminating...]
+          #  [svc]
+          #       \[B ready!]
+          #
+          # Unfortunately, if "A" is kept alive in this case, it holds onto the mic causing
+          # it to appear busy. This may not be a big deal, but I just wanted to document how
+          # what's usually the right behavior affects this service a little differently.
+          livenessProbe:
+            exec:
+              command:
+                - "/bin/sh"
+                - "-c"
+                - "pactl list sources | grep -q 'USB Audio'"
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            failureThreshold: 1
 # TODO(sean) use device plugin to run on all devices with microphones
+---
+# NOTE this configmap will be mounted into plugins at /etc/asound.conf by runplugin
+# so they expect a pulseaudio backend.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: wes-audio-server-plugin-conf
+data:
+  asound.conf: |
+    pcm.pulse {
+        type pulse
+    }
+    ctl.pulse {
+        type pulse
+    }
+    pcm.!default {
+        type pulse
+    }
+    ctl.!default {
+        type pulse
+    }

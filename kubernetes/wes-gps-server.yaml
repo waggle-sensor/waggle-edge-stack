@@ -1,0 +1,70 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: wes-gps-server
+spec:
+  selector:
+    app: wes-gps-server
+  ports:
+    - name: gpsd
+      protocol: TCP
+      port: 2947
+      targetPort: 2947
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: wes-gps-server
+spec:
+  selector:
+    matchLabels:
+      app: wes-gps-server
+  template:
+    metadata:
+      labels:
+        app: wes-gps-server
+    spec:
+      priorityClassName: wes-high-priority
+      nodeSelector:
+        resource.gps: "true"
+      containers:
+        - image: waggle/wes-gps-server:0.1.1
+          name: wes-gps-server
+          ports:
+            - containerPort: 2947
+          securityContext:
+            privileged: true
+          resources:
+            limits:
+              cpu: 40m
+              memory: 10Mi
+            requests:
+              cpu: 20m
+              memory: 5Mi
+          env:
+            - name: GPS_DEVICE
+              value: "/host/dev/gps"
+          envFrom:
+            - configMapRef:
+                name: wes-identity
+          volumeMounts:
+            - name: dev
+              mountPath: /host/dev
+              mountPropagation: HostToContainer
+              readOnly: true
+          # Ensure GPSD is still allowing clients to connect
+          livenessProbe:
+            exec:
+              command:
+                - "/bin/sh"
+                - "-c"
+                - "gpspipe -n20 -w wes-gps-server | grep -q -m1 TPV"
+            timeoutSeconds: 10
+            initialDelaySeconds: 30
+            periodSeconds: 30
+            successThreshold: 1
+            failureThreshold: 3
+      volumes:
+        - name: dev
+          hostPath:
+            path: /dev

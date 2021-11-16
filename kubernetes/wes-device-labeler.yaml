@@ -1,0 +1,81 @@
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: wes-device-labeler
+  labels:
+    app.kubernetes.io/name: wes-device-labeler
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: wes-device-labeler
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: wes-device-labeler
+    spec:
+      serviceAccountName: wes-device-labeler-svc-account
+      priorityClassName: wes-high-priority
+      containers:
+        - name: wes-device-labeler
+          image: waggle/wes-device-labeler:0.2.1
+          args:
+            # - "--dry-run"
+            - "--root=/host"
+          securityContext:
+            privileged: true
+          resources:
+            limits:
+              cpu: 200m
+              memory: 100Mi
+            requests:
+              cpu: 100m
+              memory: 50Mi
+          env:
+            - name: KUBENODE
+              valueFrom:
+                fieldRef:
+                  fieldPath: spec.nodeName
+          volumeMounts:
+            - name: dev
+              mountPath: /host/dev
+              mountPropagation: HostToContainer
+              readOnly: true
+            - name: sys
+              mountPath: /host/sys
+              mountPropagation: HostToContainer
+              readOnly: true
+      volumes:
+        - name: dev
+          hostPath:
+            path: /dev
+        - name: sys
+          hostPath:
+            path: /sys
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: wes-device-labeler-svc-account
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: wes-node-labeler
+  namespace: default
+rules:
+  - apiGroups: [""] # "" indicates the core API group
+    resources: ["nodes"]
+    verbs: ["get", "watch", "list", "update", "patch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: wes-node-labeler
+roleRef:
+  kind: ClusterRole
+  name: wes-node-labeler
+  apiGroup: rbac.authorization.k8s.io
+subjects:
+  - kind: ServiceAccount
+    name: wes-device-labeler-svc-account
+    namespace: default

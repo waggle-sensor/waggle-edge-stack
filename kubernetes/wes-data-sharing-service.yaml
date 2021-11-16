@@ -11,34 +11,48 @@ spec:
       labels:
         app: wes-data-sharing-service
     spec:
+      serviceAccountName: wes-data-sharing-service-svc-account
+      priorityClassName: wes-high-priority
       nodeSelector:
         node-role.kubernetes.io/master: "true"
       containers:
-      - name: wes-data-sharing-service
-        image: waggle/wes-data-sharing-service:0.1.0
-        envFrom:
-        - configMapRef:
-            name: waggle-config
-        env:
-        - name: RABBITMQ_HOST
-          value: "wes-rabbitmq"
-        - name: RABBITMQ_PORT
-          value: "5672"
-        - name: RABBITMQ_USERNAME
-          valueFrom:
-            secretKeyRef:
-              name: wes-rabbitmq-service-account-secret
-              key: username
-        - name: RABBITMQ_PASSWORD
-          valueFrom:
-            secretKeyRef:
-              name: wes-rabbitmq-service-account-secret
-              key: password
-        resources:
-          limits:
-            cpu: 200m
-            memory: 20Mi
-          requests:
-            cpu: 100m
-            memory: 10Mi
-
+        - name: wes-data-sharing-service
+          image: waggle/wes-data-sharing-service:0.6.2
+          envFrom:
+            - configMapRef:
+                name: wes-identity
+          env:
+            - name: RABBITMQ_HOST
+              value: "wes-rabbitmq"
+            - name: RABBITMQ_PORT
+              value: "5672"
+            - name: RABBITMQ_USERNAME
+              value: service
+            - name: RABBITMQ_PASSWORD
+              value: service
+          resources:
+            limits:
+              cpu: 200m
+              memory: 20Mi
+            requests:
+              cpu: 100m
+              memory: 10Mi
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: wes-data-sharing-service-svc-account-read
+  namespace: default
+roleRef:
+  kind: ClusterRole
+  name: view
+  apiGroup: rbac.authorization.k8s.io
+subjects:
+  - kind: ServiceAccount
+    name: wes-data-sharing-service-svc-account
+    namespace: default
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: wes-data-sharing-service-svc-account

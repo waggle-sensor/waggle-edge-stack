@@ -13,51 +13,42 @@ spec:
       labels:
         app.kubernetes.io/name: wes-upload-agent
     spec:
+      priorityClassName: wes-high-priority
       containers:
-      - image: waggle/wes-upload-agent:0.1.0
-        name: wes-upload-agent
-        resources:
-          limits:
-            cpu: 200m
-            memory: 20Mi
-          requests:
-            cpu: 100m
-            memory: 10Mi
-        env:
-        - name: SSH_CA_PUBKEY
-          value: "/etc/ca/ca.pub"
-        - name: SSH_HOST_KEY
-          value: "/etc/waggle/ssh-host-key"
-        - name: SSH_HOST_CERT
-          value: "/etc/waggle/ssh-host-key-cert.pub"
-        envFrom:
-          - configMapRef:
-              name: waggle-config
-        volumeMounts:
-        - name: ssh-ca-key
-          mountPath: /etc/ca
-          readOnly: true
-        - name: ssh-upload-key
-          mountPath: /etc/waggle
-          readOnly: true
-        - name: uploads
-          mountPath: /uploads
-        livenessProbe:
-          exec:
-            command:
-            - rm
-            - /tmp/healthy
-          initialDelaySeconds: 5
-          periodSeconds: 300
+        - image: waggle/wes-upload-agent:0.1.2
+          name: wes-upload-agent
+          resources:
+            limits:
+              cpu: 200m
+              memory: 20Mi
+            requests:
+              cpu: 100m
+              memory: 10Mi
+          envFrom:
+            - configMapRef:
+                name: wes-identity
+            - configMapRef:
+                name: wes-upload-agent-env
+          volumeMounts:
+            - name: config
+              mountPath: /etc/upload-agent
+              readOnly: true
+            - name: uploads
+              mountPath: /uploads
+          livenessProbe:
+            exec:
+              command:
+                - rm
+                - /tmp/healthy
+            # check every minute and allow up to 1h worth of fails in case of a long transfer
+            periodSeconds: 60
+            failureThreshold: 60
       volumes:
-      - name: ssh-ca-key
-        configMap:
-          name: beehive-ssh-ca
-      - name: ssh-upload-key
-        secret:
-          secretName: wes-beehive-upload-ssh-key
-          defaultMode: 0600
-      - name: uploads
-        hostPath:
-          path: /media/plugin-data/uploads
-          type: DirectoryOrCreate
+        - name: config
+          secret:
+            secretName: wes-upload-agent-config
+            defaultMode: 0600
+        - name: uploads
+          hostPath:
+            path: /media/plugin-data/uploads
+            type: DirectoryOrCreate

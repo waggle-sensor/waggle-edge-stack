@@ -4,3 +4,6 @@
 /base/waggle-node-*.box
 /base/metadata.json
 /base/metadata-*.json
+kubernetes/configs/
+*.pem
+.DS_Store

@@ -14,6 +14,15 @@
     #USER: "YOUR_USER_ON_THE_REMOTE_SERVER"
 
   tasks:
+
+  - name: Skipping Docker
+    ansible.builtin.debug:
+      msg: "Skipping Docker installation"
+    when: install_docker != "yes"
+
+  - meta: end_play
+    when: install_docker != "yes"
+
   - name: Update apt packages
     apt:
       update_cache: "yes"
@@ -63,7 +72,7 @@
       name: "docker"
       state: present
 
-  - name: Adding user {{ USER }} to docker group  
+  - name: Adding user {{ USER }} to docker group
     user:
       name: "{{ USER }}"
       groups: "docker"

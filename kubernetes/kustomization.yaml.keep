@@ -1,0 +1,41 @@
+# please keep this until we can remove the backwards compatibility hack
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+commonLabels:
+  app.kubernetes.io/part-of: waggle-edge-stack
+configMapGenerator:
+  - name: wes-identity
+    envs:
+      - configs/wes-identity.env
+  - name: wes-upload-agent-env
+    envs:
+      - configs/upload-agent/wes-upload-agent.env
+secretGenerator:
+  - name: wes-rabbitmq-config
+    files:
+      - configs/rabbitmq/rabbitmq.conf
+      - configs/rabbitmq/definitions.json
+      - configs/rabbitmq/enabled_plugins
+      - configs/rabbitmq/cacert.pem
+      - configs/rabbitmq/cert.pem
+      - configs/rabbitmq/key.pem
+  - name: wes-upload-agent-config
+    files:
+      - configs/upload-agent/ca.pub
+      - configs/upload-agent/ca-cert.pub
+      - configs/upload-agent/ssh-key
+      - configs/upload-agent/ssh-key-cert.pub
+      - configs/upload-agent/ssh-key.pub
+resources:
+  # common constraints and limits
+  - wes-default-limits.yaml
+  - wes-priority-classes.yaml
+  - wes-plugin-network-policy.yaml
+  # main components
+  - node-exporter.yaml
+  - wes-audio-server.yaml
+  - wes-data-sharing-service.yaml
+  - wes-rabbitmq.yaml
+  - wes-upload-agent.yaml
+  - wes-metrics-agent.yaml
+  - wes-gps-server.yaml
