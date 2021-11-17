@@ -7,6 +7,11 @@ set -x
 set -e
 
 
+# create fake kubectl for debugging
+echo -e '#!/bin/bash\necho "(this is a dummy) created"' > /usr/local/bin/kubectl
+chmod +x /usr/local/bin/kubectl
+
+
 cd /etc/waggle
 
 # copy files in place so they can be deleted afterwards
@@ -24,6 +29,12 @@ done
 # cert-authority above did not work for some reason, thus we add the host server directly:
 ssh-keyscan -H -p 2201 bk-sshd >> /etc/ssh/ssh_known_hosts
 
+# start sshd  (usually via systemd)
+mkdir -p /var/run/sshd
+/usr/sbin/sshd
+
+# registration  (usually via systemd)
 waggle-bk-registration.py
 
+# reverse ssh tunnel  (usually via systemd)
 waggle-bk-reverse-tunnel.sh
