@@ -45,6 +45,7 @@ metadata:
   name: wes-camera-provisioner
 spec:
   schedule: "*/10 * * * *"
+  concurrencyPolicy: Forbid
   jobTemplate:
     spec:
       template:
