@@ -11,7 +11,8 @@
 FROM ubuntu:18.04
 
 RUN apt-get update && apt-get install -y python3-pip netcat git    # TODO move git to ansible
-RUN python3 -m pip install ansible==4.0.0
+#RUN python3 -m pip install ansible==4.0.0 # could not install anymore
+RUN apt install -y software-properties-common && add-apt-repository --yes --update ppa:ansible/ansible-4 && apt install -y ansible
 
 # do not copy "private" folder
 COPY ansible/*.yaml ansible/*.yml ansible/05-sage  /ansible/
@@ -21,7 +22,7 @@ WORKDIR /ansible
 ENV LC_ALL=C.UTF-8
 ENV LANG=C.UTF-8
 
-RUN echo "TEST-minimal" > /etc/waggle/vsn
+RUN mkdir -p /etc/waggle && echo "TEST-minimal" > /etc/waggle/vsn
 
 RUN ansible-playbook -i localhost, -c local ./waggle_os.yml \
     -e skip_registration_key=yes \
