@@ -40,6 +40,22 @@ update_data_config() {
     fi
 }
 
+update_node_manifest() {
+    echo "updating waggle-node-manifest from /etc/waggle/node_manifest.json"
+    if [ -f /etc/waggle/node_manifest.json ]; then
+        if output=$(kubectl create configmap waggle-node-manifest --from-file=node_manifest.json=/etc/waggle/node_manifest.json 2>&1); then
+            echo "waggle-node-manifest created"
+        elif echo "$output" | grep -q "already exists"; then
+            kubectl create configmap waggle-node-manifest --from-file=node_manifest.json=/etc/waggle/node_manifest.json -o yaml --dry-run=client | kubectl replace -f -
+            echo "waggle-node-manifest updated"
+        else
+            echo "failed to create/update waggle-node-manifest"
+        fi
+    else
+        echo "/etc/waggle/node_manifest.json does not exist. skipping."
+    fi
+}
+
 # NOTE the following section is really just a big reshaping of various configs and secrets
 # into bits that will be managed by kustomize. they're arguably simpler than before and we
 # could consider eventually just shipping the files as a tar / zip in rather than this:
@@ -353,4 +369,5 @@ EOF
 cd $(dirname $0)
 update_runplugin
 update_data_config
+update_node_manifest
 update_wes

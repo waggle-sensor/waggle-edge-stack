@@ -96,3 +96,21 @@ spec:
     ports:
     - protocol: TCP
       port: 2947
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: wes-plugin-network-policy-ip-devices
+spec:
+  podSelector:
+    matchLabels:
+      role: plugin
+  policyTypes:
+  - Egress
+  egress:
+  - to:
+    - ipBlock:
+        cidr: 10.31.81.0/24
+        except:
+        - 10.31.81.0/29
+        - 10.31.81.8/31
