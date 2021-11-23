@@ -28,6 +28,22 @@ update_runplugin() {
     ln -f "${WAGGLE_BIN_DIR}/runplugin-${arch}" "${WAGGLE_BIN_DIR}/runplugin"
 }
 
+update_node_secrets() {
+    (
+    if [ -e /root/.ssh/node-private-git-repo-key ] ; then
+        export GIT_SSH_COMMAND='ssh -i /root/.ssh/node-private-git-repo-key -o StrictHostKeyChecking=no -o IdentitiesOnly=yes'
+        if [ -e /opt/node-config-private ] ; then
+            git -C /opt/node-config-private pull
+        else
+            git clone git@github.com:waggle-sensor/node-config-private.git /opt/node-config-private
+        fi
+        kubectl apply -f /opt/node-config-private/secrets
+    else
+        echo "/root/ssh/node-private-git-repo-key not found, skipping..."
+    fi
+    )
+}
+
 update_data_config() {
     echo "updating waggle-data-config"
 
@@ -356,5 +372,6 @@ EOF
 
 cd $(dirname $0)
 update_runplugin
+update_node_secrets
 update_data_config
 update_wes
