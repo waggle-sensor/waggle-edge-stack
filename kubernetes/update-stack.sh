@@ -44,6 +44,22 @@ update_node_secrets() {
     )
 }
 
+update_node_manifest() {
+    echo "updating waggle-node-manifest from /etc/waggle/node_manifest.json"
+    if [ -f /etc/waggle/node_manifest.json ]; then
+        if output=$(kubectl create configmap waggle-node-manifest --from-file=node_manifest.json=/etc/waggle/node_manifest.json 2>&1); then
+            echo "waggle-node-manifest created"
+        elif echo "$output" | grep -q "already exists"; then
+            kubectl create configmap waggle-node-manifest --from-file=node_manifest.json=/etc/waggle/node_manifest.json -o yaml --dry-run=client | kubectl replace -f -
+            echo "waggle-node-manifest updated"
+        else
+            echo "failed to create/update waggle-node-manifest"
+        fi
+    else
+        echo "/etc/waggle/node_manifest.json does not exist. skipping."
+    fi
+}
+
 update_data_config() {
     echo "updating waggle-data-config"
 
@@ -330,9 +346,6 @@ configMapGenerator:
       - SSH_CA_PUBKEY=/etc/upload-agent/ca.pub
       - SSH_KEY=/etc/upload-agent/ssh-key
       - SSH_CERT=/etc/upload-agent/ssh-key-cert.pub
-  - name: waggle-node-manifest
-    files:
-      - node_manifest.json=/etc/waggle/node_manifest.json
 secretGenerator:
   - name: wes-rabbitmq-config
     files:
@@ -373,5 +386,6 @@ EOF
 cd $(dirname $0)
 update_runplugin
 update_node_secrets
+update_node_manifest
 update_data_config
 update_wes
