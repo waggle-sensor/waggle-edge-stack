@@ -36,7 +36,6 @@ data:
     Host github.com
             StrictHostKeyChecking no
             Hostname ssh.github.com
-            Port 443
             IdentityFile /keys/hanwha_client_key
 ---
 apiVersion: batch/v1beta1
