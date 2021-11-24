@@ -379,6 +379,21 @@ resources:
   - wes-camera-provisioner.yaml
 EOF
 
+    echo "patching coredns to always run on nxcore"
+    kubectl -n kube-system patch deployment coredns -p '
+{
+  "spec": {
+    "template": {
+      "spec": {
+        "nodeSelector": {
+          "node-role.kubernetes.io/master": "true"
+        }
+      }
+    }
+  }
+}
+'
+
     echo "deploying wes stack"
     kubectl apply -k .
 }
