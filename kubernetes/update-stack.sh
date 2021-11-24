@@ -28,6 +28,22 @@ update_runplugin() {
     ln -f "${WAGGLE_BIN_DIR}/runplugin-${arch}" "${WAGGLE_BIN_DIR}/runplugin"
 }
 
+update_node_secrets() {
+    (
+    if [ -e /root/.ssh/node-private-git-repo-key ] ; then
+        export GIT_SSH_COMMAND='ssh -i /root/.ssh/node-private-git-repo-key -o StrictHostKeyChecking=no -o IdentitiesOnly=yes'
+        if [ -e /opt/node-config-private ] ; then
+            git -C /opt/node-config-private pull
+        else
+            git clone git@github.com:waggle-sensor/node-config-private.git /opt/node-config-private
+        fi
+        kubectl apply -f /opt/node-config-private/secrets
+    else
+        echo "/root/ssh/node-private-git-repo-key not found, skipping..."
+    fi
+    )
+}
+
 update_data_config() {
     echo "updating waggle-data-config"
 
@@ -37,22 +53,6 @@ update_data_config() {
         echo "waggle-data-config already exists"
     else
         fatal "error when setting up waggle-data-config"
-    fi
-}
-
-update_node_manifest() {
-    echo "updating waggle-node-manifest from /etc/waggle/node_manifest.json"
-    if [ -f /etc/waggle/node_manifest.json ]; then
-        if output=$(kubectl create configmap waggle-node-manifest --from-file=node_manifest.json=/etc/waggle/node_manifest.json 2>&1); then
-            echo "waggle-node-manifest created"
-        elif echo "$output" | grep -q "already exists"; then
-            kubectl create configmap waggle-node-manifest --from-file=node_manifest.json=/etc/waggle/node_manifest.json -o yaml --dry-run=client | kubectl replace -f -
-            echo "waggle-node-manifest updated"
-        else
-            echo "failed to create/update waggle-node-manifest"
-        fi
-    else
-        echo "/etc/waggle/node_manifest.json does not exist. skipping."
     fi
 }
 
@@ -330,6 +330,9 @@ configMapGenerator:
       - SSH_CA_PUBKEY=/etc/upload-agent/ca.pub
       - SSH_KEY=/etc/upload-agent/ssh-key
       - SSH_CERT=/etc/upload-agent/ssh-key-cert.pub
+  - name: waggle-node-manifest
+    files:
+      - node_manifest.json=/etc/waggle/node_manifest.json
 secretGenerator:
   - name: wes-rabbitmq-config
     files:
@@ -360,6 +363,7 @@ resources:
   - wes-upload-agent.yaml
   - wes-metrics-agent.yaml
   - wes-gps-server.yaml
+  - wes-camera-provisioner.yaml
 EOF
 
     echo "deploying wes stack"
@@ -368,6 +372,6 @@ EOF
 
 cd $(dirname $0)
 update_runplugin
+update_node_secrets
 update_data_config
-update_node_manifest
 update_wes
