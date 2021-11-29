@@ -396,6 +396,11 @@ EOF
 
     echo "deploying wes stack"
     kubectl apply -k .
+
+    echo "cleaning untagged / broken images"
+    # wait a moment before checking for images
+    sleep 10
+    k3s crictl images | awk '$2 ~ /<none>/ {print $3}' | xargs k3s crictl rmi || true
 }
 
 cd $(dirname $0)
