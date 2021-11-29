@@ -17,7 +17,7 @@ spec:
         node-role.kubernetes.io/master: "true"
       containers:
         - name: wes-data-sharing-service
-          image: waggle/wes-data-sharing-service:0.6.3
+          image: waggle/wes-data-sharing-service:0.6.4
           envFrom:
             - configMapRef:
                 name: wes-identity
