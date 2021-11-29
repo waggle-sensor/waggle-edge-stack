@@ -1,22 +1,15 @@
 #!/bin/bash
 
-mkdir -p update-logs
-mkdir -p update-fail
+mkdir -p results
 
 for nodeID in $*; do
-    # clear old fail status
-    rm -f "update-fail/${nodeID}" > /dev/null
-
-    if ! ssh "node-$nodeID" true &> /dev/null; then
-        echo "${nodeID} is down"
-        echo "${nodeID}" > "update-fail/${nodeID}"
-        continue
-    fi
-
-    if ! ssh "node-$nodeID" bash -s < deploy-update-payload.sh &> "update-logs/$nodeID"; then
-        echo "${nodeID} deploy failed"
-        echo "${nodeID}" > "update-fail/${nodeID}"
-    fi
+    host="node-$nodeID"
+    (
+        echo "#run ${nodeID} $(date)"
+        scp deploy-update-payload.sh "${host}:/tmp/deploy-update-payload.sh" && \
+        ssh "${host}" /tmp/deploy-update-payload.sh
+        echo "#exit $?"
+    ) &> "results/${nodeID}"
 done
 
 true
