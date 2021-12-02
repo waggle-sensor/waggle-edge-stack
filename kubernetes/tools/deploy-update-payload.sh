@@ -1,4 +1,5 @@
 #!/bin/bash -e
+
 git clone https://github.com/waggle-sensor/waggle-edge-stack /opt/waggle-edge-stack || true
 cd /opt/waggle-edge-stack/kubernetes/
 
