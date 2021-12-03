@@ -1,0 +1,99 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: wes-dev-notebook
+spec:
+  selector:
+    app: wes-dev-notebook
+  ports:
+    - name: http
+      protocol: TCP
+      port: 8888
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: wes-dev-notebook
+spec:
+  selector:
+    matchLabels:
+      app: wes-dev-notebook
+  template:
+    metadata:
+      labels:
+        app: wes-dev-notebook
+        role: plugin
+        sagecontinuum.org/plugin-job: sage
+        sagecontinuum.org/plugin-task: wes-dev-notebook
+        sagecontinuum.org/role: plugin
+    spec:
+      containers:
+        - name: iio-nx
+          image: docker.io/waggle/plugin-base:1.1.1-ml
+          ports:
+            - containerPort: 8888
+          command:
+            - "jupyter"
+            - "lab"
+            - "--LabApp.token=waggle"
+            - "--LabApp.ip=0.0.0.0"
+            - "--LabApp.allow_root=True"
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: PULSE_SERVER
+              value: tcp:wes-audio-server:4713
+            - name: WAGGLE_PLUGIN_HOST
+              value: wes-rabbitmq
+            - name: WAGGLE_PLUGIN_PORT
+              value: "5672"
+            - name: WAGGLE_PLUGIN_USERNAME
+              value: plugin
+            - name: WAGGLE_PLUGIN_PASSWORD
+              value: plugin
+            - name: WAGGLE_APP_ID
+              valueFrom:
+                fieldRef:
+                  apiVersion: v1
+                  fieldPath: metadata.uid
+          resources: {}
+          # securityContext:
+          #   privileged: true
+          volumeMounts:
+            - mountPath: /run/waggle/uploads
+              name: uploads
+            - mountPath: /run/waggle/data-config.json
+              name: waggle-data-config
+              subPath: data-config.json
+            - mountPath: /etc/asound.conf
+              name: wes-audio-server-plugin-conf
+              subPath: asound.conf
+      nodeSelector:
+        node-role.kubernetes.io/master: "true"
+      restartPolicy: Always
+      securityContext: {}
+      volumes:
+        - hostPath:
+            path: /media/plugin-data/uploads/wes-dev-notebook/0.0.0
+            type: DirectoryOrCreate
+          name: uploads
+        - configMap:
+            defaultMode: 420
+            name: waggle-data-config
+          name: waggle-data-config
+        - configMap:
+            defaultMode: 420
+            name: wes-audio-server-plugin-conf
+          name: wes-audio-server-plugin-conf
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: wes-plugin-network-policy-dev-notebook
+spec:
+  podSelector:
+    matchLabels:
+      app: wes-dev-notebook
+  egress:
+    - {}
+  policyTypes:
+    - Egress
