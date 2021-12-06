@@ -1,9 +1,12 @@
 #!/bin/bash -e
 
+if ! id "waggle" &>/dev/null; then
+    echo "No waggle user found. Skip making dev account"
+    exit 1
+fi
 kubectl apply -k .
 
 mkdir -p /home/waggle/.kube
-chown waggle:waggle /home/waggle/.kube
 
 cat <<EOF > /home/waggle/.kube/config
 apiVersion: v1
@@ -14,7 +17,7 @@ kind: Config
 preferences: {}
 EOF
 
-chown waggle:waggle /home/waggle/.kube/config
+chown waggle:waggle -R /home/waggle/.kube
 
 server=$(kubectl config view -o json | jq -r '.clusters[0].cluster.server')
 account_secret_name=$(kubectl get serviceaccount node-dev-svc-account -n dev -o json | jq -r '.secrets[0].name')
