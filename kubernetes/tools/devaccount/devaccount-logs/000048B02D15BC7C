@@ -1,0 +1,13 @@
+#run 000048B02D15BC7C Sun Dec  5 21:23:59 CST 2021
+namespace/dev unchanged
+serviceaccount/node-dev-svc-account unchanged
+clusterrole.rbac.authorization.k8s.io/node-dev-role unchanged
+rolebinding.rbac.authorization.k8s.io/node-dev-binding unchanged
+service/wes-audio-server unchanged
+service/wes-rabbitmq unchanged
+Cluster "cluster-dev" set.
+Property "clusters.cluster-dev.certificate-authority-data" set.
+User "node-dev-svc-account" set.
+Context "context-dev" created.
+Switched to context "context-dev".
+#exit 0
