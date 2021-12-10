@@ -28,7 +28,7 @@ spec:
         sagecontinuum.org/role: plugin
     spec:
       containers:
-        - name: iio-nx
+        - name: wes-dev-notebook
           image: docker.io/waggle/plugin-base:1.1.1-ml
           ports:
             - containerPort: 8888
