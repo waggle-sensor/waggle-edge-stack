@@ -1,0 +1,31 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: wes-rabbitmq
+  namespace: dev
+spec:
+  type: ClusterIP
+  externalName: wes-rabbitmq.default.svc.local
+  ports:
+  - name: amqp
+    port: 5672
+    protocol: TCP
+    targetPort: 5672
+  - name: rabbitmq-management
+    port: 15672
+    protocol: TCP
+    targetPort: 15672
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: wes-audio-server
+  namespace: dev
+spec:
+  type: ClusterIP
+  externalName: wes-audio-server.default.svc.local
+  ports:
+  - name: pulseaudio
+    port: 4713
+    protocol: TCP
+    targetPort: 4713

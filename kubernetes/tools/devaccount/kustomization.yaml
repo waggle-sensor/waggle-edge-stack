@@ -1,0 +1,9 @@
+# please keep this until we can remove the backwards compatibility hack
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - dev-namespace.yaml
+  - dev-account.yaml
+  - dev-clusterrole.yaml
+  - dev-rolebinding.yaml
+  - dev-forwardservice.yaml
