@@ -55,7 +55,7 @@ spec:
           priorityClassName: wes-high-priority
           containers:
           - name: wes-camera-provisioner
-            image: waggle/wes-camera-provisioner:0.0.3
+            image: waggle/wes-camera-provisioner:0.0.4
             resources:
               limits:
                 cpu: 200m
