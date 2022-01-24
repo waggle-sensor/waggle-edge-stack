@@ -53,9 +53,10 @@ spec:
           restartPolicy: Never
           serviceAccountName: wes-camera-provisioner-svc-account
           priorityClassName: wes-high-priority
+          hostNetwork: true
           containers:
           - name: wes-camera-provisioner
-            image: waggle/wes-camera-provisioner:0.0.4
+            image: waggle/wes-camera-provisioner:0.0.5
             resources:
               limits:
                 cpu: 200m
