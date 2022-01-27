@@ -12,7 +12,10 @@ metadata:
 rules:
   - apiGroups: [""] # "" indicates the core API group
     resources: ["configmaps"]
-    verbs: ["get", "watch", "list", "update", "patch"]
+    verbs: ["create", "get", "watch", "list", "update", "patch"]
+  - apiGroups: [""]
+    resources: ["namespaces"]
+    verbs: ["get", "list"]
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
@@ -56,7 +59,7 @@ spec:
           hostNetwork: true
           containers:
           - name: wes-camera-provisioner
-            image: waggle/wes-camera-provisioner:0.0.6
+            image: waggle/wes-camera-provisioner:0.0.7
             resources:
               limits:
                 cpu: 200m
