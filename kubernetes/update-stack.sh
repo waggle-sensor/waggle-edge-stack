@@ -375,6 +375,7 @@ resources:
   - wes-rabbitmq.yaml
   - wes-upload-agent.yaml
   - wes-metrics-agent.yaml
+  - wes-plugin-scheduler.yaml
   - wes-gps-server.yaml
   - wes-camera-provisioner.yaml
 EOF
