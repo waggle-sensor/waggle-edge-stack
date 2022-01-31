@@ -1,3 +1,16 @@
+apiVersion: v1
+kind: Service
+metadata:
+    name: wes-plugin-scheduler
+spec:
+    ports:
+      - name: wes-plugin-scheduler
+        port: 8080
+        targetPort: 8080
+    selector:
+        app: wes-plugin-scheduler
+    type: ClusterIP
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -14,11 +27,21 @@ spec:
       priorityClassName: wes-high-priority
       serviceAccountName: wes-plugin-scheduler
       containers:
-      # TODO change to the real scheduler image :)
-      - image: ubuntu
+      - image: waggle/scheduler:0.9.1
         name: wes-plugin-scheduler
-        command: ['sh', '-c']
-        args: ['while sleep 10; do echo scheduling; done']
+        command: ["/app/nodescheduler"]
+        args:
+        - -in-cluster
+        envFrom:
+        - configMapRef:
+            name: wes-identity
+        resources:
+          limits:
+            cpu: 1000m
+            memory: 200Mi
+          requests:
+            cpu: 500m
+            memory: 100Mi
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
