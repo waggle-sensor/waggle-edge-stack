@@ -37,14 +37,14 @@ spec:
             name: wes-identity
         resources:
           limits:
-            cpu: 1000m
-            memory: 200Mi
+            cpu: 200m
+            memory: 150Mi
           requests:
-            cpu: 500m
+            cpu: 100m
             memory: 100Mi
 ---
 apiVersion: rbac.authorization.k8s.io/v1
-kind: RoleBinding
+kind: ClusterRoleBinding
 metadata:
   name: wes-plugin-scheduler-view
   namespace: default
