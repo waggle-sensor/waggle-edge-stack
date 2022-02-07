@@ -15,8 +15,6 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: wes-plugin-scheduler
-  labels:
-    sagecontinuum.org/plugin-task: scheduler
 spec:
   selector:
     matchLabels:
@@ -25,6 +23,7 @@ spec:
     metadata:
       labels:
         app: wes-plugin-scheduler
+        sagecontinuum.org/plugin-task: scheduler
     spec:
       priorityClassName: wes-high-priority
       serviceAccountName: wes-plugin-scheduler
