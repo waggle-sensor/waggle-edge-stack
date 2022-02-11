@@ -59,7 +59,7 @@ spec:
           hostNetwork: true
           containers:
           - name: wes-camera-provisioner
-            image: waggle/wes-camera-provisioner:0.0.7
+            image: waggle/wes-camera-provisioner:0.0.8
             resources:
               limits:
                 cpu: 200m
