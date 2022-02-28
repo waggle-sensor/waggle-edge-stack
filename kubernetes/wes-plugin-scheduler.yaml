@@ -57,7 +57,7 @@ metadata:
 rules:
   - apiGroups: ["", "batch"] # "" indicates the core API group
     resources: ["namespaces", "configmaps", "services", "jobs", "nodes", "pods"]
-    verbs: ["create", "get", "watch", "list", "update", "patch"]
+    verbs: ["create", "get", "watch", "list", "update", "patch", "delete"]
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
