@@ -1,0 +1,20 @@
+#!/bin/bash
+set -e
+
+# usage: ./attach-to-dev-notebook node-nodeID
+#                                    ^ ex. node-000048B02D15BDA5
+
+host="${1}"
+
+echo "connecting to ${1}..."
+serviceIP=$(ssh "${host}" kubectl get svc wes-dev-notebook -o jsonpath='{.spec.clusterIP}')
+
+url="http://localhost:8888?token=waggle"
+
+(
+    sleep 3
+    (xdg-open "${url}" || open "${url}") &> /dev/null || true
+) &
+
+echo "open your browser at: ${url}"
+ssh "${host}" -N -L "8888:${serviceIP}:8888"
