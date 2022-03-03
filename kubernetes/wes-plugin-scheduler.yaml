@@ -28,7 +28,7 @@ spec:
       priorityClassName: wes-high-priority
       serviceAccountName: wes-plugin-scheduler
       containers:
-      - image: waggle/scheduler:0.9.3
+      - image: waggle/scheduler:0.9.7
         name: wes-plugin-scheduler
         command: ["/app/nodescheduler"]
         args:
@@ -50,13 +50,23 @@ spec:
             memory: 100Mi
 ---
 apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: wes-plugin-scheduler
+  namespace: default
+rules:
+  - apiGroups: ["", "batch"] # "" indicates the core API group
+    resources: ["namespaces", "configmaps", "services", "jobs", "nodes", "pods"]
+    verbs: ["create", "get", "watch", "list", "update", "patch", "delete"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
   name: wes-plugin-scheduler-view
   namespace: default
 roleRef:
   kind: ClusterRole
-  name: edit
+  name: wes-plugin-scheduler
   apiGroup: rbac.authorization.k8s.io
   # `edit` is a built-in cluster role. more info about these can be found here:
   # https://kubernetes.io/docs/reference/access-authn-authz/rbac/#user-facing-roles
