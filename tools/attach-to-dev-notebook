@@ -7,7 +7,7 @@ set -e
 host="${1}"
 
 echo "connecting to ${1}..."
-serviceIP=$(ssh "${host}" kubectl get svc wes-dev-notebook -o jsonpath='{.spec.clusterIP}')
+serviceIP=$(ssh "${host}" sudo kubectl get svc wes-dev-notebook -o jsonpath='{.spec.clusterIP}')
 
 url="http://localhost:8888?token=waggle"
 
