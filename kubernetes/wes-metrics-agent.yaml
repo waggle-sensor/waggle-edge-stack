@@ -15,7 +15,7 @@ spec:
     spec:
       priorityClassName: wes-high-priority
       containers:
-        - image: waggle/wes-metrics-agent:0.5.1
+        - image: waggle/wes-metrics-agent:0.6.0
           name: wes-metrics-agent
           securityContext:
             privileged: true
@@ -51,6 +51,8 @@ spec:
               value: "wes-gps-server"
             - name: GPSD_PORT
               value: "2947"
+            - name: METRICS_COLLECT_INTERVAL
+              value: "120.0"
           envFrom:
             - configMapRef:
                 name: wes-identity
