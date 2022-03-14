@@ -16,16 +16,21 @@ getarch() {
     esac
 }
 
-update_runplugin() {
-    echo "updating runplugin"
+update_wes_tools() {
+    echo "updating wes tools"
 
     if ! arch=$(getarch); then
         fatal "failed to get arch"
     fi
-
-    wget -q -N -P "${WAGGLE_BIN_DIR}" "https://github.com/sagecontinuum/ses/releases/download/0.8.0/runplugin-${arch}"
-    chmod +x "${WAGGLE_BIN_DIR}/runplugin-${arch}"
-    ln -f "${WAGGLE_BIN_DIR}/runplugin-${arch}" "${WAGGLE_BIN_DIR}/runplugin"
+    for tool in $(curl -s https://api.github.com/repos/sagecontinuum/ses/releases/latest?prerelease=false | jq .assets[].browser_download_url | grep ${arch} | tr -d '"')
+    do
+      echo "updating ${tool} ..."
+      wget -q -N -P "${WAGGLE_BIN_DIR}" ${tool}
+      basename=$(basename ${tool})
+      echo $basename
+      chmod +x "${WAGGLE_BIN_DIR}/${basename}"
+      ln -f "${WAGGLE_BIN_DIR}/${basename}" "${WAGGLE_BIN_DIR}/${basename/-${arch}/}"
+    done
 }
 
 update_node_secrets() {
@@ -418,7 +423,7 @@ EOF
 }
 
 cd $(dirname $0)
-update_runplugin
+update_wes_tools
 update_node_secrets
 update_node_manifest
 update_data_config
