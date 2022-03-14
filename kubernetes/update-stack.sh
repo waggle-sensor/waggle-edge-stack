@@ -326,7 +326,20 @@ EOF
     kubectl get secret wes-beehive-upload-ssh-key -o jsonpath='{.data.ssh-key-cert\.pub}' | base64 -d > configs/upload-agent/ssh-key-cert.pub
     kubectl get secret wes-beehive-upload-ssh-key -o jsonpath='{.data.ssh-key\.pub}' | base64 -d > configs/upload-agent/ssh-key.pub
 
-    # HACK at some point, kustomize deprecated env: for envs: in the configmap / secret generators.
+    # HACK(sean) we add a "plain" wes-identity for plugins. kustomize will add a hash to wes-identity
+    # causing the name to be unpredictable. we'll keep both, as the hash allows kustomize to restart
+    # parts of wes that depend on an updated config.
+    kubectl apply -f - <<EOF
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: wes-identity
+data:
+  WAGGLE_NODE_ID: "${WAGGLE_NODE_ID}"
+  WAGGLE_NODE_VSN: "${WAGGLE_NODE_VSN}"
+EOF
+
+    # HACK(sean) at some point, kustomize deprecated env: for envs: in the configmap / secret generators.
     # i'm generating the kustomization.yaml file just to use literals instead of envs which are
     # backwards compatible...
     # you'll see this as the error:
