@@ -33,5 +33,7 @@ spec:
           ports:
             - containerPort: 11311
           env:
-            - "ROS_HOSTNAME=localhost"
-            - "ROS_MASTER_URI=http://roscore:11311"
+            - name: ROS_HOSTNAME
+              value: "roscore"
+            - name: ROS_MASTER_URI
+              value: "http://roscore:11311"
