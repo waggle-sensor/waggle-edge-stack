@@ -15,7 +15,6 @@ kind: Deployment
 metadata:
   name: roscore
 spec:
-  serviceName: roscore
   selector:
     matchLabels:
       app: roscore
