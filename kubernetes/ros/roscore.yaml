@@ -36,3 +36,22 @@ spec:
               value: "roscore"
             - name: ROS_MASTER_URI
               value: "http://roscore:11311"
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: wes-plugin-network-policy-roscore
+spec:
+  podSelector:
+    matchLabels:
+      role: plugin
+  policyTypes:
+    - Egress
+  egress:
+    - to:
+        - podSelector:
+            matchLabels:
+              app: roscore
+      ports:
+        - protocol: TCP
+          port: 11311
