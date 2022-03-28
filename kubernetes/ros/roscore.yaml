@@ -23,7 +23,6 @@ spec:
       labels:
         app: wes-roscore
     spec:
-      hostNetwork: true
       priorityClassName: wes-high-priority
       nodeSelector:
         node-role.kubernetes.io/master: "true"
