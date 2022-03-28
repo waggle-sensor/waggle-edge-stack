@@ -43,11 +43,14 @@ spec:
       role: plugin
   policyTypes:
     - Egress
+    - Ingress
   egress:
     - to:
         - podSelector:
             matchLabels:
               app: wes-roscore
-      ports:
-        - protocol: TCP
-          port: 11311
+  ingress:
+    - from:
+        - podSelector:
+            matchLabels:
+              app: wes-roscore
