@@ -49,7 +49,4 @@ spec:
             matchLabels:
               app: wes-roscore
   ingress:
-    - from:
-        - podSelector:
-            matchLabels:
-              app: wes-roscore
+    - {}
