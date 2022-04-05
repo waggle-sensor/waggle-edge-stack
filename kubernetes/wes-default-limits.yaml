@@ -4,8 +4,8 @@ metadata:
   name: wes-default-limits
 spec:
   limits:
-  - default:
-      memory: 512Mi
-    defaultRequest:
-      memory: 64Mi
-    type: Container
+    - default:
+        memory: 1Gi
+      defaultRequest:
+        memory: 64Mi
+      type: Container
