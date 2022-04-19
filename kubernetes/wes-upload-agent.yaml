@@ -15,7 +15,7 @@ spec:
     spec:
       priorityClassName: wes-high-priority
       containers:
-        - image: waggle/wes-upload-agent:0.2.3
+        - image: waggle/wes-upload-agent:0.2.4
           name: wes-upload-agent
           resources:
             limits:
