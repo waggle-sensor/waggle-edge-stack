@@ -18,10 +18,6 @@ getarch() {
     esac
 }
 
-# update_wes_tools updates the following tools to SES_VERSION
-# * runplugin
-# * pluginctl
-# * sesctl
 update_wes_tools() {
     echo "updating wes tools"
 
