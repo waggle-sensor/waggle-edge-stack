@@ -1,0 +1,39 @@
+apiVersion: v1
+kind: Service
+metadata:
+    name: wes-scoreboard
+spec:
+    ports:
+      - name: wes-scoreboard
+        port: 6379
+        targetPort: 6379
+    selector:
+        app: wes-scoreboard
+    type: ClusterIP
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: wes-scoreboard
+spec:
+  selector:
+    matchLabels:
+      app: wes-scoreboard
+  template:
+    metadata:
+      labels:
+        app: wes-scoreboard
+    spec:
+      nodeSelector:
+        node-role.kubernetes.io/master: "true"
+      priorityClassName: wes-high-priority
+      containers:
+      - image: redis:latest
+        name: wes-scoreboard
+        resources:
+          limits:
+            cpu: 100m
+            memory: 150Mi
+          requests:
+            cpu: 50m
+            memory: 100Mi

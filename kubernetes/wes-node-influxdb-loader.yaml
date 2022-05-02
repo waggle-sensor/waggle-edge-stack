@@ -1,0 +1,49 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: wes-node-influxdb-loader
+spec:
+  selector:
+    matchLabels:
+      app: wes-node-influxdb-loader
+  template:
+    metadata:
+      labels:
+        app: wes-node-influxdb-loader
+    spec:
+      priorityClassName: wes-high-priority
+      containers:
+      - image: waggle/node-influxdb-loader:0.0.0
+        name: wes-node-influxdb-loader
+        resources:
+          limits:
+            cpu: 100m
+            memory: 150Mi
+          requests:
+            cpu: 50m
+            memory: 100Mi
+        ports:
+        - name: metrics
+          containerPort: 8080
+        env:
+        - name: RABBITMQ_HOST
+          value: "wes-rabbitmq"
+        - name: RABBITMQ_PORT
+          value: "5672"
+        - name: RABBITMQ_USERNAME
+          value: "service"
+        - name: RABBITMQ_PASSWORD
+          value: "service"
+        - name: RABBITMQ_EXCHANGE
+          value: "data.topic"
+        - name: INFLUXDB_URL
+          value: "http://wes-node-influxdb:8086"
+        - name: INFLUXDB_BUCKET
+          value: "waggle"
+        - name: INFLUXDB_ORG
+          value: "waggle"
+        - name: INFLUXDB_TOKEN
+          valueFrom:
+            secretKeyRef:
+              name: wes-node-influxdb-waggle-token
+              key: token

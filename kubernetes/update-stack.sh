@@ -77,6 +77,15 @@ update_data_config() {
     fi
 }
 
+setup_influxdb() {
+    kubectl exec svc/wes-node-influxdb -- influx setup \
+        --org waggle \
+        --bucket waggle \
+        --username waggle \
+        --password wagglewaggle \
+        --force
+}
+
 # NOTE the following section is really just a big reshaping of various configs and secrets
 # into bits that will be managed by kustomize. they're arguably simpler than before and we
 # could consider eventually just shipping the files as a tar / zip in rather than this:
@@ -331,6 +340,16 @@ EOF
     kubectl get secret wes-beehive-upload-ssh-key -o jsonpath='{.data.ssh-key-cert\.pub}' | base64 -d > configs/upload-agent/ssh-key-cert.pub
     kubectl get secret wes-beehive-upload-ssh-key -o jsonpath='{.data.ssh-key\.pub}' | base64 -d > configs/upload-agent/ssh-key.pub
 
+    # create or pull influxdb token
+    set +e
+    setup_influxdb
+    WAGGLE_INFLUXDB_TOKEN=$(kubectl exec svc/wes-node-influxdb -- influx auth ls | grep waggle-write-token | awk '{ print $3 }')
+    if [ "${WAGGLE_INFLUXDB_TOKEN}x" == "x" ]; then
+        echo "creating influxdb token..."
+        WAGGLE_INFLUXDB_TOKEN=$(kubectl exec svc/wes-node-influxdb -- influx auth create -u waggle -o waggle --hide-headers --write-buckets -d waggle-write-token | awk '{ print $3 }')
+    fi
+    set -e
+
     # HACK(sean) we add a "plain" wes-identity for plugins. kustomize will add a hash to wes-identity
     # causing the name to be unpredictable. we'll keep both, as the hash allows kustomize to restart
     # parts of wes that depend on an updated config.
@@ -380,6 +399,9 @@ secretGenerator:
       - configs/upload-agent/ssh-key
       - configs/upload-agent/ssh-key-cert.pub
       - configs/upload-agent/ssh-key.pub
+  - name: wes-node-influxdb-waggle-token
+    literals:
+      - token=${WAGGLE_INFLUXDB_TOKEN}
 resources:
   # common constraints and limits
   - wes-default-limits.yaml
@@ -391,10 +413,13 @@ resources:
   - wes-audio-server.yaml
   - wes-data-sharing-service.yaml
   - wes-rabbitmq.yaml
+  - wes-node-influxdb.yaml
+  - wes-node-influxdb-loader.yaml
   - wes-upload-agent.yaml
   - wes-metrics-agent.yaml
   - wes-plugin-scheduler.yaml
   - wes-gps-server.yaml
+  - wes-scoreboard.yaml
   - wes-camera-provisioner.yaml
 EOF
 
