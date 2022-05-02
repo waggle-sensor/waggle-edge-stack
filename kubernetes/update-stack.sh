@@ -29,7 +29,7 @@ update_wes_tools() {
         fatal "failed to get arch"
     fi
 
-    for name in runplugin pluginctl sesctl; do
+    for name in $SES_TOOLS; do
         url="https://github.com/sagecontinuum/ses/releases/download/${SES_VERSION}/${name}-${arch}"
 
         echo "downloading ${url}"
