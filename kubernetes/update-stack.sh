@@ -81,6 +81,7 @@ setup_influxdb() {
     kubectl exec svc/wes-node-influxdb -- influx setup \
         --org waggle \
         --bucket waggle \
+        --retention 604800 \ # 1 week
         --username waggle \
         --password wagglewaggle \
         --force
@@ -341,6 +342,8 @@ EOF
     kubectl get secret wes-beehive-upload-ssh-key -o jsonpath='{.data.ssh-key\.pub}' | base64 -d > configs/upload-agent/ssh-key.pub
 
     # create or pull influxdb token
+    echo "setting influxdb..."
+    # it is assumed that the commands below may fail.
     set +e
     setup_influxdb
     WAGGLE_INFLUXDB_TOKEN=$(kubectl exec svc/wes-node-influxdb -- influx auth ls | grep waggle-write-token | awk '{ print $3 }')
