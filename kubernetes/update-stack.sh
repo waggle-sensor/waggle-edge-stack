@@ -78,10 +78,11 @@ update_data_config() {
 }
 
 setup_influxdb() {
+    # retention time set to 1 week
     kubectl exec svc/wes-node-influxdb -- influx setup \
         --org waggle \
         --bucket waggle \
-        --retention 604800 \ # 1 week
+        --retention 604800 \
         --username waggle \
         --password wagglewaggle \
         --force
@@ -350,6 +351,8 @@ EOF
     if [ "${WAGGLE_INFLUXDB_TOKEN}x" == "x" ]; then
         echo "creating influxdb token..."
         WAGGLE_INFLUXDB_TOKEN=$(kubectl exec svc/wes-node-influxdb -- influx auth create -u waggle -o waggle --hide-headers --write-buckets -d waggle-write-token | awk '{ print $3 }')
+    else
+        echo "token found. skipping creating influxdb token"
     fi
     set -e
 
