@@ -82,7 +82,7 @@ setup_influxdb() {
     kubectl exec svc/wes-node-influxdb -- influx setup \
         --org waggle \
         --bucket waggle \
-        --retention 604800 \
+        --retention 7d \
         --username waggle \
         --password wagglewaggle \
         --force
