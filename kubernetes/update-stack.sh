@@ -347,10 +347,11 @@ EOF
     # it is assumed that the commands below may fail.
     set +e
     setup_influxdb
-    WAGGLE_INFLUXDB_TOKEN=$(kubectl exec svc/wes-node-influxdb -- influx auth ls | grep waggle-write-token | awk '{ print $3 }')
+    TOKEN_NAME="waggle-read-write-bucket"
+    WAGGLE_INFLUXDB_TOKEN=$(kubectl exec svc/wes-node-influxdb -- influx auth ls | grep ${TOKEN_NAME} | awk '{ print $3 }')
     if [ "${WAGGLE_INFLUXDB_TOKEN}x" == "x" ]; then
         echo "creating influxdb token..."
-        WAGGLE_INFLUXDB_TOKEN=$(kubectl exec svc/wes-node-influxdb -- influx auth create -u waggle -o waggle --hide-headers --write-buckets -d waggle-write-token | awk '{ print $3 }')
+        WAGGLE_INFLUXDB_TOKEN=$(kubectl exec svc/wes-node-influxdb -- influx auth create -u waggle -o waggle --hide-headers --read-buckets --write-buckets -d $TOKEN_NAME | awk '{ print $3 }')
     else
         echo "token found. skipping creating influxdb token"
     fi
