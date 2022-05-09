@@ -1,0 +1,48 @@
+apiVersion: v1
+kind: Service
+metadata:
+    name: wes-sciencerule-checker
+spec:
+    ports:
+      - name: wes-sciencerule-checker
+        port: 5000
+        targetPort: 5000
+    selector:
+        app: wes-sciencerule-checker
+    type: ClusterIP
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: wes-sciencerule-checker
+spec:
+  selector:
+    matchLabels:
+      app: wes-sciencerule-checker
+  template:
+    metadata:
+      labels:
+        app: wes-sciencerule-checker
+    spec:
+      priorityClassName: wes-high-priority
+      containers:
+      - image: waggle/sciencerule-checker:0.0.0
+        name: wes-sciencerule-checker
+        env:
+        - name: NODE_INFLUXDB_URL
+          value: "http://wes-node-influxdb:8086"
+        - name: NODE_INFLUXDB_QUERY_TOKEN
+          valueFrom:
+            secretKeyRef:
+              name: wes-node-influxdb-waggle-token
+              key: token
+        ports:
+        - name: api
+          containerPort: 5000
+        resources:
+          limits:
+            cpu: 150m
+            memory: 50Mi
+          requests:
+            cpu: 50m
+            memory: 10Mi

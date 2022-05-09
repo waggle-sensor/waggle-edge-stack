@@ -425,6 +425,7 @@ resources:
   - wes-upload-agent.yaml
   - wes-metrics-agent.yaml
   - wes-plugin-scheduler.yaml
+  - wes-sciencerule-checker.yaml
   - wes-gps-server.yaml
   - wes-scoreboard.yaml
   - wes-camera-provisioner.yaml
