@@ -28,9 +28,9 @@ spec:
       priorityClassName: wes-high-priority
       serviceAccountName: wes-plugin-scheduler
       containers:
-      - image: waggle/scheduler:0.9.7
+      - image: waggle/scheduler:0.12.1
         name: wes-plugin-scheduler
-        command: ["/app/nodescheduler"]
+        command: ["nodescheduler"]
         args:
         - -in-cluster
         envFrom:
