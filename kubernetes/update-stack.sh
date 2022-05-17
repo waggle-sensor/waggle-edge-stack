@@ -2,6 +2,8 @@
 
 WAGGLE_CONFIG_DIR=${WAGGLE_CONFIG_DIR:-/etc/waggle}
 WAGGLE_BIN_DIR=${WAGGLE_BIN_DIR:-/usr/bin}
+SES_VERSION="0.12.0"
+SES_TOOLS="runplugin pluginctl sesctl"
 
 fatal() {
     echo $*
@@ -22,14 +24,17 @@ update_wes_tools() {
     if ! arch=$(getarch); then
         fatal "failed to get arch"
     fi
-    for tool in $(curl -s https://api.github.com/repos/sagecontinuum/ses/releases/latest?prerelease=false | jq .assets[].browser_download_url | grep ${arch} | tr -d '"')
-    do
-      echo "updating ${tool} ..."
-      wget -q -N -P "${WAGGLE_BIN_DIR}" ${tool}
-      basename=$(basename ${tool})
-      echo $basename
-      chmod +x "${WAGGLE_BIN_DIR}/${basename}"
-      ln -f "${WAGGLE_BIN_DIR}/${basename}" "${WAGGLE_BIN_DIR}/${basename/-${arch}/}"
+
+    for name in $SES_TOOLS; do
+        url="https://github.com/sagecontinuum/ses/releases/download/${SES_VERSION}/${name}-${arch}"
+
+        echo "downloading ${url}"
+        wget --timeout 300 -q -N -P "${WAGGLE_BIN_DIR}" "${url}"
+        basename=$(basename ${url})
+
+        echo "updating ${name} to ${url}"
+        chmod +x "${WAGGLE_BIN_DIR}/${basename}"
+        ln -f "${WAGGLE_BIN_DIR}/${basename}" "${WAGGLE_BIN_DIR}/${name}"
     done
 }
 
