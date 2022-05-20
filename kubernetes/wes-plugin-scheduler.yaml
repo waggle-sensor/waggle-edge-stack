@@ -27,10 +27,12 @@ spec:
     spec:
       priorityClassName: wes-high-priority
       serviceAccountName: wes-plugin-scheduler
+      nodeSelector:
+        node-role.kubernetes.io/master: "true"
       containers:
-      - image: waggle/scheduler:0.9.7
+      - image: waggle/scheduler:0.12.2
         name: wes-plugin-scheduler
-        command: ["/app/nodescheduler"]
+        command: ["nodescheduler"]
         args:
         - -in-cluster
         envFrom:
