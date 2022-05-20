@@ -26,7 +26,7 @@ spec:
     spec:
       priorityClassName: wes-high-priority
       containers:
-      - image: waggle/sciencerule-checker:0.0.1
+      - image: waggle/sciencerule-checker:0.0.2
         name: wes-sciencerule-checker
         env:
         - name: NODE_INFLUXDB_URL
