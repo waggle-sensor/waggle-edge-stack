@@ -34,14 +34,4 @@ Next, you'll need to place your credential files in `/etc/waggle`. These should 
 
 ## 3. Deploy Stack
 
-Now run `./deploy-stack.sh`. This will automatically set up all your Kubernetes resources
-
-## 4. Running a Test Plugin
-
-We can use the `run-plugin.sh` command to start a plugin in WES. As an example, we'll run version 0.0.3 of this [test plugin](https://github.com/waggle-sensor/plugin-test-pipeline):
-
-```sh
-./run-plugin.sh waggle/plugin-test-pipeline:0.0.3
-```
-
-The `run-plugin.sh` accepts a reference to any container image of the form `registry/namespace/image:version`. If not specified, it assumes a container image is in Dockerhub under the `waggle` namespace.
+Now run `./deploy-stack.sh`. This will automatically set up all your Kubernetes resources.
