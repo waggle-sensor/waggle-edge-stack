@@ -30,11 +30,13 @@ spec:
       nodeSelector:
         node-role.kubernetes.io/master: "true"
       containers:
-      - image: waggle/scheduler:0.12.2
+      - image: waggle/edge-scheduler:0.12.4
         name: wes-plugin-scheduler
         command: ["nodescheduler"]
         args:
         - -in-cluster
+        - -nodeid
+        - "$(WAGGLE_NODE_VSN)"
         envFrom:
         - configMapRef:
             name: wes-identity
