@@ -35,6 +35,8 @@ spec:
         command: ["nodescheduler"]
         args:
         - -in-cluster
+        - -policy
+        - roundrobin
         - -nodeid
         - "$(WAGGLE_NODE_VSN)"
         envFrom:
