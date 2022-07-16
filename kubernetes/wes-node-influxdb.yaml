@@ -47,12 +47,22 @@ spec:
             volumeMounts:
               - mountPath: /var/lib/influxdb2
                 name: data
+              - mountPath: /etc/influxdb2
+                name: config
     volumeClaimTemplates:
       - metadata:
-            name: data
+          name: config
         spec:
-            accessModes:
-              - ReadWriteOnce
-            resources:
-                requests:
-                    storage: 5G
+          accessModes:
+          - ReadWriteOnce
+          resources:
+            requests:
+              storage: 10M
+      - metadata:
+          name: data
+        spec:
+          accessModes:
+          - ReadWriteOnce
+          resources:
+            requests:
+              storage: 5G
