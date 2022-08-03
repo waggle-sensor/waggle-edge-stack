@@ -28,7 +28,7 @@ update_wes_tools() {
     fi
 
     for name in $SES_TOOLS; do
-        url="https://github.com/sagecontinuum/ses/releases/download/${SES_VERSION}/${name}-${arch}"
+        url="https://github.com/waggle-sensor/edge-scheduler/releases/download/${SES_VERSION}/${name}-${arch}"
 
         echo "downloading ${url}"
         wget --timeout 300 -q -N -P "${WAGGLE_BIN_DIR}" "${url}"
