@@ -436,7 +436,6 @@ resources:
   - wes-gps-server.yaml
   - wes-scoreboard.yaml
   - wes-camera-provisioner.yaml
-  - wes-app-meta-cache/
 EOF
 
     echo "patching coredns to always run on nxcore"
@@ -456,6 +455,8 @@ EOF
 
     echo "deploying wes stack"
     kubectl apply -k .
+    # TODO(sean) consolidate this into main kustomization instead of one off
+    kubectl apply -k wes-app-meta-cache
 
     echo "cleaning untagged / broken images"
     # wait a moment before checking for images
