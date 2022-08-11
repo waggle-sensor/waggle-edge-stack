@@ -436,6 +436,7 @@ resources:
   - wes-gps-server.yaml
   - wes-scoreboard.yaml
   - wes-camera-provisioner.yaml
+  - wes-app-meta-cache/
 EOF
 
     echo "patching coredns to always run on nxcore"
