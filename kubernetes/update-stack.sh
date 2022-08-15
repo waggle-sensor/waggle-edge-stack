@@ -455,6 +455,9 @@ EOF
 
     echo "deploying wes stack"
     kubectl apply -k .
+    # NOTE(sean) this is split as its own thing as the version of kubectl (v1.20.2+k3s1) we were using
+    # when this was added didn't seem to support nesting other kustomization dirs as resources.
+    kubectl apply -k wes-app-meta-cache
 
     echo "cleaning untagged / broken images"
     # wait a moment before checking for images

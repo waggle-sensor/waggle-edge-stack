@@ -1,0 +1,44 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: wes-app-meta-cache
+spec:
+  selector:
+    matchLabels:
+      app: wes-app-meta-cache
+  serviceName: wes-app-meta-cache
+  template:
+    metadata:
+      labels:
+        app: wes-app-meta-cache
+    spec:
+      priorityClassName: wes-high-priority
+      nodeSelector:
+        node-role.kubernetes.io/master: "true"
+      containers:
+      - name: wes-app-meta-cache
+        image: redis:7.0.4
+        ports:
+        - containerPort: 6379
+          name: redis
+        volumeMounts:
+          - name: config
+            subPath: redis-config.conf
+            mountPath: /etc/redis-config.conf
+          - name: data
+            mountPath: /data
+      volumes:
+        - name: config
+          configMap:
+            name: wes-app-meta-cache-config
+        - name: data
+          persistentVolumeClaim:
+            claimName: data
+  volumeClaimTemplates:
+  - metadata:
+      name: data
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      resources:
+        requests:
+          storage: 20Mi
