@@ -427,8 +427,6 @@ resources:
   - wes-audio-server.yaml
   - wes-data-sharing-service.yaml
   - wes-rabbitmq.yaml
-  - wes-node-influxdb.yaml
-  - wes-node-influxdb-loader.yaml
   - wes-upload-agent.yaml
   - wes-metrics-agent.yaml
   - wes-plugin-scheduler.yaml
@@ -436,6 +434,8 @@ resources:
   - wes-gps-server.yaml
   - wes-scoreboard.yaml
   - wes-camera-provisioner.yaml
+  - wes-node-influxdb.yaml
+  - wes-node-influxdb-loader.yaml
 EOF
 
     echo "patching coredns to always run on nxcore"
