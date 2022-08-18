@@ -454,10 +454,11 @@ EOF
 '
 
     echo "deploying wes stack"
-    kubectl apply -k .
     # NOTE(sean) this is split as its own thing as the version of kubectl (v1.20.2+k3s1) we were using
     # when this was added didn't seem to support nesting other kustomization dirs as resources.
+    # i'm deploying this first, to ensure to influxdb pvc issue doesn't stop this from running
     kubectl apply -k wes-app-meta-cache
+    kubectl apply -k .
 
     echo "cleaning untagged / broken images"
     # wait a moment before checking for images
