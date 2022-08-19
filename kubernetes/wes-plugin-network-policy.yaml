@@ -115,3 +115,23 @@ spec:
         except:
         - 10.31.81.0/29     # 10.31.81.0 - 10.31.81.7
         - 10.31.81.8/31     # 10.31.81.8 - 10.31.81.9
+---
+# TODO(sean) this is a temporary fix. we should see if we can exclude the init containers from being matched here.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: wes-plugin-network-policy-app-meta-cache
+spec:
+  podSelector:
+    matchLabels:
+      role: plugin
+  policyTypes:
+  - Egress
+  egress:
+  - to:
+    - podSelector:
+        matchLabels:
+          app: wes-app-meta-cache
+    ports:
+    - protocol: TCP
+      port: 6379
