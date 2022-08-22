@@ -2,7 +2,7 @@
 
 WAGGLE_CONFIG_DIR="${WAGGLE_CONFIG_DIR:-/etc/waggle}"
 WAGGLE_BIN_DIR="${WAGGLE_BIN_DIR:-/usr/bin}"
-SES_VERSION="${SES_VERSION:-0.15.0}"
+SES_VERSION="${SES_VERSION:-0.15.1}"
 SES_TOOLS="${SES_TOOLS:-runplugin pluginctl sesctl}"
 
 fatal() {
