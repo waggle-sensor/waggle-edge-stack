@@ -29,6 +29,8 @@ spec:
               value: service
             - name: RABBITMQ_PASSWORD
               value: service
+            - name: SYSTEM_USERS
+              value: service
           resources:
             limits:
               cpu: 200m
