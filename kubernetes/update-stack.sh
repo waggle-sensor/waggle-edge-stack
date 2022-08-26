@@ -1,4 +1,5 @@
-#!/bin/bash -e
+#!/bin/bash
+set -e
 
 WAGGLE_CONFIG_DIR="${WAGGLE_CONFIG_DIR:-/etc/waggle}"
 WAGGLE_BIN_DIR="${WAGGLE_BIN_DIR:-/usr/bin}"
@@ -84,6 +85,7 @@ update_data_config() {
     fi
 }
 
+# TODO(sean) replace this with the influxdb builtin setup process. you can supply one time setup config + an admin token as env vars
 setup_influxdb() {
     # retention time set to 1 week
     kubectl exec svc/wes-node-influxdb -- influx setup \
@@ -355,10 +357,11 @@ EOF
     set +e
     setup_influxdb
     TOKEN_NAME="waggle-read-write-bucket"
-    WAGGLE_INFLUXDB_TOKEN=$(kubectl exec svc/wes-node-influxdb -- influx auth ls | grep ${TOKEN_NAME} | awk '{ print $3 }')
-    if [ "${WAGGLE_INFLUXDB_TOKEN}x" == "x" ]; then
+    # NOTE(sean) there have been nodes with multiple tokens named 'waggle-read-write-bucket', so we simply accept the first match.
+    WAGGLE_INFLUXDB_TOKEN=$(kubectl exec svc/wes-node-influxdb -- influx auth ls | awk -v name="${TOKEN_NAME}" '$2 ~ name {print $3; exit}')
+    if [ -z "${WAGGLE_INFLUXDB_TOKEN}" ]; then
         echo "creating influxdb token..."
-        WAGGLE_INFLUXDB_TOKEN=$(kubectl exec svc/wes-node-influxdb -- influx auth create -u waggle -o waggle --hide-headers --read-buckets --write-buckets -d $TOKEN_NAME | awk '{ print $3 }')
+        WAGGLE_INFLUXDB_TOKEN=$(kubectl exec svc/wes-node-influxdb -- influx auth create -u waggle -o waggle --hide-headers --read-buckets --write-buckets -d $TOKEN_NAME | awk '{print $3}')
     else
         echo "token found. skipping creating influxdb token"
     fi
