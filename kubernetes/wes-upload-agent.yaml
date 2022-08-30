@@ -13,14 +13,14 @@ spec:
       labels:
         app.kubernetes.io/name: wes-upload-agent
     spec:
-      priorityClassName: wes-high-priority
+      priorityClassName: wes-high-critical
       containers:
         - image: waggle/wes-upload-agent:0.4.0
           name: wes-upload-agent
           resources:
             limits:
-              cpu: 200m
-              memory: 20Mi
+              cpu: 100m
+              memory: 10Mi
             requests:
               cpu: 100m
               memory: 10Mi

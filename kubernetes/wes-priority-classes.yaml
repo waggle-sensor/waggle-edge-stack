@@ -1,7 +1,15 @@
 apiVersion: scheduling.k8s.io/v1
 kind: PriorityClass
 metadata:
+  name: wes-high-critical
+value: 10000000
+globalDefault: false
+description: "This priority class should be used for WES components which are critical to the operation and health of a node."
+---
+apiVersion: scheduling.k8s.io/v1
+kind: PriorityClass
+metadata:
   name: wes-high-priority
 value: 1000000
 globalDefault: false
-description: "This priority class should be used for WES components to ensure they are not preempted by plugins and user pods."
+description: "This priority class should be used for WES components which are high priority, but not critical to the operation and health of a node."
