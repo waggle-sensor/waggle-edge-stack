@@ -32,11 +32,11 @@ spec:
           name: wes-audio-server
           resources:
             limits:
-              cpu: 500m
-              memory: 50Mi
+              cpu: 200m
+              memory: 20Mi
             requests:
-              cpu: 100m
-              memory: 10Mi
+              cpu: 200m
+              memory: 20Mi
           ports:
             - containerPort: 4713
           securityContext:

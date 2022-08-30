@@ -18,18 +18,18 @@ spec:
       containers:
         - name: wes-device-labeler
           image: waggle/wes-device-labeler:0.3.0
+          resources:
+            limits:
+              cpu: 50m
+              memory: 75Mi
+            requests:
+              cpu: 50m
+              memory: 75Mi
           args:
             # - "--dry-run"
             - "--root=/host"
           securityContext:
             privileged: true
-          resources:
-            limits:
-              cpu: 200m
-              memory: 100Mi
-            requests:
-              cpu: 100m
-              memory: 50Mi
           env:
             - name: KUBENODE
               valueFrom:

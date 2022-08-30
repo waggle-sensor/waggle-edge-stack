@@ -31,11 +31,11 @@ spec:
         name: node-exporter
         resources:
           limits:
-            cpu: 250m
-            memory: 180Mi
+            cpu: 50m
+            memory: 60Mi
           requests:
-            cpu: 102m
-            memory: 180Mi
+            cpu: 50m
+            memory: 60Mi
         ports:
         - name: http
           containerPort: 9100

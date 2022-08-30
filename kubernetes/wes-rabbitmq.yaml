@@ -33,6 +33,13 @@ spec:
       containers:
         - name: wes-rabbitmq
           image: rabbitmq:3.8.11-management-alpine
+          resources:
+            limits:
+              cpu: 500m
+              memory: 1Gi
+            requests:
+              cpu: 500m
+              memory: 1Gi
           ports:
             - containerPort: 5672
             - containerPort: 15672

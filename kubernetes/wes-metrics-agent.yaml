@@ -21,11 +21,11 @@ spec:
             privileged: true
           resources:
             limits:
-              cpu: 200m
+              cpu: 100m
               memory: 60Mi
             requests:
               cpu: 100m
-              memory: 30Mi
+              memory: 60Mi
           env:
             - name: WAGGLE_HOST_ID
               valueFrom:
