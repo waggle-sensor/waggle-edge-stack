@@ -14,6 +14,10 @@ spec:
         app.kubernetes.io/name: wes-upload-agent
     spec:
       priorityClassName: system-node-critical
+      tolerations:
+        # ensure this service continues under disk pressure so it always attempts to rsync files off of disk.
+        - key: "node.kubernetes.io/disk-pressure"
+          operator: "Exists"
       containers:
         - image: waggle/wes-upload-agent:0.4.0
           name: wes-upload-agent
