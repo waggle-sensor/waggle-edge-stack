@@ -5,3 +5,12 @@ metadata:
 value: 1000000
 globalDefault: false
 description: "This priority class should be used for WES components which are high priority, but not critical to the operation and health of a node."
+---
+apiVersion: scheduling.k8s.io/v1
+kind: PriorityClass
+metadata:
+  name: wes-app-priority
+value: 1000
+preemptionPolicy: Never
+globalDefault: false
+description: "This non-preempting priority class should be used for apps."
