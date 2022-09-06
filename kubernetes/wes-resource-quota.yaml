@@ -5,8 +5,11 @@ metadata:
 spec:
   hard:
     # TODO(sean) these should depend on capabilities of the hardware.
-    cpu: "5"
-    memory: "6Gi"
+    # TODO(sean) these should also account for multiple devices.
+    requests.cpu: "5"
+    requests.memory: "6Gi"
+    limits.cpu: "5"
+    limits.memory: "6Gi"
   scopeSelector:
     matchExpressions:
     - operator : In
