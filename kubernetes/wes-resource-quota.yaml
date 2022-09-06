@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: ResourceQuota
+metadata:
+  name: wes-resource-quota
+spec:
+  hard:
+    # TODO(sean) these should depend on capabilities of the hardware.
+    cpu: "5"
+    memory: "6Gi"
+    pods: 0
+  scopeSelector:
+    matchExpressions:
+    - operator : In
+      scopeName: PriorityClass
+      values: ["wes-high-priority", "wes-app-priority"]
