@@ -30,15 +30,17 @@ spec:
       nodeSelector:
         node-role.kubernetes.io/master: "true"
       containers:
-      - image: waggle/edge-scheduler:0.12.5
+      - image: waggle/edge-scheduler:0.16.3
         name: wes-plugin-scheduler
         command: ["nodescheduler"]
         args:
         - -in-cluster
         - -policy
         - roundrobin
-        - -nodeid
+        - -nodename
         - "$(WAGGLE_NODE_VSN)"
+        - -goalstream-url
+        - "https://es.sagecontinuum.org/goals/$(WAGGLE_NODE_VSN)/stream"
         envFrom:
         - configMapRef:
             name: wes-identity
