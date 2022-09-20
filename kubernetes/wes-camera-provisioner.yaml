@@ -122,13 +122,17 @@ spec:
             configMap:
               name: wes-camera-provisioner-ssh
           - name: data
-            persistentVolueClaim:
-              claimName: data
-  volumeClaimTemplates:
-  - metadata:
-      name: data
-    spec:
-      accessModes: [ "ReadWriteOnce" ]
-      resources:
-        requests:
-          storage: 10Mi
+            persistentVolumeClaim:
+              claimName: wes-camera-provisioner-data
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: wes-camera-provisioner-data
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 10Mi
+  storageClassName: local-path
