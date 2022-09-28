@@ -40,7 +40,7 @@ spec:
         - -nodename
         - "$(WAGGLE_NODE_VSN)"
         - -goalstream-url
-        - "https://es.sagecontinuum.org/goals/$(WAGGLE_NODE_VSN)/stream"
+        - "https://es.sagecontinuum.org/api/v1/goals/$(WAGGLE_NODE_VSN)/stream"
         envFrom:
         - configMapRef:
             name: wes-identity
