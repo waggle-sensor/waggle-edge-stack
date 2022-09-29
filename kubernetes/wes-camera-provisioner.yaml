@@ -53,6 +53,8 @@ spec:
     spec:
       template:
         spec:
+          nodeSelector:
+            node-role.kubernetes.io/master: "true"
           restartPolicy: Never
           serviceAccountName: wes-camera-provisioner-svc-account
           priorityClassName: wes-high-priority

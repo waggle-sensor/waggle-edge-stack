@@ -25,6 +25,8 @@ spec:
         app: wes-sciencerule-checker
     spec:
       priorityClassName: wes-high-priority
+      nodeSelector:
+        node-role.kubernetes.io/master: "true"
       containers:
       - image: waggle/sciencerule-checker:0.0.2
         name: wes-sciencerule-checker
