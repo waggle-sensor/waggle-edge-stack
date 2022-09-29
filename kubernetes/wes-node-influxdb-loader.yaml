@@ -12,6 +12,8 @@ spec:
         app: wes-node-influxdb-loader
     spec:
       priorityClassName: wes-high-priority
+      nodeSelector:
+        node-role.kubernetes.io/master: "true"
       containers:
       - image: waggle/node-influxdb-loader:0.0.0
         name: wes-node-influxdb-loader
