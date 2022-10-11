@@ -85,18 +85,6 @@ update_data_config() {
     fi
 }
 
-# TODO(sean) replace this with the influxdb builtin setup process. you can supply one time setup config + an admin token as env vars
-setup_influxdb() {
-    # retention time set to 1 week
-    kubectl exec svc/wes-node-influxdb -- influx setup \
-        --org waggle \
-        --bucket waggle \
-        --retention 7d \
-        --username waggle \
-        --password wagglewaggle \
-        --force
-}
-
 # NOTE the following section is really just a big reshaping of various configs and secrets
 # into bits that will be managed by kustomize. they're arguably simpler than before and we
 # could consider eventually just shipping the files as a tar / zip in rather than this:
@@ -359,7 +347,6 @@ EOF
     echo "setting influxdb..."
     # it is assumed that the commands below may fail.
     set +e
-    setup_influxdb
     TOKEN_NAME="waggle-read-write-bucket"
     # NOTE(sean) there have been nodes with multiple tokens named 'waggle-read-write-bucket', so we simply accept the first match.
     WAGGLE_INFLUXDB_TOKEN=$(kubectl exec svc/wes-node-influxdb -- influx auth ls | awk -v name="${TOKEN_NAME}" '$2 ~ name {print $3; exit}')

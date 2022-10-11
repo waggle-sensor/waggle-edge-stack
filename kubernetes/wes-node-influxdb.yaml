@@ -34,6 +34,21 @@ spec:
         containers:
           - image: influxdb:2.1.1
             name: wes-node-influxdb
+            env:
+            - name: DOCKER_INFLUXDB_INIT_MODE
+              value: "setup"
+            - name: DOCKER_INFLUXDB_INIT_USERNAME
+              value: "waggle"
+            - name: DOCKER_INFLUXDB_INIT_PASSWORD
+              value: "wagglewaggle"
+            - name: DOCKER_INFLUXDB_INIT_ORG
+              value: "waggle"
+            - name: DOCKER_INFLUXDB_INIT_BUCKET
+              value: "waggle"
+            - name: DOCKER_INFLUXDB_INIT_RETENTION
+              value: "7d"
+            - name: INFLUX_CONFIGS_PATH
+              value: /var/lib/influxdb2/influx-configs
             resources:
               limits:
                 cpu: 500m
@@ -47,17 +62,7 @@ spec:
             volumeMounts:
               - mountPath: /var/lib/influxdb2
                 name: data
-              - mountPath: /etc/influxdb2
-                name: config
     volumeClaimTemplates:
-      - metadata:
-          name: config
-        spec:
-          accessModes:
-          - ReadWriteOnce
-          resources:
-            requests:
-              storage: 10M
       - metadata:
           name: data
         spec:
