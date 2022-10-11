@@ -124,7 +124,7 @@ EOF
 
     # generate rabbitmq configs / secrets for kustomize
     cat > configs/rabbitmq/enabled_plugins <<EOF
-[rabbitmq_prometheus,rabbitmq_management,rabbitmq_management_agent,rabbitmq_auth_mechanism_ssl,rabbitmq_shovel,rabbitmq_shovel_management].
+[rabbitmq_prometheus,rabbitmq_management,rabbitmq_management_agent,rabbitmq_auth_mechanism_ssl,rabbitmq_shovel,rabbitmq_shovel_management,rabbitmq_mqtt].
 EOF
 
     cat > configs/rabbitmq/rabbitmq.conf <<EOF
@@ -138,6 +138,10 @@ management.tcp.port = 15672
 
 # disable logging to file to prevent runaway disk usage
 log.file = false
+
+# mqtt config for lorawan
+mqtt.default_user = service
+mqtt.default_pass = service
 EOF
 
     WAGGLE_BEEHIVE_RABBITMQ_HOST=$(kubectl get cm waggle-config -o jsonpath='{.data.WAGGLE_BEEHIVE_RABBITMQ_HOST}')
