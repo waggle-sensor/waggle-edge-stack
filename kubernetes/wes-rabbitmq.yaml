@@ -12,6 +12,9 @@ spec:
     - name: rabbitmq-management
       protocol: TCP
       port: 15672
+    - name: mqtt
+      protocol: TCP
+      port: 1883
 ---
 apiVersion: apps/v1
 kind: StatefulSet
@@ -43,6 +46,7 @@ spec:
           ports:
             - containerPort: 5672
             - containerPort: 15672
+            - containerPort: 1883
           volumeMounts:
             - name: config
               mountPath: /etc/rabbitmq
