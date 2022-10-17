@@ -412,6 +412,8 @@ resources:
   - wes-priority-classes.yaml
   - wes-plugin-network-policy.yaml
   # main components
+  - cadvisor-exporter.yaml
+  - jetson-exporter.yaml
   - node-exporter.yaml
   - wes-device-labeler.yaml
   - wes-audio-server.yaml
