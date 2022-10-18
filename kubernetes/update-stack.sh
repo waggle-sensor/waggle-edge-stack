@@ -347,24 +347,24 @@ EOF
     # NOTE(sean) there have been nodes with multiple tokens named 'waggle-read-write-bucket', so we simply accept the first match.
     WAGGLE_INFLUXDB_TOKEN=$(kubectl exec svc/wes-node-influxdb -- influx auth ls | awk -v name="${TOKEN_NAME}" '$2 ~ name {print $3; exit}')
     if [ -z "${WAGGLE_INFLUXDB_TOKEN}" ]; then
-        echo "creating influxdb token..."
+        echo "creating influxdb read-write token..."
         WAGGLE_INFLUXDB_TOKEN=$(kubectl exec svc/wes-node-influxdb -- influx auth create -u waggle -o waggle --hide-headers --read-buckets --write-buckets -d $TOKEN_NAME | awk '{print $3}')
     else
-        echo "token found. skipping creating influxdb token"
+        echo "token found. skipping creating influxdb read-write token"
     fi
     # NOTE(YK) This token is used for "pluginctl profile" to access wes-node-influxDB from host
     TOKEN_NAME="waggle-read-bucket"
     PLUGINCTL_INFLUXDB_TOKEN=$(kubectl exec svc/wes-node-influxdb -- influx auth ls | awk -v name="${TOKEN_NAME}" '$2 ~ name {print $3; exit}')
     if [ -z "${PLUGINCTL_INFLUXDB_TOKEN}" ]; then
-        echo "creating influxdb token..."
+        echo "creating influxdb read-only token..."
         PLUGINCTL_INFLUXDB_TOKEN=$(kubectl exec svc/wes-node-influxdb -- influx auth create -u waggle -o waggle --hide-headers --read-buckets -d $TOKEN_NAME | awk '{print $3}')
     else
-        echo "token found. skipping creating influxdb token"
+        echo "token found. skipping creating influxdb read-only token"
     fi
     mkdir -p /root/.influxdb2
-    cat ${PLUGINCTL_INFLUXDB_TOKEN} > /root/.influxdb2/token
+    echo ${PLUGINCTL_INFLUXDB_TOKEN} > /root/.influxdb2/token
     mkdir -p /home/waggle/.influxdb2
-    cat ${PLUGINCTL_INFLUXDB_TOKEN} > /home/waggle/.influxdb2/token
+    echo ${PLUGINCTL_INFLUXDB_TOKEN} > /home/waggle/.influxdb2/token
     set -e
 
     # HACK(sean) we add a "plain" wes-identity for plugins. kustomize will add a hash to wes-identity
