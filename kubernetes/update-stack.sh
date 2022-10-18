@@ -352,6 +352,19 @@ EOF
     else
         echo "token found. skipping creating influxdb token"
     fi
+    # NOTE(YK) This token is used for "pluginctl profile" to access wes-node-influxDB from host
+    TOKEN_NAME="waggle-read-bucket"
+    PLUGINCTL_INFLUXDB_TOKEN=$(kubectl exec svc/wes-node-influxdb -- influx auth ls | awk -v name="${TOKEN_NAME}" '$2 ~ name {print $3; exit}')
+    if [ -z "${PLUGINCTL_INFLUXDB_TOKEN}" ]; then
+        echo "creating influxdb token..."
+        PLUGINCTL_INFLUXDB_TOKEN=$(kubectl exec svc/wes-node-influxdb -- influx auth create -u waggle -o waggle --hide-headers --read-buckets -d $TOKEN_NAME | awk '{print $3}')
+    else
+        echo "token found. skipping creating influxdb token"
+    fi
+    mkdir -p /root/.influxdb2
+    cat ${PLUGINCTL_INFLUXDB_TOKEN} > /root/.influxdb2/token
+    mkdir -p /home/waggle/.influxdb2
+    cat ${PLUGINCTL_INFLUXDB_TOKEN} > /home/waggle/.influxdb2/token
     set -e
 
     # HACK(sean) we add a "plain" wes-identity for plugins. kustomize will add a hash to wes-identity

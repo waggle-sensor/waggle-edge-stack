@@ -22,7 +22,6 @@ spec:
       priorityClassName: wes-high-priority
       containers:
       - image: waggle/jetson-exporter:0.0.1
-        imagePullPolicy: Always
         name: jetson-exporter
         command: ["/app/jetson-exporter"]
         args:
