@@ -38,8 +38,8 @@ data:
   telegraf.conf: |            
     [[inputs.prometheus]]
       urls = ["https://kubernetes.default.svc.cluster.local:443/api/v1/nodes/${NODE_NAME}/proxy/metrics/cadvisor"]
-      bearer_token = "/run/secrets/kubernetes.io/serviceaccount/token"
-      tls_ca = "/run/secrets/kubernetes.io/serviceaccount/ca.crt"
+      bearer_token = "/var/run/secrets/kubernetes.io/serviceaccount/token"
+      tls_ca = "/var/run/secrets/kubernetes.io/serviceaccount/ca.crt"
 
     [[outputs.influxdb_v2]]
       urls = ["http://wes-node-influxdb.default.svc.cluster.local:8086"]
