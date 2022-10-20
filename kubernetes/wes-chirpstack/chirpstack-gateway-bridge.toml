@@ -20,3 +20,7 @@ command_topic_template="us915/gateway/{{ .GatewayID }}/command/#"
 servers=["tcp://wes-rabbitmq:1883"]
 username=""
 password=""
+
+[metrics.prometheus]
+endpoint_enabled=true
+bind="0.0.0.0:9100"

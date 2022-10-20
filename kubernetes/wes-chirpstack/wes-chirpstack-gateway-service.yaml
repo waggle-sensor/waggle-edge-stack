@@ -10,3 +10,6 @@ spec:
       port: 1700
       targetPort: 1700
       protocol: UDP
+    - name: metrics
+      port: 9100
+      targetPort: 9100

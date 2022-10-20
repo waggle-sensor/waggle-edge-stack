@@ -18,6 +18,7 @@ spec:
           ports:
             - containerPort: 1700
               protocol: UDP
+            - containerPort: 9100
           resources:
             limits:
               cpu: 50m
