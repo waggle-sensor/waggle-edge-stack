@@ -42,7 +42,7 @@ spec:
           startupProbe:
             tcpSocket:
               port: postgresql
-            initialDelaySeconds: 10
+            initialDelaySeconds: 5
             failureThreshold: 30
             periodSeconds: 10
           livenessProbe:

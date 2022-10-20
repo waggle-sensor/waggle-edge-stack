@@ -37,8 +37,8 @@ spec:
           startupProbe:
             httpGet:
               port: metrics
-            initialDelaySeconds: 10
-            failureThreshold: 12
+            initialDelaySeconds: 5
+            failureThreshold: 30
             periodSeconds: 10
           livenessProbe:
             httpGet:
