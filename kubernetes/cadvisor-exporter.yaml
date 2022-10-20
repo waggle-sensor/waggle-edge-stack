@@ -1,0 +1,101 @@
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: wes-telegraf-cadvisor
+  namespace: default
+rules:
+  - apiGroups: [""] # "" indicates the core API group
+    resources: ["nodes/proxy"]
+    verbs: ["get"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: wes-telegraf-cadvisor-view
+  namespace: default
+roleRef:
+  kind: ClusterRole
+  name: wes-telegraf-cadvisor
+  apiGroup: rbac.authorization.k8s.io
+  # `edit` is a built-in cluster role. more info about these can be found here:
+  # https://kubernetes.io/docs/reference/access-authn-authz/rbac/#user-facing-roles
+subjects:
+- kind: ServiceAccount
+  name: wes-telegraf-cadvisor-account
+  namespace: default
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: wes-telegraf-cadvisor-account
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: wes-telegraf-cadvisor-telegraf-config
+data:
+  telegraf.conf: |            
+    [[inputs.prometheus]]
+      urls = ["https://kubernetes.default.svc.cluster.local:443/api/v1/nodes/${NODE_NAME}/proxy/metrics/cadvisor"]
+      bearer_token = "/var/run/secrets/kubernetes.io/serviceaccount/token"
+      tls_ca = "/var/run/secrets/kubernetes.io/serviceaccount/ca.crt"
+
+    [[outputs.influxdb_v2]]
+      urls = ["http://wes-node-influxdb.default.svc.cluster.local:8086"]
+      token = "${INFLUXDB_TOKEN}"
+      organization = "${INFLUXDB_ORG}"
+      bucket = "${INFLUXDB_BUCKET}"
+---
+# Runs one instance of node-exporter on every node (DaemonSet) and expose
+# the service on port 9100 on every node host.
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: wes-telegraf-cadvisor
+  labels:
+    app.kubernetes.io/name: wes-telegraf-cadvisor
+    app.kubernetes.io/version: 1.22.4
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: wes-telegraf-cadvisor
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: wes-telegraf-cadvisor
+        app.kubernetes.io/version: 1.22.4
+    spec:
+      serviceAccountName: wes-telegraf-cadvisor-account
+      priorityClassName: wes-high-priority
+      containers:
+      - image: telegraf:1.22.4
+        name: wes-telegraf-cadvisor
+        resources:
+          limits:
+            cpu: 100m
+            memory: 60Mi
+          requests:
+            cpu: 50m
+            memory: 60Mi
+        env:
+          - name: NODE_NAME
+            valueFrom:
+              fieldRef:
+                fieldPath: spec.nodeName
+          - name: INFLUXDB_TOKEN
+            valueFrom:
+              secretKeyRef:
+                name: wes-node-influxdb-waggle-token
+                key: token
+          - name: INFLUXDB_BUCKET
+            value: "waggle"
+          - name: INFLUXDB_ORG
+            value: "waggle"
+        volumeMounts:
+          - mountPath: /etc/telegraf
+            name: telegraf-conf
+      volumes:
+      - name: telegraf-conf
+        configMap:
+          name: wes-telegraf-cadvisor-telegraf-config

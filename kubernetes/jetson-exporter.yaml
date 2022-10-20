@@ -1,12 +1,11 @@
 # Runs one instance of jetson-exporter on every node (DaemonSet) and expose
-# the service on port 9100 on every node host.
 apiVersion: apps/v1
 kind: DaemonSet
 metadata:
   name: jetson-exporter
   labels:
     app.kubernetes.io/name: jetson-exporter
-    app.kubernetes.io/version: 0.0.0
+    app.kubernetes.io/version: 0.0.1
 spec:
   selector:
     matchLabels:
@@ -15,14 +14,14 @@ spec:
     metadata:
       labels:
         app.kubernetes.io/name: jetson-exporter
-        app.kubernetes.io/version: 0.0.0
+        app.kubernetes.io/version: 0.0.1
     spec:
       nodeSelector:
         kubernetes.io/arch: "arm64"
         resource.gpu: "true"
       priorityClassName: wes-high-priority
       containers:
-      - image: waggle/jetson-exporter:0.0.0
+      - image: waggle/jetson-exporter:0.0.1
         name: jetson-exporter
         command: ["/app/jetson-exporter"]
         args:
@@ -31,6 +30,21 @@ spec:
         env:
         - name: PORT
           value: "9101"
+        - name: KUBENODE
+          valueFrom:
+            fieldRef:
+              fieldPath: spec.nodeName
+        - name: INFLUXDB_URL
+          value: http://wes-node-influxdb.default.svc.cluster.local:8086
+        - name: INFLUXDB_TOKEN
+          valueFrom:
+            secretKeyRef:
+              name: wes-node-influxdb-waggle-token
+              key: token
+        - name: INFLUXDB_ORG
+          value: waggle
+        - name: INFLUXDB_BUCKET
+          value: waggle
         resources:
           limits:
             cpu: 50m
