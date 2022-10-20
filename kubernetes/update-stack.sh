@@ -496,6 +496,7 @@ EOF
     # i'm deploying this first, to ensure to influxdb pvc issue doesn't stop this from running
     kubectl apply -k wes-app-meta-cache
     kubectl apply -k .
+    kubectl apply -k wes-chirpstack
 
     echo "cleaning untagged / broken images"
     # wait a moment before checking for images

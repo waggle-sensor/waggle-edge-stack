@@ -1,0 +1,22 @@
+[general]
+# debug=5, info=4, warning=3, error=2, fatal=1, panic=0
+log_level=5
+
+[backend.semtech_udp]
+udp_bind = "0.0.0.0:1700"
+
+[backend.basic_station]
+region="US915"
+# TODO we need to update these i think
+#frequency_min=863000000
+#frequency_max=870000000
+
+[integration.mqtt]
+event_topic_template="us915/gateway/{{ .GatewayID }}/event/{{ .EventType }}"
+state_topic_template="us915/gateway/{{ .GatewayID }}/state/{{ .StateType }}"
+command_topic_template="us915/gateway/{{ .GatewayID }}/command/#"
+
+[integration.mqtt.auth.generic]
+servers=["tcp://wes-rabbitmq:1883"]
+username=""
+password=""

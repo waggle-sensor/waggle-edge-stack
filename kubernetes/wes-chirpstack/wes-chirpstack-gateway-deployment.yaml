@@ -1,0 +1,40 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: wes-chirpstack-gateway-bridge
+spec:
+  selector:
+    matchLabels:
+      app: wes-chirpstack-gateway-bridge
+  template:
+    metadata:
+      labels:
+        app: wes-chirpstack-gateway-bridge
+    spec:
+      priorityClassName: wes-high-priority
+      containers:
+        - name: wes-chirpstack-gateway-bridge
+          image: chirpstack/chirpstack-gateway-bridge:4.0.1
+          ports:
+            - containerPort: 1700
+              protocol: UDP
+          resources:
+            limits:
+              cpu: 50m
+              memory: 50Mi
+            requests:
+              cpu: 50m
+              memory: 25Mi
+          envFrom:
+            - configMapRef:
+                name: wes-identity
+          volumeMounts:
+            - name: gateway-bridge-config-volume
+              mountPath: /etc/chirpstack-gateway-bridge
+              readOnly: true
+          # TODO: liveness probe to ensure its working
+      volumes:
+        - name: gateway-bridge-config-volume
+          configMap:
+            name: chirpstack-gateway-bridge-config-cm
+            defaultMode: 0644
