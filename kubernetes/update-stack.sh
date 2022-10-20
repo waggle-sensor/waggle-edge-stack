@@ -132,8 +132,8 @@ mqtt.default_user = service
 mqtt.default_pass = service
 EOF
 
-    WAGGLE_BEEHIVE_RABBITMQ_HOST=$(kubectl get cm waggle-config -o jsonpath='{.data.WAGGLE_BEEHIVE_RABBITMQ_HOST}')
-    WAGGLE_BEEHIVE_RABBITMQ_PORT=$(kubectl get cm waggle-config -o jsonpath='{.data.WAGGLE_BEEHIVE_RABBITMQ_PORT}')
+    WAGGLE_BEEHIVE_RABBITMQ_HOST=$(get_configmap_field waggle-config WAGGLE_BEEHIVE_RABBITMQ_HOST)
+    WAGGLE_BEEHIVE_RABBITMQ_PORT=$(get_configmap_field waggle-config WAGGLE_BEEHIVE_RABBITMQ_PORT)
     cat > configs/rabbitmq/definitions.json <<EOF
 {
     "users": [
@@ -322,13 +322,14 @@ EOF
 }
 EOF
 
-    kubectl get cm beehive-ca-certificate -o jsonpath="{.data.cacert\.pem}" > configs/rabbitmq/cacert.pem
-    kubectl get secret wes-beehive-rabbitmq-tls -o jsonpath='{.data.cert\.pem}' | base64 -d > configs/rabbitmq/cert.pem
-    kubectl get secret wes-beehive-rabbitmq-tls -o jsonpath='{.data.key\.pem}' | base64 -d > configs/rabbitmq/key.pem
+    # generate rabbitmq configs / secrets for kustomize
+    get_configmap_field beehive-ca-certificate cacert.pem > configs/rabbitmq/cacert.pem
+    get_secret_field wes-beehive-rabbitmq-tls cert.pem > configs/rabbitmq/cert.pem
+    get_secret_field wes-beehive-rabbitmq-tls key.pem > configs/rabbitmq/key.pem
 
     # generate upload agent configs / secrets for kustomize
-    WAGGLE_BEEHIVE_UPLOAD_HOST=$(kubectl get cm waggle-config -o jsonpath='{.data.WAGGLE_BEEHIVE_UPLOAD_HOST}')
-    WAGGLE_BEEHIVE_UPLOAD_PORT=$(kubectl get cm waggle-config -o jsonpath='{.data.WAGGLE_BEEHIVE_UPLOAD_PORT}')
+    WAGGLE_BEEHIVE_UPLOAD_HOST=$(get_configmap_field waggle-config WAGGLE_BEEHIVE_UPLOAD_HOST)
+    WAGGLE_BEEHIVE_UPLOAD_PORT=$(get_configmap_field waggle-config WAGGLE_BEEHIVE_UPLOAD_PORT)
     cat > configs/upload-agent/wes-upload-agent.env <<EOF
 WAGGLE_BEEHIVE_UPLOAD_HOST=${WAGGLE_BEEHIVE_UPLOAD_HOST}
 WAGGLE_BEEHIVE_UPLOAD_PORT=${WAGGLE_BEEHIVE_UPLOAD_PORT}
@@ -337,11 +338,11 @@ SSH_KEY=/etc/upload-agent/ssh-key
 SSH_CERT=/etc/upload-agent/ssh-key-cert.pub
 EOF
 
-    kubectl get cm beehive-ssh-ca -o jsonpath="{.data.ca\.pub}" > configs/upload-agent/ca.pub
-    kubectl get cm beehive-ssh-ca -o jsonpath="{.data.ca-cert\.pub}" > configs/upload-agent/ca-cert.pub
-    kubectl get secret wes-beehive-upload-ssh-key -o jsonpath='{.data.ssh-key}' | base64 -d > configs/upload-agent/ssh-key
-    kubectl get secret wes-beehive-upload-ssh-key -o jsonpath='{.data.ssh-key-cert\.pub}' | base64 -d > configs/upload-agent/ssh-key-cert.pub
-    kubectl get secret wes-beehive-upload-ssh-key -o jsonpath='{.data.ssh-key\.pub}' | base64 -d > configs/upload-agent/ssh-key.pub
+    get_configmap_field beehive-ssh-ca ca.pub > configs/upload-agent/ca.pub
+    get_configmap_field beehive-ssh-ca ca-cert.pub > configs/upload-agent/ca-cert.pub
+    get_secret_field wes-beehive-upload-ssh-key ssh-key > configs/upload-agent/ssh-key
+    get_secret_field wes-beehive-upload-ssh-key ssh-key-cert.pub > configs/upload-agent/ssh-key-cert.pub
+    get_secret_field wes-beehive-upload-ssh-key ssh-key.pub > configs/upload-agent/ssh-key.pub
 
     # create or pull influxdb token
     echo "setting influxdb..."
@@ -473,6 +474,21 @@ EOF
     # wait a moment before checking for images
     sleep 10
     k3s crictl images | awk '$2 ~ /<none>/ {print $3}' | xargs k3s crictl rmi || true
+}
+
+get_configmap_field() {
+    name="${1}"
+    escaped_field="${2//./\\.}"
+    kubectl get configmap "${name}" -o jsonpath="{.data.${escaped_field}}"
+}
+
+get_secret_field() {
+    name="${1}"
+    escaped_field="${2//./\\.}"
+    if ! output=$(kubectl get secret "${name}" -o jsonpath="{.data.${escaped_field}}"); then
+        return 1
+    fi
+    echo "${output}" | base64 -d
 }
 
 cd $(dirname $0)
