@@ -1,0 +1,86 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: wes-chirpstack-gateway-bridge
+spec:
+  selector:
+    matchLabels:
+      app: wes-chirpstack-gateway-bridge
+  template:
+    metadata:
+      labels:
+        app: wes-chirpstack-gateway-bridge
+    spec:
+      priorityClassName: wes-high-priority
+      nodeSelector:
+        resource.lorawan: "true"
+      containers:
+        - name: wes-lorawan-gateway
+          image: rakwireless/udp-packet-forwarder:v1.1.3
+          # Need this to get access to write so /sys (gpio)
+          securityContext:
+            privileged: true
+          resources:
+            requests:
+              cpu: 100m
+              memory: 25Mi
+            limits:
+              memory: 50Mi
+          envFrom:
+            - configMapRef:
+                name: wes-identity
+          env:
+            - name: MODEL
+              value: "RAK7248"
+            - name: BAND
+              value: "US_902_928"
+            - name: GATEWAY_EUI
+              value: "D2CE19FFFEC9D449"
+            - name: SERVER_HOST
+              value: "127.0.0.1"
+            - name: SERVER_PORT
+              value: "1700"
+          volumeMounts:
+            - name: lorawan-host-sys
+              mountPath: /sys
+              mountPropagation: HostToContainer
+              readOnly: false
+        - name: wes-chirpstack-gateway-bridge
+          image: chirpstack/chirpstack-gateway-bridge:4.0.1
+          ports:
+            - containerPort: 1700
+              protocol: UDP
+            - name: metrics
+              containerPort: 9100
+          resources:
+            requests:
+              cpu: 50m
+              memory: 25Mi
+            limits:
+              memory: 50Mi
+          envFrom:
+            - configMapRef:
+                name: wes-identity
+          volumeMounts:
+            - name: gateway-bridge-config-volume
+              mountPath: /etc/chirpstack-gateway-bridge
+              readOnly: true
+          startupProbe:
+            httpGet:
+              port: metrics
+            initialDelaySeconds: 5
+            failureThreshold: 30
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              port: metrics
+            failureThreshold: 3
+            periodSeconds: 10
+      volumes:
+        - name: gateway-bridge-config-volume
+          configMap:
+            name: chirpstack-gateway-bridge-config-cm
+            defaultMode: 0644
+        - name: lorawan-host-sys
+          hostPath:
+            path: /sys
