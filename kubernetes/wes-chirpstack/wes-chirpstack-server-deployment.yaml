@@ -45,7 +45,7 @@ spec:
               value: "service"
             - name: WEB_API_PORT
               value: "8080"
-            - name: HEALTH_PORT
+            - name: METRICS_PORT
               value: "9100"
           volumeMounts:
             - name: server-config-volume

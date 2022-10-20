@@ -473,6 +473,7 @@ resources:
   - wes-camera-provisioner.yaml
   - wes-node-influxdb.yaml
   - wes-node-influxdb-loader.yaml
+  - wes-lorawan-gateway.yaml
 EOF
 
     echo "patching coredns to always run on nxcore"

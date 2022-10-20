@@ -18,7 +18,7 @@ secret="sPQT3pZfR191Y9lJP9CreqbThIvjGlR8YYMNmav9hkI="
 [monitoring]
 # /health  - Returns 200 in case the healthchecks have passed.
 # /metrics - Returns metrics which can be scraped by Prometheus.
-bind="0.0.0.0:$HEALTH_PORT"
+bind="0.0.0.0:$METRICS_PORT"
 
 [integration]
 enabled = ["mqtt"]
