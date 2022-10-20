@@ -19,7 +19,8 @@ spec:
           args: ["--config-dir", "/etc/chirpstack-waggle"]
           ports:
             - containerPort: 8080
-            - containerPort: 9100
+            - name: metrics
+              containerPort: 9100
           resources:
             limits:
               cpu: 50m
@@ -51,7 +52,17 @@ spec:
             - name: server-config-volume
               mountPath: /etc/chirpstack-waggle
               readOnly: true
-          # TODO: liveness probe to ensure its working
+          startupProbe:
+            httpGet:
+              path: /health
+              port: metrics
+            initialDelaySeconds: 60
+            failureThreshold: 30
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: metrics
       volumes:
         - name: server-config-volume
           configMap:
