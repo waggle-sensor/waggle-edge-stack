@@ -6,6 +6,6 @@ spec:
   selector:
     app: wes-chirpstack-redis
   ports:
-    - name: reids
+    - name: redis
       port: 6379
       targetPort: 6379
