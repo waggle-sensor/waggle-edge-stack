@@ -63,6 +63,8 @@ spec:
             httpGet:
               path: /health
               port: metrics
+            failureThreshold: 3
+            periodSeconds: 10
       volumes:
         - name: server-config-volume
           configMap:

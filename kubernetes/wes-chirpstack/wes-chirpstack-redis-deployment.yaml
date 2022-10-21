@@ -37,6 +37,8 @@ spec:
           livenessProbe:
             tcpSocket:
               port: redis
+            failureThreshold: 3
+            periodSeconds: 10
       volumes:
         - name: chirpstack-redis-data-volume
           persistentVolumeClaim:

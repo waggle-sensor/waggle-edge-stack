@@ -48,6 +48,8 @@ spec:
           livenessProbe:
             tcpSocket:
               port: postgresql
+            failureThreshold: 3
+            periodSeconds: 10
       volumes:
         - name: chirpstack-postgresql-data-volume
           persistentVolumeClaim:

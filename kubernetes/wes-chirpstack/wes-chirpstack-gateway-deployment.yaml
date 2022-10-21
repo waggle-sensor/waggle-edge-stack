@@ -43,6 +43,8 @@ spec:
           livenessProbe:
             httpGet:
               port: metrics
+            failureThreshold: 3
+            periodSeconds: 10
       volumes:
         - name: gateway-bridge-config-volume
           configMap:
