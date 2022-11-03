@@ -6,10 +6,6 @@ spec:
   selector:
     app: wes-chirpstack-gateway-bridge
   ports:
-    - name: gateway-bridge
-      port: 1700
-      targetPort: 1700
-      protocol: UDP
     - name: metrics
       port: 9100
       targetPort: 9100
