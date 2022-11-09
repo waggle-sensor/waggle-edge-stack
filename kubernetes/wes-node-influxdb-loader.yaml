@@ -18,12 +18,11 @@ spec:
       - image: waggle/node-influxdb-loader:0.0.0
         name: wes-node-influxdb-loader
         resources:
-          limits:
-            cpu: 100m
-            memory: 150Mi
           requests:
-            cpu: 50m
-            memory: 100Mi
+            cpu: 200m
+            memory: 50Mi
+          limits:
+            memory: 50Mi
         ports:
         - name: metrics
           containerPort: 8080
