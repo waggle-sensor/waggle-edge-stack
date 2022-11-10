@@ -21,7 +21,6 @@ spec:
           securityContext:
             privileged: true
           resources:
-            # TODO: analyze resource usage
             limits:
               cpu: 100m
               memory: 50Mi
@@ -47,7 +46,6 @@ spec:
               mountPath: /sys
               mountPropagation: HostToContainer
               readOnly: false
-          # TODO: liveness probe to ensure its working
         - name: wes-chirpstack-gateway-bridge
           image: chirpstack/chirpstack-gateway-bridge:4.0.1
           ports:
