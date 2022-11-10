@@ -30,13 +30,13 @@ spec:
       nodeSelector:
         node-role.kubernetes.io/master: "true"
       containers:
-      - image: waggle/edge-scheduler:0.16.3
+      - image: waggle/edge-scheduler:0.17.1
         name: wes-plugin-scheduler
         command: ["nodescheduler"]
         args:
         - -in-cluster
         - -policy
-        - roundrobin
+        - gpuaware
         - -nodename
         - "$(WAGGLE_NODE_VSN)"
         - -goalstream-url
@@ -64,7 +64,7 @@ metadata:
   namespace: default
 rules:
   - apiGroups: ["", "batch"] # "" indicates the core API group
-    resources: ["namespaces", "configmaps", "services", "jobs", "nodes", "pods"]
+    resources: ["namespaces", "configmaps", "services", "jobs", "nodes", "pods", "pods/log"]
     verbs: ["create", "get", "watch", "list", "update", "patch", "delete"]
 ---
 apiVersion: rbac.authorization.k8s.io/v1
