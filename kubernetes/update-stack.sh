@@ -85,6 +85,33 @@ update_data_config() {
     fi
 }
 
+# NOTE(Yongho) this is added, but not being used for now
+update_wes_plugins() {
+    echo "running iio plugin for bme680..."
+    pluginctl deploy --name iio-bme680 \
+      --type daemonset \
+      --privileged \
+      --selector resource.bme680=true \
+      waggle/plugin-iio:0.4.5 -- \
+      --filter bme680
+    
+    echo "running iio plugin for bme280..."
+    pluginctl deploy --name iio-bme280 \
+      --type daemonset \
+      --privileged \
+      --selector resource.bme280=true \
+      waggle/plugin-iio:0.4.5 -- \
+      --filter bme280
+    
+    echo "running iio plugin for raingauge"
+    pluginctl deploy --name raingauge \
+      --type daemonset \
+      --privileged \
+      --selector resource.raingauge=true \
+      waggle/plugin-raingauge:0.4.1 -- \
+      --device /dev/ttyUSB0
+}
+
 # NOTE the following section is really just a big reshaping of various configs and secrets
 # into bits that will be managed by kustomize. they're arguably simpler than before and we
 # could consider eventually just shipping the files as a tar / zip in rather than this:
@@ -496,4 +523,5 @@ update_wes_tools
 update_node_secrets
 update_node_manifest
 update_data_config
+# update_wes_plugins
 update_wes
