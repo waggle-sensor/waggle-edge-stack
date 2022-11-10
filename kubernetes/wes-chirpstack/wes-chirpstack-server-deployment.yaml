@@ -14,9 +14,9 @@ spec:
       priorityClassName: wes-high-priority
       containers:
         - name: wes-chirpstack-server
-          image: chirpstack/chirpstack:4.0.2
+          image: chirpstack/chirpstack:4.0.3
           command: ["chirpstack"]
-          args: ["--config-dir", "/etc/chirpstack-waggle"]
+          args: ["-c", "/etc/chirpstack-waggle"]
           ports:
             - containerPort: 8080
             - name: metrics
