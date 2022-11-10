@@ -31,11 +31,10 @@ spec:
         - image: waggle/wes-audio-server:0.3.0
           name: wes-audio-server
           resources:
-            limits:
-              cpu: 200m
-              memory: 20Mi
             requests:
               cpu: 200m
+              memory: 20Mi
+            limits:
               memory: 20Mi
           ports:
             - containerPort: 4713

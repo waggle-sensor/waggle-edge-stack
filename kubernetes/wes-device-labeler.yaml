@@ -19,11 +19,10 @@ spec:
         - name: wes-device-labeler
           image: waggle/wes-device-labeler:0.3.0
           resources:
-            limits:
-              cpu: 50m
-              memory: 75Mi
             requests:
-              cpu: 50m
+              cpu: 100m
+              memory: 75Mi
+            limits:
               memory: 75Mi
           args:
             # - "--dry-run"

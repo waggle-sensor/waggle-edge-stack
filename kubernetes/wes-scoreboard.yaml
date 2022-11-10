@@ -31,9 +31,8 @@ spec:
       - image: redis:latest
         name: wes-scoreboard
         resources:
-          limits:
-            cpu: 100m
-            memory: 150Mi
           requests:
             cpu: 50m
-            memory: 100Mi
+            memory: 150Mi
+          limits:
+            memory: 150Mi

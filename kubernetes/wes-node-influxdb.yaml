@@ -50,12 +50,11 @@ spec:
             - name: INFLUX_CONFIGS_PATH
               value: /var/lib/influxdb2/influx-configs
             resources:
-              limits:
+              requests:
                 cpu: 500m
                 memory: 500Mi
-              requests:
-                cpu: 300m
-                memory: 100Mi
+              limits:
+                memory: 500Mi
             ports:
               - containerPort: 8086
                 name: influxdb
