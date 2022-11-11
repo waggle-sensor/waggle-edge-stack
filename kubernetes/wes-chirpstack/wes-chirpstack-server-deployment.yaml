@@ -22,11 +22,12 @@ spec:
             - name: metrics
               containerPort: 9100
           resources:
+            # TEMP: TODO: remove
             limits:
-              cpu: 50m
-              memory: 50Mi
+              cpu: 500m
+              memory: 250Mi
             requests:
-              cpu: 50m
+              cpu: 500m
               memory: 25Mi
           envFrom:
             - configMapRef:
