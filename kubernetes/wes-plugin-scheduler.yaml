@@ -30,7 +30,7 @@ spec:
       nodeSelector:
         node-role.kubernetes.io/master: "true"
       containers:
-      - image: waggle/edge-scheduler:0.17.1
+      - image: waggle/edge-scheduler:0.17.2
         name: wes-plugin-scheduler
         command: ["nodescheduler"]
         args:
