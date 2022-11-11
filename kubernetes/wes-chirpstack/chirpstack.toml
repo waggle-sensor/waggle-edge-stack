@@ -2,7 +2,7 @@
 level="debug"
 
 [postgresql]
-dsn="postgres://chirpstack:chirpstack@$POSTGRESQL_HOST/chirpstack?sslmode=disable"
+dsn="postgres://$POSTGRESQL_USER:$POSTGRESQL_PWD@$POSTGRESQL_HOST/$POSTGRESQL_DB?sslmode=disable"
 
 [redis]
 servers=["redis://$REDIS_HOST/"]

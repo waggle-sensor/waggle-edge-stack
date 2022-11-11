@@ -14,11 +14,16 @@ spec:
       priorityClassName: wes-high-priority
       containers:
         - name: wes-chirpstack-server
-          image: chirpstack/chirpstack:4.0.3
+          # TODO: update to the real version when we are done
+          image: waggle/wes-chirpstack-server:pr-1
           # TODO: remove, temp for debug
           imagePullPolicy: Always
           command: ["chirpstack"]
           args: ["-c", "/etc/chirpstack-waggle"]
+          lifecycle:
+            postStart:
+              exec:
+                command: ["/usr/bin/python3", "/postStart.py"]
           ports:
             - containerPort: 8080
             - name: metrics
@@ -37,6 +42,12 @@ spec:
           env:
             - name: POSTGRESQL_HOST
               value: "wes-chirpstack-postgresql"
+            - name: POSTGRESQL_USER
+              value: "chirpstack"
+            - name: POSTGRESQL_PWD
+              value: "chirpstack"
+            - name: POSTGRESQL_DB
+              value: "chirpstack"
             - name: REDIS_HOST
               value: "wes-chirpstack-redis:6379"
             - name: MQTT_BROKER_HOST
