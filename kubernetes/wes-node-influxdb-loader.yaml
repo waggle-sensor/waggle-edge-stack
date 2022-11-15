@@ -15,12 +15,9 @@ spec:
       nodeSelector:
         node-role.kubernetes.io/master: "true"
       containers:
-      - image: waggle/node-influxdb-loader:0.0.0
+      - image: waggle/node-influxdb-loader:0.0.1
         name: wes-node-influxdb-loader
         resources:
-          limits:
-            cpu: 100m
-            memory: 150Mi
           requests:
             cpu: 50m
             memory: 100Mi
