@@ -19,11 +19,10 @@ spec:
       - name: wes-app-meta-cache
         image: redis:7.0.4
         resources:
-          limits:
-            cpu: 50m
-            memory: 20Mi
           requests:
-            cpu: 50m
+            cpu: 100m
+            memory: 20Mi
+          limits:
             memory: 20Mi
         ports:
         - containerPort: 6379

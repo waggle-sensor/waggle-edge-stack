@@ -19,8 +19,10 @@ spec:
           image: waggle/wes-data-sharing-service:0.12.2
           resources:
             requests:
-              cpu: 100m
-              memory: 40Mi
+              cpu: 200m
+              memory: 50Mi
+            limits:
+              memory: 50Mi
           envFrom:
             - configMapRef:
                 name: wes-identity

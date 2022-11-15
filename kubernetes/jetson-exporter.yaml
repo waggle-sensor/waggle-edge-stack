@@ -46,11 +46,10 @@ spec:
         - name: INFLUXDB_BUCKET
           value: waggle
         resources:
-          limits:
-            cpu: 50m
-            memory: 50Mi
           requests:
-            cpu: 50m
+            cpu: 100m
+            memory: 50Mi
+          limits:
             memory: 50Mi
         ports:
         - name: http

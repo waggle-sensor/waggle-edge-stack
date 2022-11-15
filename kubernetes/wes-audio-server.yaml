@@ -32,7 +32,6 @@ spec:
           name: wes-audio-server
           resources:
             limits:
-              cpu: 200m
               memory: 20Mi
             requests:
               cpu: 200m

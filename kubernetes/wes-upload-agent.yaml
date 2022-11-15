@@ -23,7 +23,6 @@ spec:
           name: wes-upload-agent
           resources:
             limits:
-              cpu: 250m
               memory: 25Mi
             requests:
               cpu: 250m
