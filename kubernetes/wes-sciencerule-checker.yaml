@@ -28,7 +28,7 @@ spec:
       nodeSelector:
         node-role.kubernetes.io/master: "true"
       containers:
-      - image: waggle/sciencerule-checker:0.0.2
+      - image: waggle/sciencerule-checker:0.0.6
         name: wes-sciencerule-checker
         env:
         - name: NODE_INFLUXDB_URL
