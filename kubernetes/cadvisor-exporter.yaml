@@ -72,11 +72,10 @@ spec:
       - image: telegraf:1.22.4
         name: wes-telegraf-cadvisor
         resources:
-          limits:
+          requests:
             cpu: 100m
             memory: 60Mi
-          requests:
-            cpu: 50m
+          limits:
             memory: 60Mi
         env:
           - name: NODE_NAME

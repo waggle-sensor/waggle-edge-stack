@@ -63,12 +63,11 @@ spec:
           - name: wes-camera-provisioner
             image: waggle/wes-camera-provisioner:0.0.9
             resources:
-              limits:
+              requests:
                 cpu: 200m
                 memory: 100Mi
-              requests:
-                cpu: 100m
-                memory: 50Mi
+              limits:
+                memory: 100Mi
             env:
             - name: WAGGLE_CAMERA_ADMIN
               valueFrom:

@@ -1,15 +1,20 @@
 apiVersion: v1
 kind: Service
 metadata:
-    name: wes-sciencerule-checker
+  name: wes-sciencerule-checker
 spec:
-    ports:
-      - name: wes-sciencerule-checker
-        port: 5000
-        targetPort: 5000
-    selector:
-        app: wes-sciencerule-checker
-    type: ClusterIP
+  ports:
+  - name: api
+    port: 5000
+    targetPort: api
+    protocol: TCP
+  - name: metrics
+    port: 8000
+    targetPort: metrics
+    protocol: TCP
+  selector:
+    app: wes-sciencerule-checker
+  type: ClusterIP
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -28,7 +33,7 @@ spec:
       nodeSelector:
         node-role.kubernetes.io/master: "true"
       containers:
-      - image: waggle/sciencerule-checker:0.0.2
+      - image: waggle/sciencerule-checker:0.0.7
         name: wes-sciencerule-checker
         env:
         - name: NODE_INFLUXDB_URL
@@ -41,10 +46,11 @@ spec:
         ports:
         - name: api
           containerPort: 5000
+        - name: metrics
+          containerPort: 8000
         resources:
           limits:
-            cpu: 150m
             memory: 150Mi
           requests:
             cpu: 100m
-            memory: 100Mi
+            memory: 150Mi
