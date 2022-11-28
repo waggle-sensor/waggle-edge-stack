@@ -29,6 +29,10 @@ spec:
       containers:
         - name: wes-roscore
           image: lblanp/panda:plugin-roscore
+          resources:
+            requests:
+              cpu: 200m
+              memory: 200Mi
           ports:
             - containerPort: 11311
 ---
