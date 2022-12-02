@@ -459,6 +459,8 @@ resources:
   # main components
   - cadvisor-exporter.yaml
   - jetson-exporter.yaml
+  - dcgm-exporter.yaml
+  - nvidia-device-plugin.yaml
   - node-exporter.yaml
   - wes-device-labeler.yaml
   - wes-audio-server.yaml
