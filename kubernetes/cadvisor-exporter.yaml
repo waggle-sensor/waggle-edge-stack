@@ -6,8 +6,13 @@ metadata:
   namespace: default
 rules:
   - apiGroups: [""] # "" indicates the core API group
-    resources: ["nodes/proxy"]
-    verbs: ["get"]
+    resources:
+    - "nodes"
+    - "nodes/proxy"
+    - "services"
+    - "endpoints"
+    - "pods"
+    verbs: ["get", "list", "watch"]
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
@@ -30,6 +35,9 @@ kind: ServiceAccount
 metadata:
   name: wes-telegraf-cadvisor-account
 ---
+# NOTE (Yongho): putting monitor_kubernetes_pods_method = "annotations"
+# in telegraf.conf returns an error by telegraf. I have no idea why
+# but without it telegraf works (and annotations is set by default)
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -40,6 +48,8 @@ data:
       urls = ["https://kubernetes.default.svc.cluster.local:443/api/v1/nodes/${NODE_NAME}/proxy/metrics/cadvisor"]
       bearer_token = "/var/run/secrets/kubernetes.io/serviceaccount/token"
       tls_ca = "/var/run/secrets/kubernetes.io/serviceaccount/ca.crt"
+      monitor_kubernetes_pods = true
+      pod_scrape_scope = "node"
 
     [[outputs.influxdb_v2]]
       urls = ["http://wes-node-influxdb.default.svc.cluster.local:8086"]
@@ -82,6 +92,10 @@ spec:
             valueFrom:
               fieldRef:
                 fieldPath: spec.nodeName
+          - name: NODE_IP
+            valueFrom:
+              fieldRef:
+                fieldPath: status.hostIP
           - name: INFLUXDB_TOKEN
             valueFrom:
               secretKeyRef:
