@@ -40,7 +40,7 @@ create_config_map_from_file() {
 
     local file=$(basename $src_path)
 
-    echo "creating configmap [${cm_name} from file [${src_path}]]"
+    echo "creating configmap (${cm_name} from file ${src_path})"
     if output=$(kubectl create configmap ${cm_name} --from-file=${file}=${src_path} 2>&1); then
         echo "${cm_name} created"
     elif echo "$output" | grep -q "already exists"; then
@@ -98,8 +98,25 @@ update_node_secrets() {
 update_node_manifest() {
     create_config_map_from_file "waggle-node-manifest" "/etc/waggle/node_manifest.json" "update"
 }
+
+update_node_manifest_v2() {
+    local cm="waggle-node-manifest-v2"
+    local file="node-manifest-v2.json"
+    local filepath="${WAGGLE_CONFIG_DIR}/${file}"
+    local tmppath="/tmp/${file}"
+    local url="https://auth.sagecontinuum.org/manifests/$(node_vsn)/"
+
+    echo "syncing manifest (${filepath} and cm ${cm}) from ${url}"
+
+    # download the latest manifest file
+    if wget -q -O ${tmppath} ${url}; then
+        echo "online manifest (${url}) found, updating ${filepath}"
+        # create the local host "pretty" manifest
+        cat ${tmppath} | jq . > ${filepath}
+        # create/update the configmap from the "pretty" manifest
+        create_config_map_from_file "${cm}" "${filepath}" "update"
     else
-        echo "/etc/waggle/node_manifest.json does not exist. skipping."
+        echo "failed to download manifest (${url})"
     fi
 }
 
@@ -545,7 +562,9 @@ get_secret_field() {
 cd $(dirname $0)
 update_wes_tools
 update_node_secrets
+# TODO: original `update_node_manifest` to be deprecated once all applications convert to new v2 manifest
 update_node_manifest
+update_node_manifest_v2
 update_data_config
 # update_wes_plugins
 update_wes
