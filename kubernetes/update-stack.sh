@@ -29,6 +29,36 @@ node_vsn() {
     echo $(awk '{print toupper($0)}' "${WAGGLE_CONFIG_DIR}/vsn")
 }
 
+# create/update a config map from a file source
+## $1: name of the config map
+## $2: src file path
+## $3: flag to indicate to update the CM if it already exists (defaults: disabled)
+create_config_map_from_file() {
+    local cm_name="$1"
+    local src_path="$2"
+    local update="${3}_"
+
+    local file=$(basename $src_path)
+
+    echo "creating configmap [${cm_name} from file [${src_path}]]"
+    if output=$(kubectl create configmap ${cm_name} --from-file=${file}=${src_path} 2>&1); then
+        echo "${cm_name} created"
+    elif echo "$output" | grep -q "already exists"; then
+        if [ $update == _ ]; then
+            echo "${cm_name} already exists, not updating."
+        else
+            if kubectl create configmap ${cm_name} --from-file=${file}=${src_path} -o yaml --dry-run=client \
+                | kubectl replace -f -; then
+                echo "${cm_name} updated"
+            else
+                echo "failed to update ${cm_name}"
+            fi
+        fi
+    else
+        echo "failed to create ${cm_name}"
+    fi
+}
+
 update_wes_tools() {
     echo "updating wes tools"
 
@@ -66,31 +96,16 @@ update_node_secrets() {
 }
 
 update_node_manifest() {
-    echo "updating waggle-node-manifest from /etc/waggle/node_manifest.json"
-    if [ -f /etc/waggle/node_manifest.json ]; then
-        if output=$(kubectl create configmap waggle-node-manifest --from-file=node_manifest.json=/etc/waggle/node_manifest.json 2>&1); then
-            echo "waggle-node-manifest created"
-        elif echo "$output" | grep -q "already exists"; then
-            kubectl create configmap waggle-node-manifest --from-file=node_manifest.json=/etc/waggle/node_manifest.json -o yaml --dry-run=client | kubectl replace -f -
-            echo "waggle-node-manifest updated"
-        else
-            echo "failed to create/update waggle-node-manifest"
-        fi
+    create_config_map_from_file "waggle-node-manifest" "/etc/waggle/node_manifest.json" "update"
+}
     else
         echo "/etc/waggle/node_manifest.json does not exist. skipping."
     fi
 }
 
 update_data_config() {
-    echo "updating waggle-data-config"
-
-    if output=$(kubectl create configmap waggle-data-config --from-file=data-config.json=data-config.json 2>&1); then
-        echo "waggle-data-config created"
-    elif echo "$output" | grep -q "already exists"; then
-        echo "waggle-data-config already exists"
-    else
-        fatal "error when setting up waggle-data-config"
-    fi
+    # This is a 1 time operation only if the CM doesn't exist already
+    create_config_map_from_file "waggle-data-config" "./data-config.json"
 }
 
 # NOTE(Yongho) this is added, but not being used for now
