@@ -472,11 +472,11 @@ configMapGenerator:
       - SSH_CA_PUBKEY=/etc/upload-agent/ca.pub
       - SSH_KEY=/etc/upload-agent/ssh-key
       - SSH_CERT=/etc/upload-agent/ssh-key-cert.pub
-  - name: waggle-node-manifest-v2
-    options:
-      disableNameSuffixHash: true
-    files:
-      - configs/${NODE_MANIFEST_V2}
+#   - name: waggle-node-manifest-v2
+#     options:
+#       disableNameSuffixHash: true
+#     files:
+#       - configs/${NODE_MANIFEST_V2}
 secretGenerator:
   - name: wes-rabbitmq-config
     files:
@@ -497,6 +497,7 @@ secretGenerator:
     literals:
       - token=${WAGGLE_INFLUXDB_TOKEN}
 resources:
+  - wes-node-manifest-v2.yaml
   # common constraints and limits
   - wes-default-limits.yaml
   - wes-priority-classes.yaml

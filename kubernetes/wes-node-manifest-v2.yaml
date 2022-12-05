@@ -1,0 +1,8 @@
+apiVersion: builtin
+kind: ConfigMapGenerator
+metadata:
+  name: waggle-node-manifest-v2
+options:
+  disableNameSuffixHash: true
+files:
+  - configs/node-manifest-v2.json
