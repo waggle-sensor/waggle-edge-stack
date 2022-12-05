@@ -21,6 +21,14 @@ getarch() {
     esac
 }
 
+node_id() {
+    echo $(awk '{print tolower($0)}' "${WAGGLE_CONFIG_DIR}/node-id")
+}
+
+node_vsn() {
+    echo $(awk '{print toupper($0)}' "${WAGGLE_CONFIG_DIR}/vsn")
+}
+
 update_wes_tools() {
     echo "updating wes tools"
 
@@ -130,8 +138,8 @@ update_wes() {
 
     # generate identity config for kustomize
     # NOTE we are ignoring the WAGGLE_NODE_ID in waggle-config and creating from local file
-    WAGGLE_NODE_ID=$(awk '{print tolower($0)}' "${WAGGLE_CONFIG_DIR}/node-id")
-    WAGGLE_NODE_VSN=$(awk '{print toupper($0)}' "${WAGGLE_CONFIG_DIR}/vsn")
+    WAGGLE_NODE_ID=$(node_id)
+    WAGGLE_NODE_VSN=$(node_vsn)
     cat > configs/wes-identity.env <<EOF
 WAGGLE_NODE_ID=${WAGGLE_NODE_ID}
 WAGGLE_NODE_VSN=${WAGGLE_NODE_VSN}
