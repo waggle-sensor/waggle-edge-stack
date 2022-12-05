@@ -5,6 +5,7 @@ WAGGLE_CONFIG_DIR="${WAGGLE_CONFIG_DIR:-/etc/waggle}"
 WAGGLE_BIN_DIR="${WAGGLE_BIN_DIR:-/usr/bin}"
 SES_VERSION="${SES_VERSION:-0.18.0}"
 SES_TOOLS="${SES_TOOLS:-runplugin pluginctl sesctl}"
+NODE_MANIFEST_V2="${NODE_MANIFEST_V2:-node-manifest-v2.json}"
 
 fatal() {
     echo $*
@@ -100,21 +101,17 @@ update_node_manifest() {
 }
 
 update_node_manifest_v2() {
-    local cm="waggle-node-manifest-v2"
-    local file="node-manifest-v2.json"
-    local filepath="${WAGGLE_CONFIG_DIR}/${file}"
-    local tmppath="/tmp/${file}"
+    local filepath="${WAGGLE_CONFIG_DIR}/${NODE_MANIFEST_V2}"
+    local tmppath="/tmp/${NODE_MANIFEST_V2}"
     local url="https://auth.sagecontinuum.org/manifests/$(node_vsn)/"
 
-    echo "syncing manifest (${filepath} and cm ${cm}) from ${url}"
+    echo "syncing manifest (${filepath} from ${url}"
 
     # download the latest manifest file
     if wget -q -O ${tmppath} ${url}; then
         echo "online manifest (${url}) found, updating ${filepath}"
         # create the local host "pretty" manifest
         cat ${tmppath} | jq . > ${filepath}
-        # create/update the configmap from the "pretty" manifest
-        create_config_map_from_file "${cm}" "${filepath}" "update"
     else
         echo "failed to download manifest (${url})"
     fi
@@ -176,6 +173,9 @@ update_wes() {
 WAGGLE_NODE_ID=${WAGGLE_NODE_ID}
 WAGGLE_NODE_VSN=${WAGGLE_NODE_VSN}
 EOF
+
+    # copy over the (potentially) updated node manifest
+    cp ${WAGGLE_CONFIG_DIR}/${NODE_MANIFEST_V2} configs/${NODE_MANIFEST_V2}
 
     # generate rabbitmq configs / secrets for kustomize
     cat > configs/rabbitmq/enabled_plugins <<EOF
@@ -472,6 +472,11 @@ configMapGenerator:
       - SSH_CA_PUBKEY=/etc/upload-agent/ca.pub
       - SSH_KEY=/etc/upload-agent/ssh-key
       - SSH_CERT=/etc/upload-agent/ssh-key-cert.pub
+  - name: waggle-node-manifest-v2
+    options:
+      disableNameSuffixHash: true
+    files:
+      - configs/${NODE_MANIFEST_V2}
 secretGenerator:
   - name: wes-rabbitmq-config
     files:
