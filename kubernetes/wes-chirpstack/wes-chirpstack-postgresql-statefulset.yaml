@@ -1,11 +1,12 @@
 apiVersion: apps/v1
-kind: Deployment
+kind: StatefulSet
 metadata:
   name: wes-chirpstack-postgresql
 spec:
   selector:
     matchLabels:
       app: wes-chirpstack-postgresql
+  serviceName: wes-chirpstack-postgresql
   template:
     metadata:
       labels:
@@ -35,7 +36,7 @@ spec:
                 name: wes-identity
           volumeMounts:
             - mountPath: /var/lib/postgresql/data
-              name: chirpstack-postgresql-data-volume
+              name: data
             - mountPath: /docker-entrypoint-initdb.d
               name: chirpstack-postgresql-configmap-volume
           startupProbe:
@@ -43,8 +44,8 @@ spec:
               port: postgresql
             initialDelaySeconds: 5
             timeoutSeconds: 10
-            failureThreshold: 5
-            periodSeconds: 60
+            failureThreshold: 10
+            periodSeconds: 30
           livenessProbe:
             tcpSocket:
               port: postgresql
@@ -52,9 +53,17 @@ spec:
             failureThreshold: 3
             periodSeconds: 60
       volumes:
-        - name: chirpstack-postgresql-data-volume
+        - name: data
           persistentVolumeClaim:
-            claimName: wes-chirpstack-postgresql-data
+            claimName: data
         - name: chirpstack-postgresql-configmap-volume
           configMap:
-            name: wes-chirpstack-postgresql-configmap
+            name: chirpstack-postgresql-init-cm
+  volumeClaimTemplates:
+    - metadata:
+        name: data
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        resources:
+          requests:
+            storage: 100Mi

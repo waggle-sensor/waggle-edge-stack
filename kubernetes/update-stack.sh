@@ -492,6 +492,15 @@ EOF
 }
 '
 
+    echo "performing one-time operation - clean old chirpstack"
+    # NOTE(Joe) this is a work-around to remove old deployments when converting to statefulsets
+    # this can safely be removed after all nodes have moved to the "statefulset" postgresql and redis setups
+    kubectl delete deployment wes-chirpstack-postgresql || true
+    kubectl delete deployment wes-chirpstack-redis || true
+    kubectl delete cm wes-chirpstack-postgresql-configmap || true
+    kubectl delete pvc wes-chirpstack-postgresql-data || true
+    kubectl delete pvc wes-chirpstack-redis-data || true
+
     echo "deploying wes stack"
     # NOTE(sean) this is split as its own thing as the version of kubectl (v1.20.2+k3s1) we were using
     # when this was added didn't seem to support nesting other kustomization dirs as resources.

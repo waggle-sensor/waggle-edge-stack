@@ -7,12 +7,9 @@ resources:
   - wes-chirpstack-server-service.yaml
   - wes-chirpstack-server-deployment.yaml
   - wes-chirpstack-redis-service.yaml
-  - wes-chirpstack-redis-deployment.yaml
-  - wes-chirpstack-redis-volume.yaml
+  - wes-chirpstack-redis-statefulset.yaml
   - wes-chirpstack-postgresql-service.yaml
-  - wes-chirpstack-postgresql-deployment.yaml
-  - wes-chirpstack-postgresql-volume.yaml
-  - wes-chirpstack-postgresql-configmap.yaml
+  - wes-chirpstack-postgresql-statefulset.yaml
 
 configMapGenerator:
   - name: chirpstack-gateway-bridge-config-cm
@@ -22,3 +19,6 @@ configMapGenerator:
     files:
       - chirpstack.toml
       - region_us915.toml
+  - name: chirpstack-postgresql-init-cm
+    files:
+      - 001-init-chirpstack.sh
