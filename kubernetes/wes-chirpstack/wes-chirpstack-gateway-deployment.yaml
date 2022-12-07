@@ -69,13 +69,15 @@ spec:
             httpGet:
               port: metrics
             initialDelaySeconds: 5
-            failureThreshold: 30
-            periodSeconds: 10
+            timeoutSeconds: 10
+            failureThreshold: 5
+            periodSeconds: 60
           livenessProbe:
             httpGet:
               port: metrics
+            timeoutSeconds: 10
             failureThreshold: 3
-            periodSeconds: 10
+            periodSeconds: 60
       volumes:
         - name: gateway-bridge-config-volume
           configMap:

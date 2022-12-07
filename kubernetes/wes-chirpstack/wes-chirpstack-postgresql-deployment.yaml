@@ -42,13 +42,15 @@ spec:
             tcpSocket:
               port: postgresql
             initialDelaySeconds: 5
-            failureThreshold: 30
-            periodSeconds: 10
+            timeoutSeconds: 10
+            failureThreshold: 5
+            periodSeconds: 60
           livenessProbe:
             tcpSocket:
               port: postgresql
+            timeoutSeconds: 10
             failureThreshold: 3
-            periodSeconds: 10
+            periodSeconds: 60
       volumes:
         - name: chirpstack-postgresql-data-volume
           persistentVolumeClaim:
