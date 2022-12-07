@@ -1,11 +1,12 @@
 apiVersion: apps/v1
-kind: Deployment
+kind: StatefulSet
 metadata:
   name: wes-chirpstack-redis
 spec:
   selector:
     matchLabels:
       app: wes-chirpstack-redis
+  serviceName: wes-chirpstack-redis
   template:
     metadata:
       labels:
@@ -32,7 +33,7 @@ spec:
                 name: wes-identity
           volumeMounts:
             - mountPath: /data
-              name: chirpstack-redis-data-volume
+              name: data
           livenessProbe:
             tcpSocket:
               port: redis
@@ -40,6 +41,14 @@ spec:
             failureThreshold: 3
             periodSeconds: 60
       volumes:
-        - name: chirpstack-redis-data-volume
+        - name: data
           persistentVolumeClaim:
-            claimName: wes-chirpstack-redis-data
+            claimName: data
+  volumeClaimTemplates:
+    - metadata:
+        name: data
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        resources:
+          requests:
+            storage: 20Mi

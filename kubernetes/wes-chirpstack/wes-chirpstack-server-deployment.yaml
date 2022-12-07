@@ -76,8 +76,8 @@ spec:
               port: metrics
             initialDelaySeconds: 5
             timeoutSeconds: 10
-            failureThreshold: 5
-            periodSeconds: 60
+            failureThreshold: 10
+            periodSeconds: 30
           livenessProbe:
             httpGet:
               path: /health
