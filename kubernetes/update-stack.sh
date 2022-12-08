@@ -4,7 +4,7 @@ set -e
 WAGGLE_CONFIG_DIR="${WAGGLE_CONFIG_DIR:-/etc/waggle}"
 WAGGLE_BIN_DIR="${WAGGLE_BIN_DIR:-/usr/bin}"
 SES_VERSION="${SES_VERSION:-0.18.2}"
-SES_TOOLS="${SES_TOOLS:-runplugin-linux pluginctl-linux sesctl-linux}"
+SES_TOOLS="${SES_TOOLS:-runplugin pluginctl sesctl}"
 
 fatal() {
     echo $*
@@ -13,10 +13,10 @@ fatal() {
 
 getarch() {
     case $(uname -m) in
-    x86_64) echo amd64 ;;
-    aarch64) echo arm64 ;;
-    amd64) echo amd64 ;;
-    arm64) echo arm64 ;;
+    x86_64) echo linux-amd64 ;;
+    aarch64) echo linux-arm64 ;;
+    amd64) echo linux-amd64 ;;
+    arm64) echo linux-arm64 ;;
     * ) return 1 ;;
     esac
 }
