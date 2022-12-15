@@ -17,7 +17,7 @@ spec:
       priorityClassName: wes-high-priority
       containers:
         - name: wes-device-labeler
-          image: waggle/wes-device-labeler:0.5.2
+          image: waggle/wes-device-labeler:0.5.3
           resources:
             limits:
               memory: 75Mi
