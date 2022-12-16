@@ -26,7 +26,7 @@ spec:
         app: wes-playback-server
     spec:
       containers:
-      - image: waggle/wes-playback-server:0.1.0
-        name: wes-playback-server
-        ports:
-        - containerPort: 8090
+        - image: waggle/wes-playback-server:0.1.0
+          name: wes-playback-server
+          ports:
+            - containerPort: 8090

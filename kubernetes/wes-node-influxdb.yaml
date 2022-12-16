@@ -1,40 +1,40 @@
 apiVersion: v1
 kind: Service
 metadata:
-    name: wes-node-influxdb
+  name: wes-node-influxdb
 spec:
-    ports:
-      - name: wes-node-influxdb
-        port: 8086
-        targetPort: 8086
-    selector:
-        app: wes-node-influxdb
-    type: ClusterIP
+  ports:
+    - name: wes-node-influxdb
+      port: 8086
+      targetPort: 8086
+  selector:
+    app: wes-node-influxdb
+  type: ClusterIP
 ---
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
-    labels:
-        app: wes-node-influxdb
-    name: wes-node-influxdb
+  labels:
+    app: wes-node-influxdb
+  name: wes-node-influxdb
 spec:
-    replicas: 1
-    selector:
-        matchLabels:
-            app: wes-node-influxdb
-    serviceName: wes-node-influxdb
-    template:
-      metadata:
-          labels:
-              app: wes-node-influxdb
-      spec:
-        priorityClassName: wes-high-priority
-        nodeSelector:
-          node-role.kubernetes.io/master: "true"
-        containers:
-          - image: influxdb:2.1.1
-            name: wes-node-influxdb
-            env:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: wes-node-influxdb
+  serviceName: wes-node-influxdb
+  template:
+    metadata:
+      labels:
+        app: wes-node-influxdb
+    spec:
+      priorityClassName: wes-high-priority
+      nodeSelector:
+        node-role.kubernetes.io/master: "true"
+      containers:
+        - image: influxdb:2.1.1
+          name: wes-node-influxdb
+          env:
             - name: DOCKER_INFLUXDB_INIT_MODE
               value: "setup"
             - name: DOCKER_INFLUXDB_INIT_USERNAME
@@ -49,24 +49,24 @@ spec:
               value: "7d"
             - name: INFLUX_CONFIGS_PATH
               value: /var/lib/influxdb2/influx-configs
-            resources:
-              limits:
-                memory: 500Mi
-              requests:
-                cpu: 500m
-                memory: 500Mi
-            ports:
-              - containerPort: 8086
-                name: influxdb
-            volumeMounts:
-              - mountPath: /var/lib/influxdb2
-                name: data
-    volumeClaimTemplates:
-      - metadata:
-          name: data
-        spec:
-          accessModes:
-          - ReadWriteOnce
           resources:
+            limits:
+              memory: 500Mi
             requests:
-              storage: 5G
+              cpu: 500m
+              memory: 500Mi
+          ports:
+            - containerPort: 8086
+              name: influxdb
+          volumeMounts:
+            - mountPath: /var/lib/influxdb2
+              name: data
+  volumeClaimTemplates:
+    - metadata:
+        name: data
+      spec:
+        accessModes:
+          - ReadWriteOnce
+        resources:
+          requests:
+            storage: 5G

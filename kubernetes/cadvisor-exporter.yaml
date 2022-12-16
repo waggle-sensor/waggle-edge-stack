@@ -7,11 +7,11 @@ metadata:
 rules:
   - apiGroups: [""] # "" indicates the core API group
     resources:
-    - "nodes"
-    - "nodes/proxy"
-    - "services"
-    - "endpoints"
-    - "pods"
+      - "nodes"
+      - "nodes/proxy"
+      - "services"
+      - "endpoints"
+      - "pods"
     verbs: ["get", "list", "watch"]
 ---
 apiVersion: rbac.authorization.k8s.io/v1
@@ -26,9 +26,9 @@ roleRef:
   # `edit` is a built-in cluster role. more info about these can be found here:
   # https://kubernetes.io/docs/reference/access-authn-authz/rbac/#user-facing-roles
 subjects:
-- kind: ServiceAccount
-  name: wes-telegraf-cadvisor-account
-  namespace: default
+  - kind: ServiceAccount
+    name: wes-telegraf-cadvisor-account
+    namespace: default
 ---
 apiVersion: v1
 kind: ServiceAccount
@@ -43,7 +43,7 @@ kind: ConfigMap
 metadata:
   name: wes-telegraf-cadvisor-telegraf-config
 data:
-  telegraf.conf: |            
+  telegraf.conf: |
     [[inputs.prometheus]]
       urls = ["https://kubernetes.default.svc.cluster.local:443/api/v1/nodes/${NODE_NAME}/proxy/metrics/cadvisor"]
       bearer_token = "/var/run/secrets/kubernetes.io/serviceaccount/token"
@@ -79,36 +79,36 @@ spec:
       serviceAccountName: wes-telegraf-cadvisor-account
       priorityClassName: wes-high-priority
       containers:
-      - image: telegraf:1.22.4
-        name: wes-telegraf-cadvisor
-        resources:
-          requests:
-            cpu: 100m
-            memory: 60Mi
-          limits:
-            memory: 60Mi
-        env:
-          - name: NODE_NAME
-            valueFrom:
-              fieldRef:
-                fieldPath: spec.nodeName
-          - name: NODE_IP
-            valueFrom:
-              fieldRef:
-                fieldPath: status.hostIP
-          - name: INFLUXDB_TOKEN
-            valueFrom:
-              secretKeyRef:
-                name: wes-node-influxdb-waggle-token
-                key: token
-          - name: INFLUXDB_BUCKET
-            value: "waggle"
-          - name: INFLUXDB_ORG
-            value: "waggle"
-        volumeMounts:
-          - mountPath: /etc/telegraf
-            name: telegraf-conf
+        - image: telegraf:1.22.4
+          name: wes-telegraf-cadvisor
+          resources:
+            requests:
+              cpu: 100m
+              memory: 60Mi
+            limits:
+              memory: 60Mi
+          env:
+            - name: NODE_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: spec.nodeName
+            - name: NODE_IP
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.hostIP
+            - name: INFLUXDB_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: wes-node-influxdb-waggle-token
+                  key: token
+            - name: INFLUXDB_BUCKET
+              value: "waggle"
+            - name: INFLUXDB_ORG
+              value: "waggle"
+          volumeMounts:
+            - mountPath: /etc/telegraf
+              name: telegraf-conf
       volumes:
-      - name: telegraf-conf
-        configMap:
-          name: wes-telegraf-cadvisor-telegraf-config
+        - name: telegraf-conf
+          configMap:
+            name: wes-telegraf-cadvisor-telegraf-config

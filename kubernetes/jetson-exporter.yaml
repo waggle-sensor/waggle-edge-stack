@@ -21,46 +21,46 @@ spec:
         resource.gpu: "true"
       priorityClassName: wes-high-priority
       containers:
-      - image: waggle/jetson-exporter:0.0.1
-        name: jetson-exporter
-        command: ["/app/jetson-exporter"]
-        args:
-        - --loadpath
-        - /host/sys/devices/gpu.0/load
-        env:
-        - name: PORT
-          value: "9101"
-        - name: KUBENODE
-          valueFrom:
-            fieldRef:
-              fieldPath: spec.nodeName
-        - name: INFLUXDB_URL
-          value: http://wes-node-influxdb.default.svc.cluster.local:8086
-        - name: INFLUXDB_TOKEN
-          valueFrom:
-            secretKeyRef:
-              name: wes-node-influxdb-waggle-token
-              key: token
-        - name: INFLUXDB_ORG
-          value: waggle
-        - name: INFLUXDB_BUCKET
-          value: waggle
-        resources:
-          requests:
-            cpu: 100m
-            memory: 50Mi
-          limits:
-            memory: 50Mi
-        ports:
-        - name: http
-          containerPort: 9101
-          hostPort: 9101
-        volumeMounts:
-        - mountPath: /host/sys
-          mountPropagation: HostToContainer
-          name: sys
-          readOnly: true
+        - image: waggle/jetson-exporter:0.0.1
+          name: jetson-exporter
+          command: ["/app/jetson-exporter"]
+          args:
+            - --loadpath
+            - /host/sys/devices/gpu.0/load
+          env:
+            - name: PORT
+              value: "9101"
+            - name: KUBENODE
+              valueFrom:
+                fieldRef:
+                  fieldPath: spec.nodeName
+            - name: INFLUXDB_URL
+              value: http://wes-node-influxdb.default.svc.cluster.local:8086
+            - name: INFLUXDB_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: wes-node-influxdb-waggle-token
+                  key: token
+            - name: INFLUXDB_ORG
+              value: waggle
+            - name: INFLUXDB_BUCKET
+              value: waggle
+          resources:
+            requests:
+              cpu: 100m
+              memory: 50Mi
+            limits:
+              memory: 50Mi
+          ports:
+            - name: http
+              containerPort: 9101
+              hostPort: 9101
+          volumeMounts:
+            - mountPath: /host/sys
+              mountPropagation: HostToContainer
+              name: sys
+              readOnly: true
       volumes:
-      - hostPath:
-          path: /sys
-        name: sys
+        - hostPath:
+            path: /sys
+          name: sys

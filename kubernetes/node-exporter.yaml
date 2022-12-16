@@ -19,53 +19,53 @@ spec:
     spec:
       priorityClassName: wes-high-priority
       containers:
-      - args:
-        - "--web.listen-address=$(HOST_IP):9100"
-        - "--path.procfs=/host/proc"
-        - "--path.sysfs=/host/sys"
-        - "--path.rootfs=/host/root"
-        - "--collector.netdev.device-blacklist=^veth"
-        - "--collector.netclass.ignored-devices=^veth"
-        - "--collector.filesystem.ignored-mount-points=^/(dev|proc|run|sys|var/lib/docker/.+|var/lib/kubelet/pods/.+)($|/)"
-        image: prom/node-exporter:v1.0.1
-        name: node-exporter
-        resources:
-          limits:
-            memory: 60Mi
-          requests:
-            cpu: 100m
-            memory: 60Mi
-        ports:
-        - name: http
-          containerPort: 9100
-          hostPort: 9100
-        env:
-          - name: HOST_IP
-            valueFrom:
-              fieldRef:
-                fieldPath: status.hostIP
-        volumeMounts:
-        - mountPath: /host/proc
-          mountPropagation: HostToContainer
-          name: proc
-          readOnly: true
-        - mountPath: /host/sys
-          mountPropagation: HostToContainer
-          name: sys
-          readOnly: true
-        - mountPath: /host/root
-          mountPropagation: HostToContainer
-          name: root
-          readOnly: true
+        - args:
+            - "--web.listen-address=$(HOST_IP):9100"
+            - "--path.procfs=/host/proc"
+            - "--path.sysfs=/host/sys"
+            - "--path.rootfs=/host/root"
+            - "--collector.netdev.device-blacklist=^veth"
+            - "--collector.netclass.ignored-devices=^veth"
+            - "--collector.filesystem.ignored-mount-points=^/(dev|proc|run|sys|var/lib/docker/.+|var/lib/kubelet/pods/.+)($|/)"
+          image: prom/node-exporter:v1.0.1
+          name: node-exporter
+          resources:
+            limits:
+              memory: 60Mi
+            requests:
+              cpu: 100m
+              memory: 60Mi
+          ports:
+            - name: http
+              containerPort: 9100
+              hostPort: 9100
+          env:
+            - name: HOST_IP
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.hostIP
+          volumeMounts:
+            - mountPath: /host/proc
+              mountPropagation: HostToContainer
+              name: proc
+              readOnly: true
+            - mountPath: /host/sys
+              mountPropagation: HostToContainer
+              name: sys
+              readOnly: true
+            - mountPath: /host/root
+              mountPropagation: HostToContainer
+              name: root
+              readOnly: true
       hostNetwork: true
       hostPID: true
       volumes:
-      - hostPath:
-          path: /proc
-        name: proc
-      - hostPath:
-          path: /sys
-        name: sys
-      - hostPath:
-          path: /
-        name: root
+        - hostPath:
+            path: /proc
+          name: proc
+        - hostPath:
+            path: /sys
+          name: sys
+        - hostPath:
+            path: /
+          name: root

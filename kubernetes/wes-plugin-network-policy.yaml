@@ -13,13 +13,13 @@ spec:
     matchLabels:
       role: plugin
   policyTypes:
-  - Egress
+    - Egress
   egress:
-  - ports:
-    - protocol: TCP
-      port: 53
-    - protocol: UDP
-      port: 53
+    - ports:
+        - protocol: TCP
+          port: 53
+        - protocol: UDP
+          port: 53
 ---
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
@@ -30,15 +30,15 @@ spec:
     matchLabels:
       role: plugin
   policyTypes:
-  - Egress
+    - Egress
   egress:
-  - to:
-    - podSelector:
-        matchLabels:
-          app: wes-rabbitmq
-    ports:
-    - protocol: TCP
-      port: 5672
+    - to:
+        - podSelector:
+            matchLabels:
+              app: wes-rabbitmq
+      ports:
+        - protocol: TCP
+          port: 5672
 ---
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
@@ -49,15 +49,15 @@ spec:
     matchLabels:
       role: plugin
   policyTypes:
-  - Egress
+    - Egress
   egress:
-  - to:
-    - podSelector:
-        matchLabels:
-          app: wes-audio-server
-    ports:
-    - protocol: TCP
-      port: 4713
+    - to:
+        - podSelector:
+            matchLabels:
+              app: wes-audio-server
+      ports:
+        - protocol: TCP
+          port: 4713
 ---
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
@@ -68,15 +68,15 @@ spec:
     matchLabels:
       role: plugin
   policyTypes:
-  - Egress
+    - Egress
   egress:
-  - to:
-    - podSelector:
-        matchLabels:
-          app: wes-playback-server
-    ports:
-    - protocol: TCP
-      port: 8090
+    - to:
+        - podSelector:
+            matchLabels:
+              app: wes-playback-server
+      ports:
+        - protocol: TCP
+          port: 8090
 ---
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
@@ -87,15 +87,15 @@ spec:
     matchLabels:
       role: plugin
   policyTypes:
-  - Egress
+    - Egress
   egress:
-  - to:
-    - podSelector:
-        matchLabels:
-          app: wes-gps-server
-    ports:
-    - protocol: TCP
-      port: 2947
+    - to:
+        - podSelector:
+            matchLabels:
+              app: wes-gps-server
+      ports:
+        - protocol: TCP
+          port: 2947
 ---
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
@@ -106,15 +106,15 @@ spec:
     matchLabels:
       role: plugin
   policyTypes:
-  - Egress
+    - Egress
   egress:
-  - to:
-    - ipBlock:
-        # allow access to: 10.31.81.10 - 10.31.81.255
-        cidr: 10.31.81.0/24
-        except:
-        - 10.31.81.0/29     # 10.31.81.0 - 10.31.81.7
-        - 10.31.81.8/31     # 10.31.81.8 - 10.31.81.9
+    - to:
+        - ipBlock:
+            # allow access to: 10.31.81.10 - 10.31.81.255
+            cidr: 10.31.81.0/24
+            except:
+              - 10.31.81.0/29 # 10.31.81.0 - 10.31.81.7
+              - 10.31.81.8/31 # 10.31.81.8 - 10.31.81.9
 ---
 # TODO(sean) this is a temporary fix. we should see if we can exclude the init containers from being matched here.
 apiVersion: networking.k8s.io/v1
@@ -126,12 +126,12 @@ spec:
     matchLabels:
       role: plugin
   policyTypes:
-  - Egress
+    - Egress
   egress:
-  - to:
-    - podSelector:
-        matchLabels:
-          app: wes-app-meta-cache
-    ports:
-    - protocol: TCP
-      port: 6379
+    - to:
+        - podSelector:
+            matchLabels:
+              app: wes-app-meta-cache
+      ports:
+        - protocol: TCP
+          port: 6379

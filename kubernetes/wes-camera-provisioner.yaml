@@ -35,7 +35,7 @@ kind: ConfigMap
 metadata:
   name: wes-camera-provisioner-ssh
 data:
-  config: |            
+  config: |
     Host github.com
             StrictHostKeyChecking no
             Hostname ssh.github.com
@@ -60,71 +60,71 @@ spec:
           priorityClassName: wes-high-priority
           hostNetwork: true
           containers:
-          - name: wes-camera-provisioner
-            image: waggle/wes-camera-provisioner:0.0.9
-            resources:
-              requests:
-                cpu: 200m
-                memory: 100Mi
-              limits:
-                memory: 100Mi
-            env:
-            - name: WAGGLE_CAMERA_ADMIN
-              valueFrom:
-                secretKeyRef:
-                  name: wes-hanwha-camera-account-secret
-                  key: username
-            - name: WAGGLE_CAMERA_ADMIN_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: wes-hanwha-camera-account-secret
-                  key: password
-            - name: WAGGLE_CAMERA_USER
-              valueFrom:
-                secretKeyRef:
-                  name: wes-hanwha-camera-user-account-secret
-                  key: username
-            - name: WAGGLE_CAMERA_USER_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: wes-hanwha-camera-user-account-secret
-                  key: password
-            - name: WAGGLE_SWITCH_USER
-              valueFrom:
-                secretKeyRef:
-                  name: wes-networkswitch-account-secret
-                  key: username
-            - name: WAGGLE_SWITCH_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: wes-networkswitch-account-secret
-                  key: password
-            volumeMounts:
-            - mountPath: /keys
-              name: hanwha-client-ssh-key
-              readOnly: true
-            - mountPath: /etc/waggle
-              name: waggle-node-manifest
-              readOnly: true
-            - mountPath: /root/.ssh
-              name: hanwha-client-ssh-config
-              readOnly: true
-            - mountPath: /data
-              name: data
+            - name: wes-camera-provisioner
+              image: waggle/wes-camera-provisioner:0.0.9
+              resources:
+                requests:
+                  cpu: 200m
+                  memory: 100Mi
+                limits:
+                  memory: 100Mi
+              env:
+                - name: WAGGLE_CAMERA_ADMIN
+                  valueFrom:
+                    secretKeyRef:
+                      name: wes-hanwha-camera-account-secret
+                      key: username
+                - name: WAGGLE_CAMERA_ADMIN_PASSWORD
+                  valueFrom:
+                    secretKeyRef:
+                      name: wes-hanwha-camera-account-secret
+                      key: password
+                - name: WAGGLE_CAMERA_USER
+                  valueFrom:
+                    secretKeyRef:
+                      name: wes-hanwha-camera-user-account-secret
+                      key: username
+                - name: WAGGLE_CAMERA_USER_PASSWORD
+                  valueFrom:
+                    secretKeyRef:
+                      name: wes-hanwha-camera-user-account-secret
+                      key: password
+                - name: WAGGLE_SWITCH_USER
+                  valueFrom:
+                    secretKeyRef:
+                      name: wes-networkswitch-account-secret
+                      key: username
+                - name: WAGGLE_SWITCH_PASSWORD
+                  valueFrom:
+                    secretKeyRef:
+                      name: wes-networkswitch-account-secret
+                      key: password
+              volumeMounts:
+                - mountPath: /keys
+                  name: hanwha-client-ssh-key
+                  readOnly: true
+                - mountPath: /etc/waggle
+                  name: waggle-node-manifest
+                  readOnly: true
+                - mountPath: /root/.ssh
+                  name: hanwha-client-ssh-config
+                  readOnly: true
+                - mountPath: /data
+                  name: data
           volumes:
-          - name: hanwha-client-ssh-key
-            secret:
-              secretName: wes-camera-provisioner-ssh-key
-              defaultMode: 0600
-          - name: waggle-node-manifest
-            configMap:
-              name: waggle-node-manifest
-          - name: hanwha-client-ssh-config
-            configMap:
-              name: wes-camera-provisioner-ssh
-          - name: data
-            persistentVolumeClaim:
-              claimName: wes-camera-provisioner-data
+            - name: hanwha-client-ssh-key
+              secret:
+                secretName: wes-camera-provisioner-ssh-key
+                defaultMode: 0600
+            - name: waggle-node-manifest
+              configMap:
+                name: waggle-node-manifest
+            - name: hanwha-client-ssh-config
+              configMap:
+                name: wes-camera-provisioner-ssh
+            - name: data
+              persistentVolumeClaim:
+                claimName: wes-camera-provisioner-data
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim
