@@ -61,7 +61,7 @@ spec:
           hostNetwork: true
           containers:
             - name: wes-camera-provisioner
-              image: waggle/wes-camera-provisioner:0.0.9
+              image: waggle/wes-camera-provisioner:0.1.0
               resources:
                 requests:
                   cpu: 200m
@@ -104,7 +104,7 @@ spec:
                   name: hanwha-client-ssh-key
                   readOnly: true
                 - mountPath: /etc/waggle
-                  name: waggle-node-manifest
+                  name: waggle-node-manifest-v2
                   readOnly: true
                 - mountPath: /root/.ssh
                   name: hanwha-client-ssh-config
@@ -116,9 +116,9 @@ spec:
               secret:
                 secretName: wes-camera-provisioner-ssh-key
                 defaultMode: 0600
-            - name: waggle-node-manifest
+            - name: waggle-node-manifest-v2
               configMap:
-                name: waggle-node-manifest
+                name: waggle-node-manifest-v2
             - name: hanwha-client-ssh-config
               configMap:
                 name: wes-camera-provisioner-ssh
