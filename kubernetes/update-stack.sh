@@ -417,8 +417,9 @@ EOF
     set +e
     TOKEN_NAME="waggle-read-write-bucket"
     INFLUXDB_UNAUTHORIZED=$(kubectl exec svc/wes-node-influxdb -- influx auth ls 2>&1 | grep "Unauthorized")
-    if [ -z "${INFLUXDB_UNAUTHORIZED}" ]; then
-        echo "failed to check influxDB auth"
+    if [ ! -z "${INFLUXDB_UNAUTHORIZED}" ]; then
+        echo "failed to check influxDB auth. Access token is missing"
+        echo "influxDB and its PVCs will be deleted to reset them"
         delete_influxdb_pvc
     fi
     # NOTE(sean) there have been nodes with multiple tokens named 'waggle-read-write-bucket', so we simply accept the first match.
