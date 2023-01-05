@@ -112,6 +112,16 @@ update_data_config() {
     fi
 }
 
+delete_influxdb_pvc() {
+    echo "WARNING: deleting influxDB data volume"
+
+    kubectl delete -f wes-node-influxdb.yaml
+    echo "sleep for 3 seconds"
+    sleep 3
+    echo "deleting Kubernetes pvc: data-wes-node-influxdb-0 and config-wes-node-influxdb-0"
+    kubectl delete pvc data-wes-node-influxdb-0 config-wes-node-influxdb-0
+}
+
 # NOTE(Yongho) this is added, but not being used for now
 update_wes_plugins() {
     echo "running iio plugin for bme680..."
@@ -406,6 +416,11 @@ EOF
     # it is assumed that the commands below may fail.
     set +e
     TOKEN_NAME="waggle-read-write-bucket"
+    INFLUXDB_UNAUTHORIZED=$(kubectl exec svc/wes-node-influxdb -- influx auth ls 2>&1 | grep "Unauthorized")
+    if [ -z "${INFLUXDB_UNAUTHORIZED}" ]; then
+        echo "failed to check influxDB auth"
+        delete_influxdb_pvc
+    fi
     # NOTE(sean) there have been nodes with multiple tokens named 'waggle-read-write-bucket', so we simply accept the first match.
     WAGGLE_INFLUXDB_TOKEN=$(kubectl exec svc/wes-node-influxdb -- influx auth ls | awk -v name="${TOKEN_NAME}" '$2 ~ name {print $3; exit}')
     if [ -z "${WAGGLE_INFLUXDB_TOKEN}" ]; then
