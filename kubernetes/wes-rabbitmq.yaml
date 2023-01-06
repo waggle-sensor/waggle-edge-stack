@@ -35,7 +35,7 @@ spec:
         node-role.kubernetes.io/master: "true"
       containers:
         - name: wes-rabbitmq
-          image: rabbitmq:3.8.11-management-alpine
+          image: rabbitmq:3.11.5-management-alpine
           resources:
             limits:
               memory: 1Gi
@@ -52,6 +52,12 @@ spec:
               readOnly: true
             - name: data
               mountPath: /var/lib/rabbitmq
+          readinessProbe:
+            exec:
+              command: ["rabbitmq-diagnostics", "ping"]
+          livenessProbe:
+            exec:
+              command: ["rabbitmq-diagnostics", "-q", "ping"]
       volumes:
         - name: config
           secret:
