@@ -53,9 +53,11 @@ spec:
             - name: data
               mountPath: /var/lib/rabbitmq
           readinessProbe:
+            timeoutSeconds: 10
             exec:
               command: ["rabbitmq-diagnostics", "ping"]
           livenessProbe:
+            timeoutSeconds: 10
             exec:
               command: ["rabbitmq-diagnostics", "-q", "ping"]
       volumes:
