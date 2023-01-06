@@ -58,6 +58,7 @@ spec:
               command: ["rabbitmq-diagnostics", "ping"]
           livenessProbe:
             timeoutSeconds: 10
+            periodSeconds: 60
             exec:
               command: ["rabbitmq-diagnostics", "-q", "ping"]
       volumes:
