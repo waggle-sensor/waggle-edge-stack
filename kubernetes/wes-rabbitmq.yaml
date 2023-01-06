@@ -53,12 +53,15 @@ spec:
             - name: data
               mountPath: /var/lib/rabbitmq
           readinessProbe:
+            initialDelaySeconds: 10
+            periodSeconds: 10
             timeoutSeconds: 10
             exec:
               command: ["rabbitmq-diagnostics", "ping"]
           livenessProbe:
-            timeoutSeconds: 30
+            initialDelaySeconds: 60
             periodSeconds: 60
+            timeoutSeconds: 30
             exec:
               command: ["bash", "-c", "rabbitmq-diagnostics -q ping && rabbitmq-diagnostics -q check_local_alarms"]
       volumes:
