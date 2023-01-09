@@ -20,6 +20,7 @@ command_topic_template="us915/gateway/{{ .GatewayID }}/command/#"
 servers=["tcp://wes-rabbitmq:1883"]
 username=""
 password=""
+client_id="wes-chirpstack-gateway"
 
 [metrics.prometheus]
 endpoint_enabled=true
