@@ -16,7 +16,7 @@ spec:
         node-role.kubernetes.io/master: "true"
       containers:
         - name: wes-data-sharing-service
-          image: waggle/wes-data-sharing-service:0.13.0
+          image: waggle/wes-data-sharing-service:0.14.0
           resources:
             requests:
               cpu: 200m
