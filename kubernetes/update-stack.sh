@@ -66,22 +66,6 @@ update_node_secrets() {
     )
 }
 
-update_node_manifest() {
-    echo "updating waggle-node-manifest from /etc/waggle/node_manifest.json"
-    if [ -f /etc/waggle/node_manifest.json ]; then
-        if output=$(kubectl create configmap waggle-node-manifest --from-file=node_manifest.json=/etc/waggle/node_manifest.json 2>&1); then
-            echo "waggle-node-manifest created"
-        elif echo "$output" | grep -q "already exists"; then
-            kubectl create configmap waggle-node-manifest --from-file=node_manifest.json=/etc/waggle/node_manifest.json -o yaml --dry-run=client | kubectl replace -f -
-            echo "waggle-node-manifest updated"
-        else
-            echo "failed to create/update waggle-node-manifest"
-        fi
-    else
-        echo "/etc/waggle/node_manifest.json does not exist. skipping."
-    fi
-}
-
 update_node_manifest_v2() {
     local filepath="${WAGGLE_CONFIG_DIR}/${NODE_MANIFEST_V2}"
     local tmppath="/tmp/${NODE_MANIFEST_V2}"
@@ -582,8 +566,6 @@ get_secret_field() {
 cd $(dirname $0)
 update_wes_tools
 update_node_secrets
-# TODO: original `update_node_manifest` to be deprecated once all applications convert to new v2 manifest
-update_node_manifest
 update_node_manifest_v2
 update_data_config
 # update_wes_plugins
