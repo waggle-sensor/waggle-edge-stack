@@ -28,3 +28,4 @@ server="tcp://$MQTT_BROKER_HOST:$MQTT_BROKER_PORT/"
 json=true
 username="$MQTT_BROKER_USER"
 password="$MQTT_BROKER_PASSWORD"
+client_id="wes-chirpstack-server"
