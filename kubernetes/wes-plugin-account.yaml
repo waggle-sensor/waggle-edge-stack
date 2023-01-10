@@ -3,7 +3,6 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
   name: wes-plugin-role
-  namespace: default
 rules:
   - apiGroups: [""] # "" indicates the core API group
     resources:
@@ -14,7 +13,6 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
   name: wes-plugin-view
-  namespace: default
 roleRef:
   kind: ClusterRole
   name: wes-plugin-role
@@ -25,8 +23,18 @@ subjects:
   - kind: ServiceAccount
     name: wes-plugin-account
     namespace: default
+  - kind: ServiceAccount
+    name: wes-plugin-account
+    namespace: ses
 ---
 apiVersion: v1
 kind: ServiceAccount
 metadata:
   name: wes-plugin-account
+  namespace: default
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: wes-plugin-account
+  namespace: ses

@@ -505,6 +505,7 @@ resources:
   - wes-default-limits.yaml
   - wes-priority-classes.yaml
   - wes-plugin-network-policy.yaml
+  - wes-plugin-account.yaml
   # main components
   - cadvisor-exporter.yaml
   - jetson-exporter.yaml
