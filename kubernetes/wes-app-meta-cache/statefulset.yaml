@@ -17,7 +17,7 @@ spec:
         node-role.kubernetes.io/master: "true"
       containers:
         - name: wes-app-meta-cache
-          image: redis:7.0.4
+          image: waggle/app-meta-cache:0.0.0
           resources:
             requests:
               cpu: 100m
