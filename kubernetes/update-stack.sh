@@ -122,14 +122,18 @@ delete_influxdb_pvc() {
     kubectl delete pvc data-wes-node-influxdb-0 config-wes-node-influxdb-0
 }
 
-# NOTE(Yongho) this is added, but not being used for now
+cleanup_old_iio_raingauge() {
+    echo "attempting to remove old iio/rainguage plugins"
+    kubectl delete deployment iio-nx iio-rpi raingauge
+}
 update_wes_plugins() {
     echo "running iio plugin for bme680..."
     pluginctl deploy --name iio-bme680 \
       --type daemonset \
       --privileged \
       --selector resource.bme680=true \
-      waggle/plugin-iio:0.4.5 -- \
+      --resource request.cpu=100m,limit.cpu=100m,request.memory=30Mi,limit.memory=30Mi \
+      waggle/plugin-iio:0.6.0 -- \
       --filter bme680
     
     echo "running iio plugin for bme280..."
@@ -137,7 +141,8 @@ update_wes_plugins() {
       --type daemonset \
       --privileged \
       --selector resource.bme280=true \
-      waggle/plugin-iio:0.4.5 -- \
+      --resource request.cpu=100m,limit.cpu=100m,request.memory=30Mi,limit.memory=30Mi \
+      waggle/plugin-iio:0.6.0 -- \
       --filter bme280
     
     echo "running iio plugin for raingauge"
@@ -145,6 +150,7 @@ update_wes_plugins() {
       --type daemonset \
       --privileged \
       --selector resource.raingauge=true \
+      --resource request.cpu=50m,limit.cpu=50m,request.memory=30Mi,limit.memory=30Mi \
       waggle/plugin-raingauge:0.4.1 -- \
       --device /dev/ttyUSB0
 }
@@ -581,11 +587,14 @@ get_secret_field() {
 }
 
 cd $(dirname $0)
+# NOTE (Yongho): this cleans up the old iio/raingauge plugins to ensure
+#                the new ones can use the serial device
+cleanup_old_iio_raingauge
 update_wes_tools
 update_node_secrets
 # TODO: original `update_node_manifest` to be deprecated once all applications convert to new v2 manifest
 update_node_manifest
 update_node_manifest_v2
 update_data_config
-# update_wes_plugins
+update_wes_plugins
 update_wes
