@@ -451,6 +451,9 @@ EOF
     echo ${PLUGINCTL_INFLUXDB_TOKEN} > /home/waggle/.influxdb2/token
     set -e
 
+    echo "creating/updating wes-plugin-account"
+    kubectl apply -f wes-plugin-account.yaml
+
     # HACK(sean) we add a "plain" wes-identity for plugins. kustomize will add a hash to wes-identity
     # causing the name to be unpredictable. we'll keep both, as the hash allows kustomize to restart
     # parts of wes that depend on an updated config.
@@ -511,7 +514,6 @@ resources:
   - wes-default-limits.yaml
   - wes-priority-classes.yaml
   - wes-plugin-network-policy.yaml
-  - wes-plugin-account.yaml
   # main components
   - cadvisor-exporter.yaml
   - jetson-exporter.yaml
