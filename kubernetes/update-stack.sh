@@ -114,17 +114,20 @@ update_data_config() {
 
 delete_influxdb_pvc() {
     echo "WARNING: deleting influxDB data volume"
-
+    set +e
     kubectl delete -f wes-node-influxdb.yaml
     echo "sleep for 3 seconds"
     sleep 3
     echo "deleting Kubernetes pvc: data-wes-node-influxdb-0 and config-wes-node-influxdb-0"
     kubectl delete pvc data-wes-node-influxdb-0 config-wes-node-influxdb-0
+     set -e
 }
 
 cleanup_old_iio_raingauge() {
     echo "attempting to remove old iio/rainguage plugins"
+    set +e
     kubectl delete deployment iio-nx iio-rpi raingauge iio-enclosure
+    set -e
 }
 
 update_wes_plugins() {
