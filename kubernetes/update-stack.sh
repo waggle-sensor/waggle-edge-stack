@@ -124,33 +124,34 @@ delete_influxdb_pvc() {
 
 cleanup_old_iio_raingauge() {
     echo "attempting to remove old iio/rainguage plugins"
-    kubectl delete deployment iio-nx iio-rpi raingauge
+    kubectl delete deployment iio-nx iio-rpi raingauge iio-enclosure
 }
+
 update_wes_plugins() {
     echo "running iio plugin for bme680..."
-    pluginctl deploy --name iio-bme680 \
+    pluginctl deploy --name wes-iio-bme680 \
       --type daemonset \
       --privileged \
       --selector resource.bme680=true \
-      --resource request.cpu=100m,limit.cpu=100m,request.memory=30Mi,limit.memory=30Mi \
+      --resource request.cpu=100m,request.memory=30Mi,limit.memory=30Mi \
       waggle/plugin-iio:0.6.0 -- \
       --filter bme680
     
     echo "running iio plugin for bme280..."
-    pluginctl deploy --name iio-bme280 \
+    pluginctl deploy --name wes-iio-bme280 \
       --type daemonset \
       --privileged \
       --selector resource.bme280=true \
-      --resource request.cpu=100m,limit.cpu=100m,request.memory=30Mi,limit.memory=30Mi \
+      --resource request.cpu=100m,request.memory=30Mi,limit.memory=30Mi \
       waggle/plugin-iio:0.6.0 -- \
       --filter bme280
     
     echo "running iio plugin for raingauge"
-    pluginctl deploy --name raingauge \
+    pluginctl deploy --name wes-raingauge \
       --type daemonset \
       --privileged \
       --selector resource.raingauge=true \
-      --resource request.cpu=50m,limit.cpu=50m,request.memory=30Mi,limit.memory=30Mi \
+      --resource request.cpu=50m,request.memory=30Mi,limit.memory=30Mi \
       waggle/plugin-raingauge:0.4.1 -- \
       --device /dev/ttyUSB0
 }
