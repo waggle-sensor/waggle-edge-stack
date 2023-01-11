@@ -114,20 +114,17 @@ update_data_config() {
 
 delete_influxdb_pvc() {
     echo "WARNING: deleting influxDB data volume"
-    set +e
-    kubectl delete -f wes-node-influxdb.yaml
+    kubectl delete -f wes-node-influxdb.yaml || true
     echo "sleep for 3 seconds"
     sleep 3
     echo "deleting Kubernetes pvc: data-wes-node-influxdb-0 and config-wes-node-influxdb-0"
-    kubectl delete pvc data-wes-node-influxdb-0 config-wes-node-influxdb-0
-     set -e
+    kubectl delete pvc data-wes-node-influxdb-0 config-wes-node-influxdb-0 || true
 }
 
+# NOTE (Yongho): This will get eventually removed as all nodes do not have the plugins anymore
 cleanup_old_iio_raingauge() {
     echo "attempting to remove old iio/rainguage plugins"
-    set +e
-    kubectl delete deployment iio-nx iio-rpi raingauge iio-enclosure
-    set -e
+    kubectl delete deployment iio-nx iio-rpi raingauge iio-enclosure || true
 }
 
 update_wes_plugins() {
@@ -136,7 +133,7 @@ update_wes_plugins() {
       --type daemonset \
       --privileged \
       --selector resource.bme680=true \
-      --resource request.cpu=100m,request.memory=30Mi,limit.memory=30Mi \
+      --resource request.cpu=50m,request.memory=30Mi,limit.memory=30Mi \
       waggle/plugin-iio:0.6.0 -- \
       --filter bme680
     
@@ -145,7 +142,7 @@ update_wes_plugins() {
       --type daemonset \
       --privileged \
       --selector resource.bme280=true \
-      --resource request.cpu=100m,request.memory=30Mi,limit.memory=30Mi \
+      --resource request.cpu=50m,request.memory=30Mi,limit.memory=30Mi \
       waggle/plugin-iio:0.6.0 -- \
       --filter bme280
     
