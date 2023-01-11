@@ -3,7 +3,7 @@ set -e
 
 WAGGLE_CONFIG_DIR="${WAGGLE_CONFIG_DIR:-/etc/waggle}"
 WAGGLE_BIN_DIR="${WAGGLE_BIN_DIR:-/usr/bin}"
-SES_VERSION="${SES_VERSION:-0.18.2}"
+SES_VERSION="${SES_VERSION:-0.19.0}"
 SES_TOOLS="${SES_TOOLS:-runplugin pluginctl sesctl}"
 NODE_MANIFEST_V2="${NODE_MANIFEST_V2:-node-manifest-v2.json}"
 
@@ -98,37 +98,44 @@ update_data_config() {
 
 delete_influxdb_pvc() {
     echo "WARNING: deleting influxDB data volume"
-
-    kubectl delete -f wes-node-influxdb.yaml
+    kubectl delete -f wes-node-influxdb.yaml || true
     echo "sleep for 3 seconds"
     sleep 3
     echo "deleting Kubernetes pvc: data-wes-node-influxdb-0 and config-wes-node-influxdb-0"
-    kubectl delete pvc data-wes-node-influxdb-0 config-wes-node-influxdb-0
+    kubectl delete pvc data-wes-node-influxdb-0 config-wes-node-influxdb-0 || true
 }
 
-# NOTE(Yongho) this is added, but not being used for now
+# NOTE (Yongho): This will get eventually removed as all nodes do not have the plugins anymore
+cleanup_old_iio_raingauge() {
+    echo "attempting to remove old iio/rainguage plugins"
+    kubectl delete deployment iio-nx iio-rpi raingauge iio-enclosure || true
+}
+
 update_wes_plugins() {
     echo "running iio plugin for bme680..."
-    pluginctl deploy --name iio-bme680 \
+    pluginctl deploy --name wes-iio-bme680 \
       --type daemonset \
       --privileged \
       --selector resource.bme680=true \
-      waggle/plugin-iio:0.4.5 -- \
+      --resource request.cpu=50m,request.memory=30Mi,limit.memory=30Mi \
+      waggle/plugin-iio:0.6.0 -- \
       --filter bme680
     
     echo "running iio plugin for bme280..."
-    pluginctl deploy --name iio-bme280 \
+    pluginctl deploy --name wes-iio-bme280 \
       --type daemonset \
       --privileged \
       --selector resource.bme280=true \
-      waggle/plugin-iio:0.4.5 -- \
+      --resource request.cpu=50m,request.memory=30Mi,limit.memory=30Mi \
+      waggle/plugin-iio:0.6.0 -- \
       --filter bme280
     
     echo "running iio plugin for raingauge"
-    pluginctl deploy --name raingauge \
+    pluginctl deploy --name wes-raingauge \
       --type daemonset \
       --privileged \
       --selector resource.raingauge=true \
+      --resource request.cpu=50m,request.memory=30Mi,limit.memory=30Mi \
       waggle/plugin-raingauge:0.4.1 -- \
       --device /dev/ttyUSB0
 }
@@ -429,6 +436,9 @@ EOF
     echo ${PLUGINCTL_INFLUXDB_TOKEN} > /home/waggle/.influxdb2/token
     set -e
 
+    echo "creating/updating wes-plugin-account"
+    kubectl apply -f wes-plugin-account.yaml
+
     # HACK(sean) we add a "plain" wes-identity for plugins. kustomize will add a hash to wes-identity
     # causing the name to be unpredictable. we'll keep both, as the hash allows kustomize to restart
     # parts of wes that depend on an updated config.
@@ -564,9 +574,12 @@ get_secret_field() {
 }
 
 cd $(dirname $0)
+# NOTE (Yongho): this cleans up the old iio/raingauge plugins to ensure
+#                the new ones can use the serial device
+cleanup_old_iio_raingauge
 update_wes_tools
 update_node_secrets
 update_node_manifest_v2
 update_data_config
-# update_wes_plugins
+update_wes_plugins
 update_wes
