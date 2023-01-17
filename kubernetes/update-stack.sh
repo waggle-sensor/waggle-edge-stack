@@ -439,7 +439,7 @@ EOF
     # NOTE(YK) This ensures the namespace exists before the wes-plugin-account creates the account
     # under the namespace
     echo "creating ses namespace for scheduler"
-    kubectl create namespace ses || true
+    kubectl apply -f wes-plugin-k3s-namespace.yaml
 
     echo "creating/updating wes-plugin-account"
     kubectl apply -f wes-plugin-account.yaml
