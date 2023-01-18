@@ -52,6 +52,15 @@ spec:
               readOnly: true
             - name: data
               mountPath: /var/lib/rabbitmq
+          livenessProbe:
+            exec:
+              command:
+                - bash
+                - -c
+                - rabbitmq-diagnostics -q ping && rabbitmq-diagnostics -q list_queues --no-table-headers | awk '/to-validator/ && $2 > 10000 {print "to-validator queue backed up"; exit 1}'
+            timeoutSeconds: 10
+            periodSeconds: 60
+            failureThreshold: 60
       volumes:
         - name: config
           secret:
