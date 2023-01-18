@@ -122,7 +122,7 @@ update_wes_plugins() {
       --filter bme680 \
       --node-publish-interval 30 \
       --beehive-publish-interval 30 \
-      --cache-seconds 3
+      --cache-seconds 30
 
     echo "running iio plugin for bme280..."
     pluginctl deploy --name wes-iio-bme280 \
