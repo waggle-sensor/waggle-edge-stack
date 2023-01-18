@@ -118,9 +118,12 @@ update_wes_plugins() {
       --privileged \
       --selector resource.bme680=true \
       --resource request.cpu=50m,request.memory=30Mi,limit.memory=30Mi \
-      waggle/plugin-iio:0.6.0 -- \
-      --filter bme680
-    
+      waggle/plugin-iio:0.7.0 -- \
+      --filter bme680 \
+      --node-publish-interval 30 \
+      --beehive-publish-interval 30 \
+      --cache-seconds 3
+
     echo "running iio plugin for bme280..."
     pluginctl deploy --name wes-iio-bme280 \
       --type daemonset \
