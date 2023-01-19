@@ -28,7 +28,7 @@ spec:
         node-role.kubernetes.io/master: "true"
       priorityClassName: wes-high-priority
       containers:
-        - image: redis:latest
+        - image: redis:7.0.4
           name: wes-scoreboard
           resources:
             limits:
