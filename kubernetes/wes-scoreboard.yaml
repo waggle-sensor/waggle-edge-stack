@@ -6,7 +6,7 @@ spec:
   ports:
     - name: wes-scoreboard
       port: 6379
-      targetPort: 6379
+      targetPort: redis
   selector:
     app: wes-scoreboard
   type: ClusterIP
@@ -28,7 +28,7 @@ spec:
         node-role.kubernetes.io/master: "true"
       priorityClassName: wes-high-priority
       containers:
-        - image: redis:latest
+        - image: redis:7.0.4
           name: wes-scoreboard
           resources:
             limits:
@@ -36,3 +36,6 @@ spec:
             requests:
               cpu: 50m
               memory: 150Mi
+          ports:
+          - containerPort: 6379
+            name: redis
