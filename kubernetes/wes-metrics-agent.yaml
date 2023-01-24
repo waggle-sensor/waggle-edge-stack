@@ -15,7 +15,7 @@ spec:
     spec:
       priorityClassName: wes-high-priority
       containers:
-        - image: waggle/wes-metrics-agent:0.8.0
+        - image: waggle/wes-metrics-agent:0.8.1
           name: wes-metrics-agent
           securityContext:
             privileged: true
@@ -71,6 +71,14 @@ spec:
               mountPath: /sys/kernel/debug
               mountPropagation: HostToContainer
               readOnly: true
+          livenessProbe:
+            exec:
+              command:
+                - rm
+                - /tmp/healthy
+            # check every minute and allow up to 10m worth of fails
+            periodSeconds: 60
+            failureThreshold: 10
       volumes:
         - name: proc
           hostPath:
