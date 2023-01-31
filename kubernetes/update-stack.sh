@@ -557,7 +557,15 @@ EOF
     # when this was added didn't seem to support nesting other kustomization dirs as resources.
     # i'm deploying this first, to ensure to influxdb pvc issue doesn't stop this from running
     kubectl apply -k wes-app-meta-cache
-    kubectl apply -k .
+    # NOTE(Joe) this is a work-around until all nodes are upgraded to v1.25.x
+    # see: https://kubernetes.io/docs/reference/using-api/deprecation-guide/#v1-25
+    k3s_minor_version=$(kubectl version -o json | jq -r .serverVersion.minor)
+    if [[ $k3s_minor_version -ge 25 ]]; then
+        kubectl apply -k .
+    else
+        echo "perform backwards compatible changes - support old kubectl (v1.20.x)"
+        kubectl kustomize | sed -e 's:batch/v1:batch/v1beta1:' | kubectl apply -f -
+    fi
     kubectl apply -k wes-chirpstack
 
     echo "cleaning untagged / broken images"
