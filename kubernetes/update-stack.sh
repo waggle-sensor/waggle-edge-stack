@@ -508,10 +508,10 @@ resources:
   - wes-priority-classes.yaml
   - wes-plugin-network-policy.yaml
   # main components
-  - cadvisor-exporter.yaml
-  - jetson-exporter.yaml
-  - dcgm-exporter.yaml
-  - nvidia-device-plugin.yaml
+#   - cadvisor-exporter.yaml
+#   - jetson-exporter.yaml
+#   - dcgm-exporter.yaml
+#   - nvidia-device-plugin.yaml
   - node-exporter.yaml
   - wes-device-labeler.yaml
   - wes-audio-server.yaml
@@ -551,6 +551,14 @@ EOF
     kubectl delete cm wes-chirpstack-postgresql-configmap || true
     kubectl delete pvc wes-chirpstack-postgresql-data || true
     kubectl delete pvc wes-chirpstack-redis-data || true
+
+    echo "performing one-time operation - cleaning up performance measurements"
+    # NOTE(Yongho) the performance exporters seem to stress the wes-node-influxdb too much
+    # we disable them until we know how to configure them properly
+    kubectl delete -f cadvisor-exporter.yaml || true
+    kubectl delete -f jetson-exporter.yaml || true
+    kubectl delete -f dcgm-exporter.yaml || true
+    kubectl delete -f nvidia-device-plugin.yaml || true
 
     echo "deploying wes stack"
     # NOTE(sean) this is split as its own thing as the version of kubectl (v1.20.2+k3s1) we were using
