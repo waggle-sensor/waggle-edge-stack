@@ -7,3 +7,4 @@
 kubernetes/configs/
 *.pem
 .DS_Store
+__pycache__/
