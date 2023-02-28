@@ -18,12 +18,13 @@ spec:
       containers:
         - name: wes-app-meta-cache
           image: waggle/app-meta-cache:0.1.0
+          args: ["/etc/redis-config.conf"]
           resources:
             requests:
               cpu: 100m
-              memory: 25Mi
+              memory: 20Mi
             limits:
-              memory: 25Mi
+              memory: 20Mi
           ports:
             - containerPort: 6379
               name: redis
