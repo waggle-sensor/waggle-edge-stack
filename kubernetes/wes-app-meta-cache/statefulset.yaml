@@ -21,9 +21,9 @@ spec:
           resources:
             requests:
               cpu: 100m
-              memory: 20Mi
+              memory: 25Mi
             limits:
-              memory: 20Mi
+              memory: 25Mi
           ports:
             - containerPort: 6379
               name: redis
