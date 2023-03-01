@@ -597,6 +597,15 @@ get_secret_field() {
     echo "${output}" | base64 -d
 }
 
+update_influxdb_retention() {
+    echo "updating influxdb retention..."
+    if ./debug/update-influxdb-retention.py 2d; then
+        echo "successfully updated influxdb retention"
+    else
+        echo "failed to update influxdb retention"
+    fi
+}
+
 cd $(dirname $0)
 # NOTE (Yongho): this cleans up the old iio/raingauge plugins to ensure
 #                the new ones can use the serial device
@@ -607,3 +616,4 @@ update_node_manifest_v2
 update_data_config
 update_wes_plugins
 update_wes
+update_influxdb_retention
