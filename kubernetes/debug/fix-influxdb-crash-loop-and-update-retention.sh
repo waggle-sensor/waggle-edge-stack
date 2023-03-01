@@ -10,6 +10,6 @@ kubectl set resources statefulset/wes-node-influxdb --limits=memory=2Gi
 kubectl delete pod wes-node-influxdb-0
 
 # lower influxdb data retention time to reduce memory usage
-while ! /opt/waggle-edge-stack/kubernetes/debug/update-influxdb-retention.py 3d; do
+while ! /opt/waggle-edge-stack/kubernetes/debug/update-influxdb-retention.py 2d; do
     sleep 10
 done
