@@ -51,7 +51,8 @@ spec:
               value: /var/lib/influxdb2/influx-configs
           resources:
             limits:
-              memory: 500Mi
+              # TODO(sean) lower memory limit to match request. this is only to temporarily allow influx to run and lower the retention time.
+              memory: 1000Mi
             requests:
               cpu: 500m
               memory: 500Mi
