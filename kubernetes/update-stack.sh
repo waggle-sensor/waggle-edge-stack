@@ -606,9 +606,26 @@ update_influxdb_retention() {
     fi
 }
 
+# updates /home/waggle/.ssh/authorized_keys2 to match auth site user access
+update_waggle_user_authorized_keys() {
+    echo "updating waggle user authorized keys..."
+
+    vsn=$(node_vsn)
+
+    if timeout 10 curl --silent --fail "https://auth.sagecontinuum.org/nodes/${vsn}/authorized_keys" > /home/waggle/.ssh/authorized_keys2.update; then
+        chown waggle:waggle /home/waggle/.ssh/authorized_keys2.update
+        chmod 600 /home/waggle/.ssh/authorized_keys2.update
+        mv /home/waggle/.ssh/authorized_keys2.update /home/waggle/.ssh/authorized_keys2
+        echo "updated waggle user authorized keys"
+    else
+        echo "failed to update waggle user authorized keys"
+    fi
+}
+
 cd $(dirname $0)
 # NOTE (Yongho): this cleans up the old iio/raingauge plugins to ensure
 #                the new ones can use the serial device
+update_waggle_user_authorized_keys
 cleanup_old_iio_raingauge
 update_wes_tools
 update_node_secrets
