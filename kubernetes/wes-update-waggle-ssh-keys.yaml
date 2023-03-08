@@ -1,0 +1,30 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: wes-update-waggle-ssh-keys
+spec:
+  schedule: "*/5 * * * *"
+  concurrencyPolicy: Replace
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          nodeSelector:
+            node-role.kubernetes.io/master: "true"
+          containers:
+          - name: wes-update-waggle-ssh-keys
+            image: alpine:3.17.2
+            command: ["/bin/sh", "-c"]
+            args: ['wget "https://auth.sagecontinuum.org/nodes/${WAGGLE_NODE_VSN}/authorized_keys" -O /home/waggle/.ssh/authorized_keys2.update && mv /home/waggle/.ssh/authorized_keys2.update /home/waggle/.ssh/authorized_keys2']
+            envFrom:
+              - configMapRef:
+                  name: wes-identity
+            volumeMounts:
+              - name: waggle-ssh
+                mountPath: /home/waggle/.ssh
+          restartPolicy: OnFailure
+          volumes:
+            - name: waggle-ssh
+              hostPath:
+                path: /home/waggle/.ssh
+                type: Directory
