@@ -53,17 +53,16 @@ update_wes_tools() {
     # extract checksums for current arch
     grep "${arch}" /tmp/sestools-sha256sum.txt > "/tmp/sestools-sha256sum-${arch}.txt"
 
-    # collect files which fail checksum
+    # collect files which fail checksum (or do not exist) and download
     files_to_download=$(cd "${WAGGLE_BIN_DIR}" && shasum -a 256 -c "/tmp/sestools-sha256sum-${arch}.txt" | awk -F: '/FAILED/ {print $1}')
 
-    # download files which failed
     for name in $files_to_download; do
         echo "downloading ${name}..."
         url="https://github.com/waggle-sensor/edge-scheduler/releases/download/${SES_VERSION}/${name}"
         wget -q --timeout 300 "${url}" -O "${WAGGLE_BIN_DIR}/${name}"
     done
 
-    # ensure permissions and links are up to date
+    # ensure permissions and links are correct
     for name in $SES_TOOLS; do
         chmod +x "${WAGGLE_BIN_DIR}/${name}-${arch}"
         ln -f "${WAGGLE_BIN_DIR}/${name}-${arch}" "${WAGGLE_BIN_DIR}/${name}"
