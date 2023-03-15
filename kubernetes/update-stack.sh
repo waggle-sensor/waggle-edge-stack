@@ -13,13 +13,21 @@ fatal() {
 }
 
 getarch() {
-    case $(uname -m) in
-    x86_64) echo linux-amd64 ;;
-    aarch64) echo linux-arm64 ;;
-    amd64) echo linux-amd64 ;;
-    arm64) echo linux-arm64 ;;
-    * ) return 1 ;;
+    case $(uname -s) in
+    [Dd]arwin) os=darwin ;;
+    [Ll]inux) os=linux ;;
+    *) return 1 ;;
     esac
+
+    case $(uname -m) in
+    x86_64) arch=amd64 ;;
+    aarch64) arch=arm64 ;;
+    amd64) arch=amd64 ;;
+    arm64) arch=arm64 ;;
+    *) return 1 ;;
+    esac
+
+    echo "${os}-${arch}"
 }
 
 node_id() {
@@ -37,16 +45,28 @@ update_wes_tools() {
         fatal "failed to get arch"
     fi
 
+    # download checksum file
+    if ! wget -q --timeout 10 "https://github.com/waggle-sensor/edge-scheduler/releases/download/${SES_VERSION}/sha256sum.txt" -O /tmp/sestools-sha256sum.txt; then
+        fatal "failed to fetch checksum file"
+    fi
+
+    # extract checksums for current arch
+    grep "${arch}" /tmp/sestools-sha256sum.txt > "/tmp/sestools-sha256sum-${arch}.txt"
+
+    # collect files which fail checksum
+    files_to_download=$(cd "${WAGGLE_BIN_DIR}" && shasum -a 256 -c "/tmp/sestools-sha256sum-${arch}.txt" | awk -F: '/FAILED/ {print $1}')
+
+    # download files which failed
+    for name in $files_to_download; do
+        echo "downloading ${name}..."
+        url="https://github.com/waggle-sensor/edge-scheduler/releases/download/${SES_VERSION}/${name}"
+        wget -q --timeout 300 "${url}" -O "${WAGGLE_BIN_DIR}/${name}"
+    done
+
+    # ensure permissions and links are up to date
     for name in $SES_TOOLS; do
-        url="https://github.com/waggle-sensor/edge-scheduler/releases/download/${SES_VERSION}/${name}-${arch}"
-
-        echo "downloading ${url}"
-        wget --timeout 300 -q -N -P "${WAGGLE_BIN_DIR}" "${url}"
-        basename=$(basename ${url})
-
-        echo "updating ${name} to ${url}"
-        chmod +x "${WAGGLE_BIN_DIR}/${basename}"
-        ln -f "${WAGGLE_BIN_DIR}/${basename}" "${WAGGLE_BIN_DIR}/${name}"
+        chmod +x "${WAGGLE_BIN_DIR}/${name}-${arch}"
+        ln -f "${WAGGLE_BIN_DIR}/${name}-${arch}" "${WAGGLE_BIN_DIR}/${name}"
     done
 }
 
