@@ -59,7 +59,7 @@ update_wes_tools() {
     for name in $files_to_download; do
         echo "downloading ${name}..."
         url="https://github.com/waggle-sensor/edge-scheduler/releases/download/${SES_VERSION}/${name}"
-        wget -q --timeout 300 "${url}" -O "${WAGGLE_BIN_DIR}/${name}.download"
+        wget --quiet --continue --timeout 900 "${url}" -O "${WAGGLE_BIN_DIR}/${name}.download"
         mv "${WAGGLE_BIN_DIR}/${name}.download" "${WAGGLE_BIN_DIR}/${name}"
     done
 
