@@ -21,8 +21,9 @@ spec:
         resource.gpu: "true"
       priorityClassName: wes-high-priority
       containers:
-        - image: waggle/jetson-exporter:0.0.1
-          name: jetson-exporter
+        - name: jetson-exporter
+          image: waggle/jetson-exporter:0.0.1
+          imagePullPolicy: IfNotPresent
           command: ["/app/jetson-exporter"]
           args:
             - --loadpath

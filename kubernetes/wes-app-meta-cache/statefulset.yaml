@@ -18,6 +18,7 @@ spec:
       containers:
         - name: wes-app-meta-cache
           image: waggle/app-meta-cache:0.1.0
+          imagePullPolicy: IfNotPresent
           args: ["/etc/redis-config.conf"]
           resources:
             requests:

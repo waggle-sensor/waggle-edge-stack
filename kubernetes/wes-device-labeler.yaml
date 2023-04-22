@@ -18,6 +18,7 @@ spec:
       containers:
         - name: wes-device-labeler
           image: waggle/wes-device-labeler:0.5.3
+          imagePullPolicy: IfNotPresent
           resources:
             limits:
               memory: 75Mi

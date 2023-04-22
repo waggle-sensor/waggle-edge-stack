@@ -36,6 +36,7 @@ spec:
       containers:
         - name: wes-rabbitmq
           image: rabbitmq:3.8.11-management-alpine
+          imagePullPolicy: IfNotPresent
           resources:
             limits:
               memory: 1Gi

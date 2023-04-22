@@ -29,6 +29,7 @@ spec:
       priorityClassName: wes-high-priority
       containers:
         - image: redis:7.0.4
+          imagePullPolicy: IfNotPresent
           name: wes-scoreboard
           resources:
             limits:

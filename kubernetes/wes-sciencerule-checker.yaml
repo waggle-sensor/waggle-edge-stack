@@ -34,6 +34,7 @@ spec:
         node-role.kubernetes.io/master: "true"
       containers:
         - image: waggle/sciencerule-checker:0.0.7
+          imagePullPolicy: IfNotPresent
           name: wes-sciencerule-checker
           env:
             - name: NODE_INFLUXDB_URL
