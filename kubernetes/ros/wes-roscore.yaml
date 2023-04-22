@@ -29,6 +29,7 @@ spec:
       containers:
         - name: wes-roscore
           image: lblanp/panda:plugin-roscore
+          imagePullPolicy: IfNotPresent
           resources:
             requests:
               cpu: 200m

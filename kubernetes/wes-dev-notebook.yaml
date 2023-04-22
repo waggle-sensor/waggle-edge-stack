@@ -30,6 +30,7 @@ spec:
       containers:
         - name: wes-dev-notebook
           image: docker.io/waggle/plugin-base:1.1.1-ml
+          imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 8888
           command:
@@ -38,7 +39,6 @@ spec:
             - "--LabApp.token=waggle"
             - "--LabApp.ip=0.0.0.0"
             - "--LabApp.allow_root=True"
-          imagePullPolicy: IfNotPresent
           env:
             - name: PULSE_SERVER
               value: tcp:wes-audio-server:4713

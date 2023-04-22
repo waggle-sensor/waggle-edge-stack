@@ -15,8 +15,9 @@ spec:
     spec:
       priorityClassName: wes-high-priority
       containers:
-        - image: waggle/wes-metrics-agent:0.8.2
-          name: wes-metrics-agent
+        - name: wes-metrics-agent
+          image: waggle/wes-metrics-agent:0.8.2
+          imagePullPolicy: IfNotPresent
           securityContext:
             privileged: true
           resources:

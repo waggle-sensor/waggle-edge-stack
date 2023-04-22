@@ -17,6 +17,7 @@ spec:
       containers:
         - name: wes-data-sharing-service
           image: waggle/wes-data-sharing-service:0.14.0
+          imagePullPolicy: IfNotPresent
           resources:
             requests:
               cpu: 200m

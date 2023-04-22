@@ -32,8 +32,9 @@ spec:
       nodeSelector:
         node-role.kubernetes.io/master: "true"
       containers:
-        - image: influxdb:2.1.1
-          name: wes-node-influxdb
+        - name: wes-node-influxdb
+          image: influxdb:2.1.1
+          imagePullPolicy: IfNotPresent
           env:
             - name: DOCKER_INFLUXDB_INIT_MODE
               value: "setup"

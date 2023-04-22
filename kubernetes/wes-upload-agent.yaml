@@ -19,8 +19,9 @@ spec:
         - key: "node.kubernetes.io/disk-pressure"
           operator: "Exists"
       containers:
-        - image: waggle/wes-upload-agent:0.5.0
-          name: wes-upload-agent
+        - name: wes-upload-agent
+          image: waggle/wes-upload-agent:0.5.0
+          imagePullPolicy: IfNotPresent
           resources:
             limits:
               memory: 25Mi

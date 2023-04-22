@@ -28,8 +28,9 @@ spec:
       nodeSelector:
         resource.gps: "true"
       containers:
-        - image: waggle/wes-gps-server:0.1.1
-          name: wes-gps-server
+        - name: wes-gps-server
+          image: waggle/wes-gps-server:0.1.1
+          imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 2947
           securityContext:

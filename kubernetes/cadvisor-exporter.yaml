@@ -79,8 +79,9 @@ spec:
       serviceAccountName: wes-telegraf-cadvisor-account
       priorityClassName: wes-high-priority
       containers:
-        - image: telegraf:1.22.4
-          name: wes-telegraf-cadvisor
+        - name: wes-telegraf-cadvisor
+          image: telegraf:1.22.4
+          imagePullPolicy: IfNotPresent
           resources:
             requests:
               cpu: 100m

@@ -15,6 +15,7 @@ spec:
       containers:
         - name: wes-chirpstack-server
           image: waggle/wes-chirpstack-server:0.1.0
+          imagePullPolicy: IfNotPresent
           command: ["chirpstack"]
           args: ["-c", "/etc/chirpstack-waggle"]
           lifecycle:

@@ -17,6 +17,7 @@ spec:
       containers:
         - name: wes-lorawan-gateway
           image: rakwireless/udp-packet-forwarder:v1.1.3
+          imagePullPolicy: IfNotPresent
           # Need this to get access to write so /sys (gpio)
           securityContext:
             privileged: true
@@ -47,6 +48,7 @@ spec:
               readOnly: false
         - name: wes-chirpstack-gateway-bridge
           image: chirpstack/chirpstack-gateway-bridge:4.0.1
+          imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 1700
               protocol: UDP
