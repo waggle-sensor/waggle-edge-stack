@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+import argparse
 from pathlib import Path
 import yaml
 
@@ -10,7 +11,7 @@ def find_containers(x):
                 walk(item, containers)
         elif isinstance(obj, dict):
             for key, item in obj.items():
-                if key == "containers":
+                if key in ["containers", "initContainers"]:
                     containers += item
                 walk(item, containers)
 
@@ -20,9 +21,13 @@ def find_containers(x):
 
 
 def main():
-    kube_dir = Path(__file__).parent.parent
+    wes_kube_dir = Path(__file__).parent.parent
 
-    for file in kube_dir.glob("**/*.yaml"):
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--root", default=wes_kube_dir, type=Path)
+    args = parser.parse_args()
+
+    for file in args.root.glob("**/*.yaml"):
         for doc in yaml.safe_load_all(file.read_text()):
             for container in find_containers(doc):
                 if container.get("imagePullPolicy") != "IfNotPresent":
