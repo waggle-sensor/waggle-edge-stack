@@ -1,0 +1,6 @@
+configMapGenerator:
+  - name: wes-sftp-server-cl61-dot-ssh
+    files:
+      - "dot-ssh/authorized_keys"
+resources:
+  - "statefulset.yaml"

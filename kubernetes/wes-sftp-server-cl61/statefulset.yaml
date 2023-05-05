@@ -1,0 +1,37 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: wes-sftp-server-cl61
+spec:
+  selector:
+    matchLabels:
+      app: wes-sftp-server-cl61
+  serviceName: wes-sftp-server-cl61
+  template:
+    metadata:
+      labels:
+        app: wes-sftp-server-cl61
+    spec:
+      priorityClassName: wes-high-priority
+      nodeSelector:
+        node-role.kubernetes.io/master: "true"
+      hostNetwork: true
+      containers:
+        - name: server
+          image: waggle/wes-sftp-server:0.1.0
+          ports:
+            - name: ssh
+              containerPort: 22222
+              hostPort: 22222
+          volumeMounts:
+            - name: data
+              mountPath: /home/waggle/cl61
+            - name: dot-ssh
+              mountPath: /home/waggle/.ssh
+      volumes:
+        - name: data
+          hostPath:
+            path: /home/waggle/cl61
+        - name: dot-ssh
+          configMap:
+            name: wes-sftp-server-cl61-dot-ssh
