@@ -18,7 +18,7 @@ spec:
       hostNetwork: true
       containers:
         - name: server
-          image: waggle/wes-sftp-server:0.1.0
+          image: waggle/wes-sftp-server:0.1.1
           ports:
             - name: ssh
               containerPort: 22222
