@@ -61,7 +61,7 @@ spec:
           hostNetwork: true
           containers:
             - name: wes-camera-provisioner
-              image: waggle/wes-camera-provisioner:0.1.3
+              image: waggle/wes-camera-provisioner:0.1.4
               imagePullPolicy: IfNotPresent
               resources:
                 requests:
