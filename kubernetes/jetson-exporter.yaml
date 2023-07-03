@@ -1,29 +1,43 @@
-# Runs one instance of jetson-exporter on every node (DaemonSet) and expose
+# externalTrafficPolicy and internalTrafficPolicy make the metrics
+# only available within the node
+apiVersion: v1
+kind: Service
+metadata:
+  name: wes-jetson-exporter
+spec:
+  selector:
+    app: wes-jetson-exporter
+  ports:
+    - name: http
+      protocol: TCP
+      port: 9101
+      targetPort: http
+  type: NodePort
+  externalTrafficPolicy: Local
+  internalTrafficPolicy: Local
+---
 apiVersion: apps/v1
 kind: DaemonSet
 metadata:
-  name: jetson-exporter
+  name: wes-jetson-exporter
   labels:
-    app.kubernetes.io/name: jetson-exporter
-    app.kubernetes.io/version: 0.0.1
+    app: wes-jetson-exporter
 spec:
   selector:
     matchLabels:
-      app.kubernetes.io/name: jetson-exporter
+      app: wes-jetson-exporter
   template:
     metadata:
       labels:
-        app.kubernetes.io/name: jetson-exporter
-        app.kubernetes.io/version: 0.0.1
+        app: wes-jetson-exporter
     spec:
       nodeSelector:
         kubernetes.io/arch: "arm64"
         resource.gpu: "true"
       priorityClassName: wes-high-priority
       containers:
-        - name: jetson-exporter
-          image: waggle/jetson-exporter:0.0.1
-          imagePullPolicy: IfNotPresent
+        - image: waggle/jetson-exporter:0.0.2
+          name: jetson-exporter
           command: ["/app/jetson-exporter"]
           args:
             - --loadpath
@@ -35,17 +49,20 @@ spec:
               valueFrom:
                 fieldRef:
                   fieldPath: spec.nodeName
-            - name: INFLUXDB_URL
-              value: http://wes-node-influxdb.default.svc.cluster.local:8086
-            - name: INFLUXDB_TOKEN
-              valueFrom:
-                secretKeyRef:
-                  name: wes-node-influxdb-waggle-token
-                  key: token
-            - name: INFLUXDB_ORG
-              value: waggle
-            - name: INFLUXDB_BUCKET
-              value: waggle
+# (Todo) Yongho: this sometimes makes the pod use too much resources
+# and create warnings and errors when the influxDB is throttled.
+# This should be disabled until we can ensure this does not create the problems
+#            - name: INFLUXDB_URL
+#              value: http://wes-node-influxdb.default.svc.cluster.local:8086
+#            - name: INFLUXDB_TOKEN
+#              valueFrom:
+#                secretKeyRef:
+#                  name: wes-node-influxdb-waggle-token
+#                  key: token
+#            - name: INFLUXDB_ORG
+#              value: waggle
+#            - name: INFLUXDB_BUCKET
+#              value: waggle
           resources:
             requests:
               cpu: 100m
