@@ -3,7 +3,7 @@ set -e
 
 WAGGLE_CONFIG_DIR="${WAGGLE_CONFIG_DIR:-/etc/waggle}"
 WAGGLE_BIN_DIR="${WAGGLE_BIN_DIR:-/usr/bin}"
-SES_VERSION="${SES_VERSION:-0.23.1}"
+SES_VERSION="${SES_VERSION:-0.23.2}"
 SES_TOOLS="${SES_TOOLS:-runplugin pluginctl sesctl}"
 NODE_MANIFEST_V2="${NODE_MANIFEST_V2:-node-manifest-v2.json}"
 
@@ -138,6 +138,7 @@ update_wes_plugins() {
       --privileged \
       --selector resource.bme680=true \
       --resource request.cpu=50m,request.memory=30Mi,limit.memory=30Mi \
+      --force-to-update \
       waggle/plugin-iio:0.7.0 -- \
       --filter bme680 \
       --node-publish-interval 30 \
@@ -150,6 +151,7 @@ update_wes_plugins() {
       --privileged \
       --selector resource.bme280=true \
       --resource request.cpu=50m,request.memory=30Mi,limit.memory=30Mi \
+      --force-to-update \
       waggle/plugin-iio:0.6.0 -- \
       --filter bme280
     
@@ -159,6 +161,7 @@ update_wes_plugins() {
       --privileged \
       --selector resource.raingauge=true \
       --resource request.cpu=50m,request.memory=30Mi,limit.memory=30Mi \
+      --force-to-update \
       waggle/plugin-raingauge:0.4.1 -- \
       --device /dev/ttyUSB0
 }
