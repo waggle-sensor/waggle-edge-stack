@@ -1,0 +1,46 @@
+# NOTE this is an optional component used during our wsn build process
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: wes-factory
+spec:
+  selector:
+    matchLabels:
+      app: wes-factory
+  template:
+    metadata:
+      labels:
+        app: wes-factory
+        sagecontinuum.org/plugin-task: wes-factory
+    spec:
+      priorityClassName: wes-high-priority
+      nodeSelector:
+        node-role.kubernetes.io/master: "true"
+      hostNetwork: true
+      containers:
+        - image: waggle/wes-factory:0.1.3
+          name: wes-factory
+          resources:
+            limits:
+              memory: 20Mi
+            requests:
+              cpu: 50m
+              memory: 20Mi
+          env:
+            - name: WAGGLE_APP_ID
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.uid
+            - name: WAGGLE_PLUGIN_HOST
+              value: "$(WES_RABBITMQ_SERVICE_HOST)"
+            - name: WAGGLE_PLUGIN_PORT
+              value: "$(WES_RABBITMQ_SERVICE_PORT)"
+            - name: WAGGLE_PLUGIN_USERNAME
+              value: service
+            - name: WAGGLE_PLUGIN_PASSWORD
+              value: service
+            - name: INTERFACES
+              value: "wan0,wifi0,modem0"
+          envFrom:
+            - configMapRef:
+                name: waggle-config
