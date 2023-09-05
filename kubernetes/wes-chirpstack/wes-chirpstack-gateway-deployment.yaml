@@ -31,8 +31,8 @@ spec:
             - configMapRef:
                 name: wes-identity
           env:
-            - name: MODEL
-              value: "RAK2287"
+            - name: MODEL 
+              value: "RAK2287" #model has GPS, needs permissions for GPS sync
             - name: RADIO_DEV
               value: "AUTO"
             - name: BAND
