@@ -32,7 +32,9 @@ spec:
                 name: wes-identity
           env:
             - name: MODEL
-              value: "RAK7248"
+              value: "RAK2287"
+            - name: RADIO_DEV
+              value: "AUTO"
             - name: BAND
               value: "US_902_928"
             - name: GATEWAY_EUI
