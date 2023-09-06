@@ -34,7 +34,7 @@ spec:
             - name: MODEL 
               value: "RAK2287" #model has GPS, needs permissions for GPS sync
             - name: RADIO_DEV
-              value: "AUTO"
+              value: "AUTO" #SPI or USB
             - name: BAND
               value: "US_902_928"
             - name: GATEWAY_EUI
