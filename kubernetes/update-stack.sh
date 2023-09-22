@@ -630,9 +630,17 @@ update_influxdb_retention() {
     fi
 }
 
+delete_stuck_pods() {
+    # sean: i've seen this pod stuck in completed before. this is a hack to unblock this for now.
+    if kubectl get pod | grep -q 'wes-app-meta-cache-0.*Completed'; then
+        kubectl delete pod wes-app-meta-cache-0
+    fi
+}
+
 cd $(dirname $0)
 # NOTE (Yongho): this cleans up the old iio/raingauge plugins to ensure
 #                the new ones can use the serial device
+delete_stuck_pods
 cleanup_old_iio_raingauge
 update_wes_tools
 update_node_secrets
