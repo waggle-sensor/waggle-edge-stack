@@ -3,7 +3,7 @@ set -e
 
 WAGGLE_CONFIG_DIR="${WAGGLE_CONFIG_DIR:-/etc/waggle}"
 WAGGLE_BIN_DIR="${WAGGLE_BIN_DIR:-/usr/bin}"
-SES_VERSION="${SES_VERSION:-0.24.0}"
+SES_VERSION="${SES_VERSION:-0.24.1}"
 SES_TOOLS="${SES_TOOLS:-runplugin pluginctl sesctl}"
 NODE_MANIFEST_V2="${NODE_MANIFEST_V2:-node-manifest-v2.json}"
 
