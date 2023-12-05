@@ -636,7 +636,11 @@ delete_stuck_pods() {
     #
     # As some examples, I've seen things like wes-app-meta-cache-0 stuck in Completed and the
     # IIO daemonsets stuck until their pod was restarted.
-    kubectl get pod | awk 'NR > 1 && !/Running/ && !/Pending/ {print $1}' | timeout 30 xargs kubectl delete pod
+    if kubectl get pod | awk 'NR > 1 && !/Running/ && !/Pending/ {print $1}' | timeout 30 xargs kubectl delete pod; then
+        echo "finished cleaning up pods"
+    else
+        echo "error when cleaning up pods"
+    fi
 }
 
 cd $(dirname $0)
