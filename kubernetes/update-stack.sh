@@ -631,10 +631,12 @@ update_influxdb_retention() {
 }
 
 delete_stuck_pods() {
-    # sean: i've seen this pod stuck in completed before. this is a hack to unblock this for now.
-    if kubectl get pod | grep -q 'wes-app-meta-cache-0.*Completed'; then
-        kubectl delete pod wes-app-meta-cache-0
-    fi
+    # sean: I'm temporarily putting a general fix to clean up and restart pods which aren't
+    # working correctly. we should make the specific recovery more precise later.
+    #
+    # As some examples, I've seen things like wes-app-meta-cache-0 stuck in Completed and the
+    # IIO daemonsets stuck until their pod was restarted.
+    kubectl get pod | awk 'NR > 1 && !/Running/ && !/Pending/ {print $1}' | timeout 30 xargs kubectl delete pod
 }
 
 cd $(dirname $0)
