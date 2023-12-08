@@ -56,3 +56,13 @@ spec:
             - name: http
               containerPort: 9101
               hostPort: 9101
+          volumeMounts:
+            - name: sys-kernel-debug
+              mountPath: /sys/kernel/debug
+              mountPropagation: HostToContainer
+              readOnly: true
+      volumes:
+        # required for gpu information to be read
+        - name: sys-kernel-debug
+          hostPath:
+            path: /sys/kernel/debug
