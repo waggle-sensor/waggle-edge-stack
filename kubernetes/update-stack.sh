@@ -125,6 +125,8 @@ delete_influxdb_pvc() {
     kubectl delete pvc data-wes-node-influxdb-0 config-wes-node-influxdb-0 || true
 }
 
+# NOTE (Yongho): this cleans up the old iio/raingauge plugins to ensure
+#                the new ones can use the serial device
 # NOTE (Yongho): This will get eventually removed as all nodes do not have the plugins anymore
 cleanup_old_iio_raingauge() {
     echo "attempting to remove old iio/rainguage plugins"
@@ -644,8 +646,6 @@ delete_stuck_pods() {
 }
 
 cd $(dirname $0)
-# NOTE (Yongho): this cleans up the old iio/raingauge plugins to ensure
-#                the new ones can use the serial device
 delete_stuck_pods
 cleanup_old_iio_raingauge
 update_wes_tools
