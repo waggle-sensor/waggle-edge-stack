@@ -180,7 +180,7 @@ update_wes() {
 
     mkdir -p configs configs/rabbitmq configs/upload-agent
     # make all config directories private
-    find configs -type d | xargs chmod 700
+    find configs -type d | xargs -r chmod 700
 
     # generate identity config for kustomize
     # NOTE we are ignoring the WAGGLE_NODE_ID in waggle-config and creating from local file
@@ -603,7 +603,7 @@ EOF
     echo "cleaning untagged / broken images"
     # wait a moment before checking for images
     sleep 10
-    k3s crictl images | awk '$2 ~ /<none>/ {print $3}' | xargs k3s crictl rmi || true
+    k3s crictl images | awk '$2 ~ /<none>/ {print $3}' | xargs -r k3s crictl rmi || true
 }
 
 get_configmap_field() {
@@ -636,7 +636,7 @@ delete_stuck_pods() {
     #
     # As some examples, I've seen things like wes-app-meta-cache-0 stuck in Completed and the
     # IIO daemonsets stuck until their pod was restarted.
-    if kubectl get pod | awk 'NR > 1 && !/Running/ && !/Pending/ && !/ContainerCreating/ {print $1}' | timeout 30 xargs kubectl delete pod; then
+    if kubectl get pod | awk 'NR > 1 && !/Running/ && !/Pending/ && !/ContainerCreating/ {print $1}' | timeout 90 xargs -r kubectl delete pod; then
         echo "finished cleaning up pods"
     else
         echo "error when cleaning up pods"
