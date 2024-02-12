@@ -1,0 +1,70 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: wes-chirpstack-tracker
+spec:
+  selector:
+    matchLabels:
+      app: wes-chirpstack-tracker
+  template:
+    metadata:
+      labels:
+        app: wes-chirpstack-tracker
+    spec:
+      priorityClassName: wes-high-priority
+      nodeSelector:
+        zone: "core"
+      containers:
+        - name: wes-chirpstack-tracker
+          image: waggle/wes-chirpstack-tracker:latest
+          resources:
+            requests:
+              cpu: 50m
+              memory: 25Mi
+            limits:
+              cpu: 75m
+              memory: 50Mi
+          envFrom:
+            - configMapRef:
+                name: wes-identity
+          env:
+            - name: MQTT_SERVER_HOST
+              value: "wes-rabbitmq"
+            - name: MQTT_SERVER_PORT
+              value: "1883"
+            - name: MQTT_SUBSCRIBE_TOPIC
+              value: "application/#"
+            - name: MQTT_BROKER_USER
+              value: "service"
+            - name: MQTT_BROKER_PASSWORD
+              value: "service"
+            - name: CHIRPSTACK_ACCOUNT_EMAIL
+              value: "admin"
+            - name: CHIRPSTACK_ACCOUNT_PASSWORD
+              value: "admin"
+            - name: CHIRPSTACK_API_INTERFACE
+              value: "wes-chirpstack-server:8080"
+            - name: MANIFEST_FILE
+              value: "/app/node-manifest-v2.json"
+            - name: API_INTERFACE
+              value: "https://auth.sagecontinuum.org"
+            - name: NODE_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: django-token
+                  key: token
+            - name: LORAWANCONNECTION_ROUTER
+              value: "lorawanconnections/"
+            - name: LORAWANKEY_ROUTER
+              value: "lorawankeys/"
+            - name: LORAWANDEVICE_ROUTER
+              value: "lorawandevices/"
+            - name: SENSORHARDWARE_ROUTER
+              value: "sensorhardwares/"
+          volumeMounts:
+            - name: manifest-volume
+              mountPath: /app/node-manifest-v2.json
+      volumes:
+        - name: manifest-volume
+          hostPath:
+            path: /etc/waggle/node-manifest-v2.json
