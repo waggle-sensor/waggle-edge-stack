@@ -572,6 +572,7 @@ EOF
     echo "performing one-time operation - clean old chirpstack"
     # NOTE(Joe) this is a work-around to remove old deployments when converting to statefulsets
     # this can safely be removed after all nodes have moved to the "statefulset" postgresql and redis setups
+    kubectl delete deployment wes-chirpstack-tracker || true
     kubectl delete deployment wes-chirpstack-postgresql || true
     kubectl delete deployment wes-chirpstack-redis || true
     kubectl delete cm wes-chirpstack-postgresql-configmap || true
