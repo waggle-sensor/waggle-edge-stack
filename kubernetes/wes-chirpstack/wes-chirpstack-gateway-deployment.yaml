@@ -16,7 +16,7 @@ spec:
         resource.lorawan: "true"
       containers:
         - name: wes-lorawan-gateway
-          image: rakwireless/udp-packet-forwarder:v2.1.0
+          image: rakwireless/udp-packet-forwarder:v2.3.0
           imagePullPolicy: IfNotPresent
           # Need this to get access to write so /sys (gpio)
           securityContext:
@@ -49,7 +49,7 @@ spec:
               mountPropagation: HostToContainer
               readOnly: false
         - name: wes-chirpstack-gateway-bridge
-          image: chirpstack/chirpstack-gateway-bridge:4.0.1
+          image: chirpstack/chirpstack-gateway-bridge:4.0.10
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 1700
