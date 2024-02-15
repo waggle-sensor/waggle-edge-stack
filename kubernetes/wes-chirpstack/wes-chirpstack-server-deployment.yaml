@@ -14,7 +14,7 @@ spec:
       priorityClassName: wes-high-priority
       containers:
         - name: wes-chirpstack-server
-          image: waggle/wes-chirpstack-server:0.1.0
+          image: waggle/wes-chirpstack-server:0.2.0
           imagePullPolicy: IfNotPresent
           command: ["chirpstack"]
           args: ["-c", "/etc/chirpstack-waggle"]
@@ -27,7 +27,7 @@ spec:
                     "chirpstack",
                     "-c",
                     "/etc/chirpstack-waggle",
-                    "import-ttn-lorawan-devices",
+                    "import-legacy-lorawan-devices-repository",
                     "-d",
                     "/opt/lorawan-devices",
                   ]
