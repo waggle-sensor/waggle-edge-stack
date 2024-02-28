@@ -651,8 +651,29 @@ delete_stuck_pods() {
     done
 }
 
+restart_bad_meta_init_pods() {
+    # sean: For some reason, the IIO and raingauge pods (maybe more?) seem to end up starting even when their init container
+    # which should block until they register them with the app meta cache. We should look into what's happening.
+    #
+    # In the mean time, I'm simply checking the logs for rejected messages and restarting the required services.
+    if ! logs=$(kubectl logs --since=300s -l app=wes-data-sharing-service); then
+        echo "failed to get wes-data-sharing-service logs"
+        return
+    fi
+    if grep -q -m1 'reject.*bme280' <<< "${logs}"; then
+        kubectl delete pod -l app=wes-iio-bme280
+    fi
+    if grep -q -m1 'reject.*bme680' <<< "${logs}"; then
+        kubectl delete pod -l app=wes-iio-bme680
+    fi
+    if grep -q -m1 'reject.*raingauge' <<< "${logs}"; then
+        kubectl delete pod -l app=wes-raingauge
+    fi
+}
+
 cd $(dirname $0)
 delete_stuck_pods
+restart_bad_meta_init_pods
 cleanup_old_iio_raingauge
 update_wes_tools
 update_node_secrets
