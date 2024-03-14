@@ -671,6 +671,22 @@ restart_bad_meta_init_pods() {
     fi
 }
 
+clean_cm() {
+    echo "cleaning up waggle-node-manifest-v2 configmaps"
+    pattern="waggle-node-manifest-v2-.*$"
+    # Get a list of configmaps matching the pattern
+    matching_configmaps=$(kubectl get configmaps -o=jsonpath='{range .items[*]}{.metadata.name}{"\n"}{end}' | grep -E "$pattern")
+    # Get the last 3
+    last_configmaps=$(echo "$matching_configmaps" | tail -n 3)
+    # delete except for last 3
+    while IFS= read -r configmap; do
+        if ! echo "$last_configmaps" | grep -q "$configmap"; then
+            echo "Deleting configmap $configmap"
+            kubectl delete configmap "$configmap"
+        fi
+    done <<< "$matching_configmaps"
+}
+
 cd $(dirname $0)
 delete_stuck_pods
 restart_bad_meta_init_pods
@@ -682,3 +698,4 @@ update_data_config
 update_wes_plugins
 update_wes
 update_influxdb_retention
+clean_cm
