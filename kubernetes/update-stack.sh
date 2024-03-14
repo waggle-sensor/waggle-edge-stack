@@ -671,7 +671,7 @@ restart_bad_meta_init_pods() {
     fi
 }
 
-clean_cm() {
+clean_manifestv2_cm() {
     echo "cleaning up waggle-node-manifest-v2 configmaps"
     pattern="waggle-node-manifest-v2-.*$"
     # Get a list of configmaps matching the pattern
@@ -698,4 +698,4 @@ update_data_config
 update_wes_plugins
 update_wes
 update_influxdb_retention
-clean_cm
+clean_manifestv2_cm
