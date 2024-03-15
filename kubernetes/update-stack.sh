@@ -673,18 +673,7 @@ restart_bad_meta_init_pods() {
 
 clean_manifestv2_cm() {
     echo "cleaning up waggle-node-manifest-v2 configmaps"
-    pattern="waggle-node-manifest-v2-.*$"
-    # Get a list of configmaps matching the pattern
-    matching_configmaps=$(kubectl get configmaps -o=jsonpath='{range .items[*]}{.metadata.name}{"\n"}{end}' | grep -E "$pattern")
-    # Get the last 3
-    last_configmaps=$(echo "$matching_configmaps" | tail -n 3)
-    # delete except for last 3
-    while IFS= read -r configmap; do
-        if ! echo "$last_configmaps" | grep -q "$configmap"; then
-            echo "Deleting configmap $configmap"
-            kubectl delete configmap "$configmap"
-        fi
-    done <<< "$matching_configmaps"
+    kubectl get cm -o name | grep waggle-node-manifest-v2- | head -n -3 | xargs -r kubectl delete
 }
 
 cd $(dirname $0)
