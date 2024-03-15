@@ -671,6 +671,11 @@ restart_bad_meta_init_pods() {
     fi
 }
 
+clean_manifestv2_cm() {
+    echo "cleaning up waggle-node-manifest-v2 configmaps"
+    kubectl get cm -o name | grep waggle-node-manifest-v2- | head -n -3 | xargs -r kubectl delete
+}
+
 cd $(dirname $0)
 delete_stuck_pods
 restart_bad_meta_init_pods
@@ -682,3 +687,4 @@ update_data_config
 update_wes_plugins
 update_wes
 update_influxdb_retention
+clean_manifestv2_cm
