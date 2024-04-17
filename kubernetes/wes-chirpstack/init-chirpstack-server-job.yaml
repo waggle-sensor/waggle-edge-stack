@@ -19,4 +19,4 @@ spec:
           - name: CHIRPSTACK_API_INTERFACE
             value: "wes-chirpstack-server:8080"
       restartPolicy: OnFailure
-  backoffLimit: 4
+  backoffLimit: 6
