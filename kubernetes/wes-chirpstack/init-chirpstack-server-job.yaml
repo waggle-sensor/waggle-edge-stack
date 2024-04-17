@@ -7,13 +7,16 @@ spec:
     spec:
       containers:
       - name: init-chirpstack-server
-        image: your_registry_username/your_image_name
+        image: your_registry_username/your_image_name #TODO add the container name
+        envFrom:
+          - configMapRef:
+              name: wes-identity
         env:
-        - name: CHIRPSTACK_ACCOUNT_EMAIL
-          value: "your_chirpstack_account_email"
-        - name: CHIRPSTACK_ACCOUNT_PASSWORD
-          value: "your_chirpstack_account_password"
-        - name: CHIRPSTACK_API_INTERFACE
-          value: "your_chirpstack_api_interface"
-      restartPolicy: Never
+          - name: CHIRPSTACK_ACCOUNT_EMAIL
+            value: "admin"
+          - name: CHIRPSTACK_ACCOUNT_PASSWORD
+            value: "admin"
+          - name: CHIRPSTACK_API_INTERFACE
+            value: "wes-chirpstack-server:8080"
+      restartPolicy: OnFailure
   backoffLimit: 4
