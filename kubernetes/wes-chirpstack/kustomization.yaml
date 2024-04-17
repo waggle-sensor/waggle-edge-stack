@@ -11,7 +11,7 @@ resources:
   - wes-chirpstack-postgresql-service.yaml
   - wes-chirpstack-postgresql-statefulset.yaml
   - wes-chirpstack-tracker-deployment.yaml
-  - init-chirpstack-server-job.yaml
+  - wes-init-chirpstack-server-job.yaml
 
 configMapGenerator:
   - name: chirpstack-gateway-bridge-config-cm

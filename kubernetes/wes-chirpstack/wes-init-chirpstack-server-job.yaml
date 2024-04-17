@@ -1,7 +1,7 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: init-chirpstack-server-job
+  name: wes-init-chirpstack-server-job
 spec:
   template:
     spec:
