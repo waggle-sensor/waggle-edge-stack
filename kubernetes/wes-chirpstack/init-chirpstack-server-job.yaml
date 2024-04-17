@@ -7,7 +7,7 @@ spec:
     spec:
       containers:
       - name: init-chirpstack-server
-        image: your_registry_username/your_image_name #TODO add the container name
+        image: waggle/init-chirpstack-server:latest
         envFrom:
           - configMapRef:
               name: wes-identity
