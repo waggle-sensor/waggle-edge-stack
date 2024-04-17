@@ -647,14 +647,31 @@ delete_stuck_pods() {
     # 
     # I also clean up kube-system as I've seen cases where coredns or local-path-provisioner
     # are stuck and this prevents other pods from starting.
+    echo "Cleaning up stuck pods."
     for ns in kube-system default; do
         echo "cleaning up pods in namespace ${ns}"
-        if kubectl -n "${ns}" get pod | awk 'NR > 1 && !/Running/ && !/Pending/ && !/ContainerCreating/ {print $1}' | timeout 90 xargs -r kubectl -n "${ns}" delete pod; then
+        if kubectl -n "${ns}" get pod | awk 'NR > 1 && !/Running/ && !/Pending/ && !/ContainerCreating/ && !/Terminating/ {print $1}' | timeout 90 xargs -r kubectl -n "${ns}" delete pod; then
             echo "finished cleaning up pods in namespace ${ns}"
         else
             echo "error when cleaning up pods in namespace ${ns}"
         fi
     done
+    echo "Done!"
+
+    # HACK(sean) This is a temporary hack to clean up pods which are stuck in Terminating for a
+    # long time (~1h intervals between when this script is run). It also assumes we don't run this
+    # more often than every minute, in order to allow to 60s termination grace period to finish.
+    #
+    # The plan is to move this and much of the general self healing logic into a node agent.
+    kubectl get pod | awk '/Terminating/ {print $1}' > /tmp/terminating-pods
+
+    if [ -f /tmp/terminating-pods-last ]; then
+        echo "Force cleaning up stuck terminating pods."
+        sort /tmp/terminating-pods /tmp/terminating-pods-last | uniq -d | xargs -r kubectl delete pod --force
+        echo "Done!"
+    fi
+
+    mv /tmp/terminating-pods /tmp/terminating-pods-last
 }
 
 restart_bad_meta_init_pods() {
