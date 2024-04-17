@@ -682,7 +682,7 @@ delete_stuck_terminating_pods_ns() {
     kubectl get pod | awk '/Terminating/ {print $1}' > "${f}"
 
     if [ -f "${flast}" ]; then
-        echo "force cleaning up stuck terminating pods."
+        echo "force cleaning up stuck terminating pods in namespace ${ns}."
         sort "${f}" "${flast}" | uniq -d | xargs -r kubectl -n "${ns}" delete pod --force
         echo "done!"
     fi
