@@ -679,7 +679,7 @@ delete_stuck_terminating_pods_ns() {
     f="/tmp/terminating-pods-${ns}"
     flast="/tmp/terminating-pods-last-${ns}"
 
-    kubectl get pod | awk '/Terminating/ {print $1}' > "${f}"
+    kubectl -n "${ns}" get pod | awk '/Terminating/ {print $1}' > "${f}"
 
     if [ -f "${flast}" ]; then
         echo "force cleaning up stuck terminating pods in namespace ${ns}."
