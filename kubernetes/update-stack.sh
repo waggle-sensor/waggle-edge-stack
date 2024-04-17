@@ -650,12 +650,12 @@ delete_stuck_pods() {
     echo "cleaning up stuck pods."
     delete_stuck_pods_ns kube-system
     delete_stuck_pods_ns default
-    echo "done!"
+    echo "finished cleaning up stuck pods."
 
     echo "cleaning up stuck terminating pods."
     delete_stuck_terminating_pods_ns kube-system
     delete_stuck_terminating_pods_ns default
-    echo "done!"
+    echo "finished cleaning up stuck terminating pods."
 }
 
 delete_stuck_pods_ns() {
@@ -683,8 +683,11 @@ delete_stuck_terminating_pods_ns() {
 
     if [ -f "${flast}" ]; then
         echo "force cleaning up stuck terminating pods in namespace ${ns}."
-        sort "${f}" "${flast}" | uniq -d | xargs -r kubectl -n "${ns}" delete pod --force
-        echo "done!"
+        if sort "${f}" "${flast}" | uniq -d | xargs -r kubectl -n "${ns}" delete pod --force; then
+            echo "finished force cleaning up stuck terminating pods in namespace ${ns}."
+        else
+            echo "error force cleaning up stuck terminating pods in namespace ${ns}."
+        fi
     fi
 
     mv "${f}" "${flast}"
