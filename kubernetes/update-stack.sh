@@ -655,6 +655,19 @@ delete_stuck_pods() {
             echo "error when cleaning up pods in namespace ${ns}"
         fi
     done
+
+    # HACK(sean) This is a temporary hack to clean up pods which are stuck in Terminating for a
+    # long time (~1h intervals between when this script is run). It also assumes we don't run this
+    # more often than every minute, in order to allow to 60s termination grace period to finish.
+    #
+    # The plan is to move this and much of the general self healing logic into a node agent.
+    kubectl get pod | awk '/Terminating/ {print $1}' > /tmp/terminating-pods
+
+    if [ -f /tmp/terminating-pods-last ]; then
+        sort /tmp/terminating-pods /tmp/terminating-pods-last | uniq -d | xargs -r kubectl delete pod --force
+    fi
+
+    mv /tmp/terminating-pods /tmp/terminating-pods-last
 }
 
 restart_bad_meta_init_pods() {
