@@ -1,0 +1,19 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: init-chirpstack-server-job
+spec:
+  template:
+    spec:
+      containers:
+      - name: init-chirpstack-server
+        image: your_registry_username/your_image_name
+        env:
+        - name: CHIRPSTACK_ACCOUNT_EMAIL
+          value: "your_chirpstack_account_email"
+        - name: CHIRPSTACK_ACCOUNT_PASSWORD
+          value: "your_chirpstack_account_password"
+        - name: CHIRPSTACK_API_INTERFACE
+          value: "your_chirpstack_api_interface"
+      restartPolicy: Never
+  backoffLimit: 4
