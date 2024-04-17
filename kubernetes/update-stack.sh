@@ -600,7 +600,13 @@ EOF
         echo "perform backwards compatible changes - support old kubectl (v1.20.x)"
         kubectl kustomize | sed -e 's:batch/v1:batch/v1beta1:' | kubectl apply -f -
     fi
-    kubectl apply -k wes-chirpstack
+
+    # manage chirpstack deployment based on node manifest
+    if jq -e '.sensors[] | select(.name == "lorawan")' /etc/waggle/node-manifest-v2.json > /dev/null; then
+        kubectl apply -k wes-chirpstack
+    else
+        kubectl delete -k wes-chirpstack 2> /dev/null || true
+    fi
 
     echo "cleaning untagged / broken images"
     # wait a moment before checking for images
