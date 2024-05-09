@@ -20,7 +20,7 @@ spec:
           operator: "Exists"
       containers:
         - name: wes-upload-agent
-          image: waggle/wes-upload-agent:0.5.0
+          image: waggle/wes-upload-agent:0.6.0
           imagePullPolicy: IfNotPresent
           resources:
             limits:

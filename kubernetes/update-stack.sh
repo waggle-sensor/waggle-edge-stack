@@ -3,7 +3,7 @@ set -e
 
 WAGGLE_CONFIG_DIR="${WAGGLE_CONFIG_DIR:-/etc/waggle}"
 WAGGLE_BIN_DIR="${WAGGLE_BIN_DIR:-/usr/bin}"
-SES_VERSION="${SES_VERSION:-0.25.0}"
+SES_VERSION="${SES_VERSION:-0.26.0}"
 SES_TOOLS="${SES_TOOLS:-runplugin pluginctl sesctl}"
 NODE_MANIFEST_V2="${NODE_MANIFEST_V2:-node-manifest-v2.json}"
 
@@ -600,7 +600,13 @@ EOF
         echo "perform backwards compatible changes - support old kubectl (v1.20.x)"
         kubectl kustomize | sed -e 's:batch/v1:batch/v1beta1:' | kubectl apply -f -
     fi
-    kubectl apply -k wes-chirpstack
+
+    # manage chirpstack deployment based on node manifest
+    if jq -e '.sensors[] | select(.name == "lorawan")' /etc/waggle/node-manifest-v2.json > /dev/null; then
+        kubectl apply -k wes-chirpstack
+    else
+        kubectl delete -k wes-chirpstack 2> /dev/null || true
+    fi
 
     echo "cleaning untagged / broken images"
     # wait a moment before checking for images
@@ -641,18 +647,80 @@ delete_stuck_pods() {
     # 
     # I also clean up kube-system as I've seen cases where coredns or local-path-provisioner
     # are stuck and this prevents other pods from starting.
-    for ns in kube-system default; do
-        echo "cleaning up pods in namespace ${ns}"
-        if kubectl -n "${ns}" get pod | awk 'NR > 1 && !/Running/ && !/Pending/ && !/ContainerCreating/ {print $1}' | timeout 90 xargs -r kubectl -n "${ns}" delete pod; then
-            echo "finished cleaning up pods in namespace ${ns}"
+    echo "cleaning up stuck pods."
+    delete_stuck_pods_ns kube-system
+    delete_stuck_pods_ns default
+    echo "finished cleaning up stuck pods."
+
+    echo "cleaning up stuck terminating pods."
+    delete_stuck_terminating_pods_ns kube-system
+    delete_stuck_terminating_pods_ns default
+    echo "finished cleaning up stuck terminating pods."
+}
+
+delete_stuck_pods_ns() {
+    ns="${1}"
+
+    echo "cleaning up pods in namespace ${ns}"
+    if kubectl -n "${ns}" get pod | awk 'NR > 1 && !/Running/ && !/Pending/ && !/ContainerCreating/ && !/Terminating/ {print $1}' | timeout 90 xargs -r kubectl -n "${ns}" delete pod; then
+        echo "finished cleaning up pods in namespace ${ns}"
+    else
+        echo "error when cleaning up pods in namespace ${ns}"
+    fi
+}
+
+# HACK(sean) This is a temporary hack to clean up pods which are stuck in Terminating for a
+# long time (~1h intervals between when this script is run). It also assumes we don't run this
+# more often than every minute, in order to allow to 60s termination grace period to finish.
+#
+# The plan is to move this and much of the general self healing logic into a node agent.
+delete_stuck_terminating_pods_ns() {
+    ns="${1}"
+    f="/tmp/terminating-pods-${ns}"
+    flast="/tmp/terminating-pods-last-${ns}"
+
+    kubectl -n "${ns}" get pod | awk '/Terminating/ {print $1}' > "${f}"
+
+    if [ -f "${flast}" ]; then
+        echo "force cleaning up stuck terminating pods in namespace ${ns}."
+        if sort "${f}" "${flast}" | uniq -d | xargs -r kubectl -n "${ns}" delete pod --force; then
+            echo "finished force cleaning up stuck terminating pods in namespace ${ns}."
         else
-            echo "error when cleaning up pods in namespace ${ns}"
+            echo "error force cleaning up stuck terminating pods in namespace ${ns}."
         fi
-    done
+    fi
+
+    mv "${f}" "${flast}"
+}
+
+restart_bad_meta_init_pods() {
+    # sean: For some reason, the IIO and raingauge pods (maybe more?) seem to end up starting even when their init container
+    # which should block until they register them with the app meta cache. We should look into what's happening.
+    #
+    # In the mean time, I'm simply checking the logs for rejected messages and restarting the required services.
+    if ! logs=$(kubectl logs --since=300s -l app=wes-data-sharing-service); then
+        echo "failed to get wes-data-sharing-service logs"
+        return
+    fi
+    if grep -q -m1 'reject.*bme280' <<< "${logs}"; then
+        kubectl delete pod -l app=wes-iio-bme280
+    fi
+    if grep -q -m1 'reject.*bme680' <<< "${logs}"; then
+        kubectl delete pod -l app=wes-iio-bme680
+    fi
+    if grep -q -m1 'reject.*raingauge' <<< "${logs}"; then
+        kubectl delete pod -l app=wes-raingauge
+    fi
+}
+
+clean_manifestv2_cm() {
+    echo "cleaning up waggle-node-manifest-v2 configmaps"
+    kubectl get cm -o name | grep waggle-node-manifest-v2- | head -n -3 | xargs -r kubectl delete
 }
 
 cd $(dirname $0)
 delete_stuck_pods
+restart_bad_meta_init_pods
 cleanup_old_iio_raingauge
 update_wes_tools
 update_node_secrets
@@ -661,3 +729,4 @@ update_data_config
 update_wes_plugins
 update_wes
 update_influxdb_retention
+clean_manifestv2_cm

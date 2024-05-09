@@ -10,6 +10,7 @@ resources:
   - wes-chirpstack-redis-statefulset.yaml
   - wes-chirpstack-postgresql-service.yaml
   - wes-chirpstack-postgresql-statefulset.yaml
+  - wes-chirpstack-tracker-deployment.yaml
 
 configMapGenerator:
   - name: chirpstack-gateway-bridge-config-cm

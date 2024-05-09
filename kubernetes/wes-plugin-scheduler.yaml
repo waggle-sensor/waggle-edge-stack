@@ -30,7 +30,7 @@ spec:
       nodeSelector:
         node-role.kubernetes.io/master: "true"
       containers:
-        - image: waggle/edge-scheduler:0.25.0
+        - image: waggle/edge-scheduler:0.26.0
           imagePullPolicy: IfNotPresent
           name: wes-plugin-scheduler
           command: ["nodescheduler"]
@@ -61,7 +61,6 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
   name: wes-plugin-scheduler
-  namespace: default
 rules:
   - apiGroups: ["", "batch"] # "" indicates the core API group
     resources:
@@ -73,6 +72,7 @@ rules:
         "nodes",
         "pods",
         "pods/log",
+        "secrets",
       ]
     verbs: ["create", "get", "watch", "list", "update", "patch", "delete"]
 ---
