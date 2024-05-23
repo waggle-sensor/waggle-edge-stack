@@ -30,7 +30,7 @@ spec:
       nodeSelector:
         node-role.kubernetes.io/master: "true"
       containers:
-        - image: waggle/edge-scheduler:0.26.0
+        - image: waggle/edge-scheduler:0.27.0
           imagePullPolicy: IfNotPresent
           name: wes-plugin-scheduler
           command: ["nodescheduler"]
@@ -73,6 +73,7 @@ rules:
         "pods",
         "pods/log",
         "secrets",
+        "events",
       ]
     verbs: ["create", "get", "watch", "list", "update", "patch", "delete"]
 ---
@@ -91,6 +92,10 @@ subjects:
   - kind: ServiceAccount
     name: wes-plugin-scheduler
     namespace: default
+  - kind: ServiceAccount
+    name: wes-plugin-scheduler
+    namespace: ses
+
 ---
 apiVersion: v1
 kind: ServiceAccount
