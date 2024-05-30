@@ -1,0 +1,22 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: wes-init-chirpstack-server
+spec:
+  template:
+    spec:
+      containers:
+      - name: init-chirpstack-server
+        image: waggle/init-chirpstack-server:latest
+        envFrom:
+          - configMapRef:
+              name: wes-identity
+        env:
+          - name: CHIRPSTACK_ACCOUNT_EMAIL
+            value: "admin"
+          - name: CHIRPSTACK_ACCOUNT_PASSWORD
+            value: "admin"
+          - name: CHIRPSTACK_API_INTERFACE
+            value: "wes-chirpstack-server:8080"
+      restartPolicy: OnFailure
+  backoffLimit: 6
