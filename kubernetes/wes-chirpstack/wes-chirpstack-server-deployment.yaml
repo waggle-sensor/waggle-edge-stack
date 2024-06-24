@@ -86,6 +86,22 @@ spec:
             timeoutSeconds: 10
             failureThreshold: 3
             periodSeconds: 60
+        - name: chirpstack-rest-api
+          image: chirpstack/chirpstack-rest-api:4.6 #should be same version as chirpstack server
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8090
+          resources:
+            requests:
+              cpu: 30m
+              memory: 30Mi
+            limits:
+              memory: 50Mi
+          env:
+            - name: INSECURE
+              value: "0" # indicates chirpstack server gRPC interface is not secured using a TLS cert
+            - name: CORS #CORS policy
+              value: "*" #allow all origins
       volumes:
         - name: server-config-volume
           configMap:

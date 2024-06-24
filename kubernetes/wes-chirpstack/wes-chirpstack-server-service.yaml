@@ -6,9 +6,12 @@ spec:
   selector:
     app: wes-chirpstack-server
   ports:
-    - name: web-api-interface
+    - name: web-api-interface #grpc
       port: 8080
       targetPort: 8080
     - name: metrics
       port: 9100
       targetPort: 9100
+    - name: rest-api-interface
+      port: 8090
+      targetPort: 8090
