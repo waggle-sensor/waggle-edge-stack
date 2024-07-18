@@ -9,7 +9,3 @@ spec:
     - name: metrics
       port: 9100
       targetPort: 9100
-    - name: udp-packet-receiver
-      port: 1700
-      targetPort: 1700
-      protocol: UDP
