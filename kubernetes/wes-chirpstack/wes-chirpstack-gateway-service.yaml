@@ -12,3 +12,4 @@ spec:
     - name: udp-packet-receiver
       port: 1700
       targetPort: 1700
+      protocol: UDP
