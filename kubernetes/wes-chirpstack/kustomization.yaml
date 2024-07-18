@@ -12,16 +12,21 @@ resources:
   - wes-chirpstack-postgresql-statefulset.yaml
   - wes-chirpstack-tracker-deployment.yaml
   - wes-init-chirpstack-server-job.yaml
+  - eu_region/wes-chirpstack-gateway-eu-service.yaml
+  - eu_region/wes-chirpstack-gateway-eu-deployment.yaml
 
 configMapGenerator:
   - name: chirpstack-gateway-bridge-config-cm
     files:
       - chirpstack-gateway-bridge.toml
+  - name: chirpstack-gateway-eu-bridge-config-cm
+    files:
+      - eu_region/chirpstack-gateway-bridge.toml
   - name: chirpstack-server-config-cm
     files:
       - chirpstack.toml
       - region_us915.toml
-      - region_eu868.toml
+      - eu_region/region_eu868.toml
   - name: chirpstack-postgresql-init-cm
     files:
       - 001-init-chirpstack.sh

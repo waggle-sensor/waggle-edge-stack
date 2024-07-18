@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: wes-chirpstack-gateway-eu-bridge
+spec:
+  selector:
+    app: wes-chirpstack-gateway-eu-bridge
+  ports:
+    - name: metrics
+      port: 9100
+      targetPort: 9100
+    - name: udp-packet-receiver
+      port: 1700
+      targetPort: 1700
+      protocol: UDP

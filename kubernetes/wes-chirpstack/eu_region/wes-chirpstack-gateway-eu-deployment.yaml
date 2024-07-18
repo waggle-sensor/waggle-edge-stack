@@ -1,0 +1,59 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: wes-chirpstack-gateway-eu-bridge
+spec:
+  selector:
+    matchLabels:
+      app: wes-chirpstack-gateway-eu-bridge
+  template:
+    metadata:
+      labels:
+        app: wes-chirpstack-gateway-eu-bridge
+    spec:
+      priorityClassName: wes-high-priority
+      nodeSelector:
+        resource.lorawan: "true"
+      containers:
+        - name: wes-chirpstack-gateway-bridge
+          image: chirpstack/chirpstack-gateway-bridge:4.0.10
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 1700
+              protocol: UDP
+            - name: metrics
+              containerPort: 9100
+          resources:
+            requests:
+              cpu: 50m
+              memory: 25Mi
+            limits:
+              memory: 50Mi
+          envFrom:
+            - configMapRef:
+                name: wes-identity
+          volumeMounts:
+            - name: gateway-bridge-config-volume
+              mountPath: /etc/chirpstack-gateway-bridge
+              readOnly: true
+          startupProbe:
+            httpGet:
+              port: metrics
+            initialDelaySeconds: 5
+            timeoutSeconds: 10
+            failureThreshold: 10
+            periodSeconds: 30
+          livenessProbe:
+            httpGet:
+              port: metrics
+            timeoutSeconds: 10
+            failureThreshold: 3
+            periodSeconds: 60
+      volumes:
+        - name: gateway-bridge-config-volume
+          configMap:
+            name: chirpstack-gateway-eu-bridge-config-cm
+            defaultMode: 0644
+        - name: lorawan-host-sys
+          hostPath:
+            path: /sys
