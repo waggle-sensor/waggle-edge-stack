@@ -21,6 +21,7 @@ configMapGenerator:
     files:
       - chirpstack.toml
       - region_us915.toml
+      - region_eu868.toml
   - name: chirpstack-postgresql-init-cm
     files:
       - 001-init-chirpstack.sh

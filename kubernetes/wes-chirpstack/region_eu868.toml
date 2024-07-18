@@ -1,0 +1,17 @@
+[[regions]]
+name="eu868"
+common_name="EU868"
+
+[regions.gateway.backend]
+enabled="mqtt"
+
+[regions.gateway.backend.mqtt]
+event_topic="eu915/gateway/+/event/+"
+command_topic="eu915/gateway/{{ gateway_id }}/command/{{ command }}"
+server="tcp://$MQTT_BROKER_HOST:$MQTT_BROKER_PORT"
+username="$MQTT_BROKER_USER"
+password="$MQTT_BROKER_PASSWORD"
+
+[regions.network]
+# Note: when left blank / empty array, all channels will be enabled.
+enabled_uplink_channels=[]
