@@ -9,3 +9,6 @@ spec:
     - name: metrics
       port: 9100
       targetPort: 9100
+    - name: gateway
+      port: 9100
+      targetPort: 9100
