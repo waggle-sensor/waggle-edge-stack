@@ -54,6 +54,3 @@ spec:
           configMap:
             name: chirpstack-gateway-eu-bridge-config-cm
             defaultMode: 0644
-        - name: lorawan-host-sys
-          hostPath:
-            path: /sys
