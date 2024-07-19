@@ -23,7 +23,7 @@ command_topic_template="eu868/gateway/{{ .GatewayID }}/command/#"
 servers=["tcp://wes-rabbitmq:1883"]
 username=""
 password=""
-client_id="wes-chirpstack-gateway"
+client_id="wes-chirpstack-eu-gateway"
 
 [metrics.prometheus]
 endpoint_enabled=true
