@@ -14,23 +14,23 @@ spec:
       priorityClassName: wes-high-priority
       containers:
         - name: wes-chirpstack-server
-          image: waggle/wes-chirpstack-server:0.2.0
+          image: waggle/wes-chirpstack-server:pr-10
           imagePullPolicy: IfNotPresent
           command: ["/bin/sh"]
           args: ["-c", "crond && chirpstack -c /etc/chirpstack-waggle"]
-          lifecycle:
-            # import the lorawan ttn devices profile templates
-            postStart:
-              exec:
-                command:
-                  [
-                    "chirpstack",
-                    "-c",
-                    "/etc/chirpstack-waggle",
-                    "import-legacy-lorawan-devices-repository",
-                    "-d",
-                    "/opt/lorawan-devices",
-                  ]
+          # lifecycle:
+          #   # import the lorawan ttn devices profile templates
+          #   postStart:
+          #     exec:
+          #       command:
+          #         [
+          #           "chirpstack",
+          #           "-c",
+          #           "/etc/chirpstack-waggle",
+          #           "import-legacy-lorawan-devices-repository",
+          #           "-d",
+          #           "/opt/lorawan-devices",
+          #         ]
           ports:
             - containerPort: 8080
             - name: metrics
