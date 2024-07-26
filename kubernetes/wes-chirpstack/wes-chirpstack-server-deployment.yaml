@@ -15,10 +15,10 @@ spec:
       containers:
         - name: wes-chirpstack-server
           image: waggle/wes-chirpstack-server:pr-10
-          imagePullPolicy: IfNotPresent
+          imagePullPolicy: Always #CHANGE BACK to IfNotPresent
           command: ["/bin/sh"]
           args: ["-c", "crond && chirpstack -c /etc/chirpstack-waggle"]
-          # lifecycle:
+          # lifecycle: TODO: uncomment once done testing
           #   # import the lorawan ttn devices profile templates
           #   postStart:
           #     exec:
