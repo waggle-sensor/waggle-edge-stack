@@ -16,7 +16,7 @@ spec:
         - name: wes-chirpstack-server
           image: waggle/wes-chirpstack-server:pr-10
           imagePullPolicy: Always #CHANGE BACK to IfNotPresent
-          command: ["/bin/sh"]
+          command: ["/bin/bash"]
           args: ["-c", "printenv > /etc/environment && sudo crond -f -d 6 & chirpstack -c /etc/chirpstack-waggle"]
           # lifecycle: TODO: uncomment once done testing
           #   # import the lorawan ttn devices profile templates
