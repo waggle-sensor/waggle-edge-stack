@@ -726,6 +726,8 @@ clean_manifestv2_cm() {
 clean_slash_run_tempfs() {
     echo "cleaning /run/udev/data by udevadm info -c"
     udevadm info -c
+    echo "attempting to perform the same on NXagent if exists"
+    ssh ws-nxagent -x "udevadm info -c"
 }
 
 cd $(dirname $0)
