@@ -718,6 +718,18 @@ clean_manifestv2_cm() {
     kubectl get cm -o name | grep waggle-node-manifest-v2- | head -n -3 | xargs -r kubectl delete
 }
 
+# clean_slash_run_tempfs removes the cache entries in /run/udev/data.
+# Those entries are Kubernetes slices by cgroup, for example,
+# '+cgroup:anon_vma_chain(1884686:kubepods-burstable-podacfe9bf7_3e09_451b_ab91_e6205e525966.slice:cri-containerd:0c087b2c26f6167d348aeb5d59e922cf07c5bf3cb4189099645e45105c97d115)'
+# TODO (Yongho): If the node has additional devices such as NXagent or RPi, we will need to 
+#                run this command on the devices as well.
+clean_slash_run_tempfs() {
+    echo "cleaning /run/udev/data by udevadm info -c"
+    udevadm info -c
+    echo "attempting to perform the same on NXagent if exists"
+    ssh ws-nxagent -x "udevadm info -c"
+}
+
 cd $(dirname $0)
 delete_stuck_pods
 restart_bad_meta_init_pods
@@ -730,3 +742,4 @@ update_wes_plugins
 update_wes
 update_influxdb_retention
 clean_manifestv2_cm
+clean_slash_run_tempfs
