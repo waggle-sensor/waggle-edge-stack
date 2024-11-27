@@ -15,4 +15,5 @@ password="$MQTT_BROKER_PASSWORD"
 [regions.network]
 # Note: when left blank / empty array, all channels will be enabled. BUT it can cause major
 #   packet loss. See, https://forum.chirpstack.io/t/enabling-all-channel-for-as923-2/19243
-enabled_uplink_channels=[0,1,2,3,4,5,6,7]
+#enabled_uplink_channels=[0,1,2,3,4,5,6,7]
+enabled_uplink_channels=[2]
