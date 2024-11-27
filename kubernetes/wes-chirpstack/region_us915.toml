@@ -15,5 +15,6 @@ password="$MQTT_BROKER_PASSWORD"
 [regions.network]
 # Note: when left blank / empty array, all channels will be enabled. BUT it can cause major
 #   packet loss. See, https://forum.chirpstack.io/t/enabling-all-channel-for-as923-2/19243
-#enabled_uplink_channels=[0,1,2,3,4,5,6,7]
-enabled_uplink_channels=[8,9,10,11,12,13,14,15]
+#   This is using Sub band 2 for more channels see, 
+#   https://www.baranidesign.com/faq-articles/2019/4/23/lorawan-usa-frequencies-channels-and-sub-bands-for-iot-devices
+enabled_uplink_channels=[8,9,10,11,12,13,14,15] 
