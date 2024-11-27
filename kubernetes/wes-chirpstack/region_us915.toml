@@ -1,5 +1,5 @@
 [[regions]]
-name="us915"
+name="us915_sb2"
 common_name="US915"
 
 [regions.gateway.backend]
