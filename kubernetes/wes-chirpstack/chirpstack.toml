@@ -9,7 +9,7 @@ servers=["redis://$REDIS_HOST/"]
 
 [network]
 net_id="000000"
-enabled_regions=["us915"]
+enabled_regions=["us915_sb2"]
 
 [api]
 bind="0.0.0.0:$WEB_API_PORT"
