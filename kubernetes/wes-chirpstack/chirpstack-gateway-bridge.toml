@@ -6,9 +6,9 @@ log_level=5
 udp_bind = "0.0.0.0:1700"
 
 [integration.mqtt]
-event_topic_template="us915/gateway/{{ .GatewayID }}/event/{{ .EventType }}"
-state_topic_template="us915/gateway/{{ .GatewayID }}/state/{{ .StateType }}"
-command_topic_template="us915/gateway/{{ .GatewayID }}/command/#"
+event_topic_template="us915_sb2/gateway/{{ .GatewayID }}/event/{{ .EventType }}"
+state_topic_template="us915_sb2/gateway/{{ .GatewayID }}/state/{{ .StateType }}"
+command_topic_template="us915_sb2/gateway/{{ .GatewayID }}/command/#"
 
 [integration.mqtt.auth.generic]
 servers=["tcp://wes-rabbitmq:1883"]

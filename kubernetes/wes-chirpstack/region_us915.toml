@@ -6,8 +6,8 @@ common_name="US915"
 enabled="mqtt"
 
 [regions.gateway.backend.mqtt]
-event_topic="us915/gateway/+/event/+"
-command_topic="us915/gateway/{{ gateway_id }}/command/{{ command }}"
+event_topic="us915_sb2/gateway/+/event/+"
+command_topic="us915_sb2/gateway/{{ gateway_id }}/command/{{ command }}"
 server="tcp://$MQTT_BROKER_HOST:$MQTT_BROKER_PORT"
 username="$MQTT_BROKER_USER"
 password="$MQTT_BROKER_PASSWORD"
