@@ -6,7 +6,7 @@ Contains all components to support the Chirpstack software stack to gain access 
 
 Most of the Chirpstack pods publish prometheus metrics on port `9100`. See the individual deployment files for details.
 
-# More Information
+## More Information
 
 For more information on each component:
 
