@@ -20,7 +20,7 @@ configMapGenerator:
   - name: chirpstack-server-config-cm
     files:
       - chirpstack.toml
-      - region_us915.toml
+      - region_us915_sub_band_2.toml
   - name: chirpstack-postgresql-init-cm
     files:
       - 001-init-chirpstack.sh

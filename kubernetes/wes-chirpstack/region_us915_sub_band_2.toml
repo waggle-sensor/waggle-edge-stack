@@ -1,0 +1,20 @@
+[[regions]]
+name="us915_sb2"
+common_name="US915"
+
+[regions.gateway.backend]
+enabled="mqtt"
+
+[regions.gateway.backend.mqtt]
+event_topic="us915_sb2/gateway/+/event/+"
+command_topic="us915_sb2/gateway/{{ gateway_id }}/command/{{ command }}"
+server="tcp://$MQTT_BROKER_HOST:$MQTT_BROKER_PORT"
+username="$MQTT_BROKER_USER"
+password="$MQTT_BROKER_PASSWORD"
+
+[regions.network]
+# Note: when left blank / empty array, all channels will be enabled. BUT it can cause major
+#   packet loss. See, https://forum.chirpstack.io/t/enabling-all-channel-for-as923-2/19243
+#   This is using Sub band 2 for more channels see, 
+#   https://www.baranidesign.com/faq-articles/2019/4/23/lorawan-usa-frequencies-channels-and-sub-bands-for-iot-devices
+enabled_uplink_channels=[8,9,10,11,12,13,14,15] 

@@ -5,16 +5,10 @@ log_level=5
 [backend.semtech_udp]
 udp_bind = "0.0.0.0:1700"
 
-[backend.basic_station]
-region="US915"
-# based on the `us_902_928` setting in the packet forwarder
-frequency_min=902000000
-frequency_max=928000000
-
 [integration.mqtt]
-event_topic_template="us915/gateway/{{ .GatewayID }}/event/{{ .EventType }}"
-state_topic_template="us915/gateway/{{ .GatewayID }}/state/{{ .StateType }}"
-command_topic_template="us915/gateway/{{ .GatewayID }}/command/#"
+event_topic_template="us915_sb2/gateway/{{ .GatewayID }}/event/{{ .EventType }}"
+state_topic_template="us915_sb2/gateway/{{ .GatewayID }}/state/{{ .StateType }}"
+command_topic_template="us915_sb2/gateway/{{ .GatewayID }}/command/#"
 
 [integration.mqtt.auth.generic]
 servers=["tcp://wes-rabbitmq:1883"]
