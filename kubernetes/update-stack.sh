@@ -12,6 +12,14 @@ fatal() {
     exit 1
 }
 
+# waggle_log logs important messages to the journal so they can fetched using the waggle identifier:
+# journalctl -t waggle
+waggle_log() {
+    level="$1"
+    shift
+    systemd-cat -t waggle -p "$level" echo $*
+}
+
 getarch() {
     case $(uname -s) in
     [Dd]arwin) os=darwin ;;
@@ -730,7 +738,20 @@ clean_slash_run_tempfs() {
     ssh ws-nxagent -x "udevadm info -c"
 }
 
+waggle_log info "started updating wes"
 cd $(dirname $0)
+
+# Perform k3s health check and recovery
+if ! output=$(kubectl get nodes 2>&1); then
+    waggle_log err "k3s is stuck with error: ${output}"
+    waggle_log info "attempting to restart k3s..."
+    if systemctl restart k3s; then
+        waggle_log info "k3s restarted sucessfully!"
+    else
+        waggle_log err "k3s failed to restart!"
+    fi
+fi
+
 delete_stuck_pods
 restart_bad_meta_init_pods
 cleanup_old_iio_raingauge
@@ -743,3 +764,4 @@ update_wes
 update_influxdb_retention
 clean_manifestv2_cm
 clean_slash_run_tempfs
+waggle_log info "finished updating wes"
