@@ -218,8 +218,9 @@ management.load_definitions = /etc/rabbitmq/definitions.json
 management.tcp.ip   = 0.0.0.0
 management.tcp.port = 15672
 
-# disable logging to file to prevent runaway disk usage
+# disable logging to file to prevent runaway disk usage and log to console instead
 log.file = false
+log.console = true
 
 # mqtt config for lorawan
 mqtt.default_user = service
