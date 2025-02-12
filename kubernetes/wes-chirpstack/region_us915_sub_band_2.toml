@@ -18,3 +18,12 @@ password="$MQTT_BROKER_PASSWORD"
 #   This is using Sub band 2 for more channels see, 
 #   https://www.baranidesign.com/faq-articles/2019/4/23/lorawan-usa-frequencies-channels-and-sub-bands-for-iot-devices
 enabled_uplink_channels=[8,9,10,11,12,13,14,15] 
+# Installation margin (dB) used by the ADR engine (default is 10).
+#
+# A higher number means that the network-server will keep more margin,
+# resulting in a lower data-rate (higher Spreading Factor) but decreasing the chance that the
+# device gets disconnected because it is unable to reach one of the surrounded gateways.
+# SUMMARY:
+# - Higher values (>=10 dB) → More conservative, longer range, lower data rates, chance of disconnection is reduced, lora sensor battery life is reduced
+# - Lower values (5-8 dB) → More aggressive, better network efficiency, riskier in weak signal areas, faster data transmission, Less airtime usage, more risk of disconnection, lora sensor battery life is increased
+installation_margin=15
