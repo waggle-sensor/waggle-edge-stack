@@ -17,7 +17,7 @@ spec:
       containers:
         - name: wes-metrics-agent
           image: waggle/wes-metrics-agent:pr-16
-          imagePullPolicy: IfNotPresent
+          imagePullPolicy: Always #IfNotPresent
           securityContext:
             privileged: true
           resources:
