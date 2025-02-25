@@ -16,8 +16,10 @@ spec:
       priorityClassName: wes-high-priority
       containers:
         - name: wes-metrics-agent
-          image: waggle/wes-metrics-agent:pr-16
-          imagePullPolicy: Always #IfNotPresent
+          image: waggle/wes-metrics-agent:pr-16 #TODO: change to latest version, when done testing
+          imagePullPolicy: Always #IfNotPresent TODO: change to IfNotPresent, when done testing
+          command: ["python", "main.py"]  #TODO: remove, when done testing
+          args: ["--debug"]  #TODO: remove, when done testing
           securityContext:
             privileged: true
           resources:
