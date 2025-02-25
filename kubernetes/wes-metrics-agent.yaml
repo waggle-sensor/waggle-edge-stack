@@ -35,6 +35,10 @@ spec:
               valueFrom:
                 fieldRef:
                   fieldPath: status.hostIP
+            - name: RESOURCE_LORAWAN
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.labels['resource.lorawan']
             - name: RABBITMQ_HOST
               value: "wes-rabbitmq"
             - name: RABBITMQ_PORT
