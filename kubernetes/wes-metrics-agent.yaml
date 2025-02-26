@@ -16,7 +16,7 @@ spec:
       priorityClassName: wes-high-priority
       containers:
         - name: wes-metrics-agent
-          image: waggle/wes-metrics-agent:0.8.2
+          image: waggle/wes-metrics-agent:0.8.3
           imagePullPolicy: IfNotPresent
           securityContext:
             privileged: true
@@ -45,6 +45,10 @@ spec:
               value: service
             - name: METRICS_URL
               value: "http://$(HOST_IP):9100/metrics"
+            - name: CHIRPSTACK_METRICS_URL
+              value: "http://wes-chirpstack-server:9100/metrics"
+            - name: CHIRPSTACK_GATEWAY_METRICS_URL
+              value: "http://wes-chirpstack-gateway-bridge:9100/metrics"
             - name: RABBITMQ_EXCHANGE
               value: "to-beehive"
             - name: GPSD_HOST
