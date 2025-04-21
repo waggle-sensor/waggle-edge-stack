@@ -21,6 +21,7 @@ configMapGenerator:
     files:
       - chirpstack.toml
       - region_us915_sub_band_2.toml
+      - adr_plugins/no_adr.js
   - name: chirpstack-postgresql-init-cm
     files:
       - 001-init-chirpstack.sh

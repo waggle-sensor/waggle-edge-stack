@@ -27,3 +27,40 @@ enabled_uplink_channels=[8,9,10,11,12,13,14,15]
 # - Higher values (>=10 dB) → More conservative, longer range, lower data rates, chance of disconnection is reduced, lora sensor battery life is reduced
 # - Lower values (5-8 dB) → More aggressive, better network efficiency, riskier in weak signal areas, faster data transmission, Less airtime usage, more risk of disconnection, lora sensor battery life is increased
 installation_margin=15
+
+
+# Enable both RX1 and RX2 windows
+rx_window = 0
+
+# RX1 delay (1 second is the LoRaWAN default)
+rx1_delay = 1
+
+# RX1 data-rate offset (0 = no offset from uplink DR)
+rx1_dr_offset = 0
+
+# RX2 data-rate
+rx2_dr = 8 #based on our gateway config
+
+# RX2 frequency (US915 default for RX2 is 923.3 MHz)
+rx2_frequency = 923300000
+
+# Prefer RX2 on RX1 data-rate less than.
+#
+# Prefer RX2 over RX1 based on the RX1 data-rate. When the RX1 data-rate
+# is smaller than the configured value, then the Network Server will
+# first try to schedule the downlink for RX2, failing that (e.g. the gateway
+# has already a payload scheduled at the RX2 timing) it will try RX1.
+rx2_prefer_on_rx1_dr_lt = 2 
+
+# Prefer RX2 if link budget is better
+rx2_prefer_on_link_budget = true
+
+# Use default downlink TX power defined by the band
+downlink_tx_power = -1
+
+# Enable ADR
+adr_disabled = false
+
+# Allow DR0 (SF10/125kHz) through DR4 (SF8/500kHz) for uplink
+min_dr = 0
+max_dr = 4
