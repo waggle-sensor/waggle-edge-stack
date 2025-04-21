@@ -1,6 +1,6 @@
 // This must return the name of the ADR algorithm.
 export function name() {
-    return "No ADR";
+    return "Disable ADR";
   }
   
   // This must return the id of the ADR algorithm.
