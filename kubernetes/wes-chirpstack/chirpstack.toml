@@ -15,7 +15,11 @@ enabled_regions=["us915_sb2"]
 # The custom ADR plugin must be implemented in JavaScript. For an example
 # skeleton, please see:
 # https://github.com/chirpstack/chirpstack/blob/master/examples/adr_plugins/plugin_skeleton.js
-adr_plugins=["/etc/chirpstack-waggle/no_adr.js"]
+adr_plugins=["/etc/chirpstack-waggle/no_adr.js",
+             "/etc/chirpstack-waggle/dr_0.js",
+             "/etc/chirpstack-waggle/dr_1.js",
+             "/etc/chirpstack-waggle/dr_2.js",
+             "/etc/chirpstack-waggle/dr_3.js"]
 
 [api]
 bind="0.0.0.0:$WEB_API_PORT"
