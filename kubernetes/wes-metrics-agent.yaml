@@ -14,6 +14,10 @@ spec:
         app.kubernetes.io/name: wes-metrics-agent
     spec:
       priorityClassName: wes-high-priority
+      tolerations:
+        # ensure this service continues under disk pressure so it always attempts to post system metrics.
+        - key: "node.kubernetes.io/disk-pressure"
+          operator: "Exists"
       containers:
         - name: wes-metrics-agent
           image: waggle/wes-metrics-agent:0.8.3
