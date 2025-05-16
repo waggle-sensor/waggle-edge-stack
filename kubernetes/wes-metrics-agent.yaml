@@ -13,7 +13,7 @@ spec:
       labels:
         app.kubernetes.io/name: wes-metrics-agent
     spec:
-      priorityClassName: wes-high-priority
+      priorityClassName: system-node-critical
       tolerations:
         # ensure this service continues under disk pressure so it always attempts to post system metrics.
         - key: "node.kubernetes.io/disk-pressure"
