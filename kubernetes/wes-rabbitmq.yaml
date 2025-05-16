@@ -30,7 +30,11 @@ spec:
       labels:
         app: wes-rabbitmq
     spec:
-      priorityClassName: wes-high-priority
+      priorityClassName: system-node-critical
+      tolerations:
+        # ensure this service continues under disk pressure so key system events can be published.
+        - key: "node.kubernetes.io/disk-pressure"
+          operator: "Exists"
       nodeSelector:
         node-role.kubernetes.io/master: "true"
       containers:
