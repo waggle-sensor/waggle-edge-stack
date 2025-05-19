@@ -1,0 +1,55 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: wes-chirpstack-redis
+spec:
+  selector:
+    matchLabels:
+      app: wes-chirpstack-redis
+  serviceName: wes-chirpstack-redis
+  template:
+    metadata:
+      labels:
+        app: wes-chirpstack-redis
+    spec:
+      priorityClassName: wes-high-priority
+      # to ensure we are able to access the PVC
+      nodeSelector:
+        node-role.kubernetes.io/master: "true"
+      containers:
+        - name: wes-chirpstack-redis
+          image: redis:7.0.4-alpine3.16
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: redis
+              containerPort: 6379
+          resources:
+            requests:
+              cpu: 50m
+              memory: 25Mi
+            limits:
+              memory: 50Mi
+          envFrom:
+            - configMapRef:
+                name: wes-identity
+          volumeMounts:
+            - mountPath: /data
+              name: data
+          livenessProbe:
+            tcpSocket:
+              port: redis
+            timeoutSeconds: 10
+            failureThreshold: 3
+            periodSeconds: 60
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: data
+  volumeClaimTemplates:
+    - metadata:
+        name: data
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        resources:
+          requests:
+            storage: 20Mi

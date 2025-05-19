@@ -1,0 +1,31 @@
+[logging]
+level="debug"
+
+[postgresql]
+dsn="postgres://$POSTGRESQL_USER:$POSTGRESQL_PWD@$POSTGRESQL_HOST/$POSTGRESQL_DB?sslmode=disable"
+
+[redis]
+servers=["redis://$REDIS_HOST/"]
+
+[network]
+net_id="000000"
+enabled_regions=["us915_sb2"]
+
+[api]
+bind="0.0.0.0:$WEB_API_PORT"
+secret="sPQT3pZfR191Y9lJP9CreqbThIvjGlR8YYMNmav9hkI="
+
+[monitoring]
+# /health  - Returns 200 in case the healthchecks have passed.
+# /metrics - Returns metrics which can be scraped by Prometheus.
+bind="0.0.0.0:$METRICS_PORT"
+
+[integration]
+enabled = ["mqtt"]
+
+[integration.mqtt]
+server="tcp://$MQTT_BROKER_HOST:$MQTT_BROKER_PORT/"
+json=true
+username="$MQTT_BROKER_USER"
+password="$MQTT_BROKER_PASSWORD"
+client_id="wes-chirpstack-server"

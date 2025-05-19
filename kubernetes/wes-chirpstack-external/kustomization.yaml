@@ -1,0 +1,26 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+  - wes-chirpstack-gateway-service.yaml
+  - wes-chirpstack-gateway-deployment.yaml
+  - wes-chirpstack-server-service.yaml
+  - wes-chirpstack-server-deployment.yaml
+  - wes-chirpstack-redis-service.yaml
+  - wes-chirpstack-redis-statefulset.yaml
+  - wes-chirpstack-postgresql-service.yaml
+  - wes-chirpstack-postgresql-statefulset.yaml
+  - wes-chirpstack-tracker-deployment.yaml
+  - wes-init-chirpstack-server-job.yaml
+
+configMapGenerator:
+  - name: chirpstack-gateway-bridge-config-cm
+    files:
+      - chirpstack-gateway-bridge.toml
+  - name: chirpstack-server-config-cm
+    files:
+      - chirpstack.toml
+      - region_us915_sub_band_2.toml
+  - name: chirpstack-postgresql-init-cm
+    files:
+      - 001-init-chirpstack.sh

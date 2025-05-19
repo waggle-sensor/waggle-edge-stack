@@ -1,0 +1,93 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: wes-chirpstack-server
+spec:
+  selector:
+    matchLabels:
+      app: wes-chirpstack-server
+  template:
+    metadata:
+      labels:
+        app: wes-chirpstack-server
+    spec:
+      priorityClassName: wes-high-priority
+      containers:
+        - name: wes-chirpstack-server
+          image: waggle/wes-chirpstack-server:0.3.0
+          imagePullPolicy: IfNotPresent
+          command: ["/bin/sh"]
+          args: ["-c", "printenv > /etc/environment && sudo crond -f -d 6 & chirpstack -c /etc/chirpstack-waggle"]
+          lifecycle:
+            # import the lorawan ttn devices profile templates
+            postStart:
+              exec:
+                command:
+                  [
+                    "chirpstack",
+                    "-c",
+                    "/etc/chirpstack-waggle",
+                    "import-legacy-lorawan-devices-repository",
+                    "-d",
+                    "/opt/lorawan-devices",
+                  ]
+          ports:
+            - containerPort: 8080
+            - name: metrics
+              containerPort: 9100
+          resources:
+            requests:
+              cpu: 50m
+              memory: 50Mi
+            limits:
+              memory: 100Mi
+          envFrom:
+            - configMapRef:
+                name: wes-identity
+          env:
+            - name: POSTGRESQL_HOST
+              value: "wes-chirpstack-postgresql"
+            - name: POSTGRESQL_USER
+              value: "chirpstack"
+            - name: POSTGRESQL_PWD
+              value: "chirpstack"
+            - name: POSTGRESQL_DB
+              value: "chirpstack"
+            - name: REDIS_HOST
+              value: "wes-chirpstack-redis:6379"
+            - name: MQTT_BROKER_HOST
+              value: "wes-rabbitmq"
+            - name: MQTT_BROKER_PORT
+              value: "1883"
+            - name: MQTT_BROKER_USER
+              value: "service"
+            - name: MQTT_BROKER_PASSWORD
+              value: "service"
+            - name: WEB_API_PORT
+              value: "8080"
+            - name: METRICS_PORT
+              value: "9100"
+          volumeMounts:
+            - name: server-config-volume
+              mountPath: /etc/chirpstack-waggle
+              readOnly: true
+          startupProbe:
+            httpGet:
+              path: /health
+              port: metrics
+            initialDelaySeconds: 5
+            timeoutSeconds: 10
+            failureThreshold: 10
+            periodSeconds: 30
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: metrics
+            timeoutSeconds: 10
+            failureThreshold: 3
+            periodSeconds: 60
+      volumes:
+        - name: server-config-volume
+          configMap:
+            name: chirpstack-server-config-cm
+            defaultMode: 0644

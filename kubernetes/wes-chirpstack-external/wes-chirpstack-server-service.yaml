@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: wes-chirpstack-server
+spec:
+  selector:
+    app: wes-chirpstack-server
+  ports:
+    - name: web-api-interface
+      port: 8080
+      targetPort: 8080
+    - name: metrics
+      port: 9100
+      targetPort: 9100
