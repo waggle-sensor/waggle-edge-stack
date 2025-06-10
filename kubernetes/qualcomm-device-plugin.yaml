@@ -1,0 +1,52 @@
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: qaic-device-plugin-daemonset
+  namespace: kube-system
+spec:
+  selector:
+    matchLabels:
+      name: qaic-device-plugin-ds
+  template:
+    metadata:
+      # Mark this pod as a critical add-on; when enabled, the critical add-on scheduler
+      # reserves resources for critical add-on pods so that they can be rescheduled after
+      # a failure.  This annotation works in tandem with the toleration below.
+      labels:
+        name: qaic-device-plugin-ds
+    spec:
+      # Use the host network to get the udev events for device health
+      hostNetwork: true
+      tolerations:
+      # Allow this pod to be rescheduled while the node is in "critical add-ons only" mode.
+      # This, along with the annotation above marks this pod as a critical add-on.
+      - key: CriticalAddonsOnly
+        operator: Exists
+      - key: qualcomm.com/qaic
+        operator: Exists
+        effect: NoSchedule
+      priorityClassName: system-cluster-critical
+      containers:
+      - image: qaic-k8s-device-plugin:v1.1.0
+        name: qaic-device-plugin-ctr
+        env:
+        # ALLOWED_QAIC_DEVICE_SHARES default value is 1.
+        # By increasing this value topological allocation will be disabled.
+          - name: ALLOWED_QAIC_DEVICE_SHARES
+            value: "1"
+        securityContext:
+          privileged: true
+        volumeMounts:
+          - name: device-plugin
+            mountPath: /var/lib/kubelet/device-plugins
+          - name: udev-run
+            mountPath: /run/udev
+            readOnly: true
+      volumes:
+        - name: device-plugin
+          hostPath:
+            path: /var/lib/kubelet/device-plugins
+        - name: udev-run
+          hostPath:
+            path: /run/udev
+
