@@ -753,6 +753,10 @@ if ! output=$(kubectl get nodes 2>&1); then
     fi
 fi
 
+# Prune old RabbitMQ and Upload Agent configs.
+kubectl get secret | grep wes-rabbitmq-config | head -n -3 | awk '{print $1}' | xargs --no-run-if-empty kubectl delete secret
+kubectl get secret | grep wes-upload-agent-config | head -n -3 | awk '{print $1}' | xargs --no-run-if-empty kubectl delete secret
+
 delete_stuck_pods
 restart_bad_meta_init_pods
 cleanup_old_iio_raingauge
