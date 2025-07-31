@@ -400,14 +400,15 @@ EOF
     "parameters": [
         {
             "value": {
-            "dest-exchange": "waggle.msg",
-            "dest-publish-properties": {
-                "delivery_mode": 2,
-                "user_id": "node-${WAGGLE_NODE_ID}"
-            },
-            "dest-uri": "amqps://${WAGGLE_BEEHIVE_RABBITMQ_HOST}:${WAGGLE_BEEHIVE_RABBITMQ_PORT}?auth_mechanism=external&cacertfile=/etc/rabbitmq/cacert.pem&certfile=/etc/rabbitmq/cert.pem&keyfile=/etc/rabbitmq/key.pem",
-            "src-queue": "to-beehive",
-            "src-uri": "amqp://shovel:shovel@wes-rabbitmq"
+                "reconnect-delay": 60,
+                "dest-exchange": "waggle.msg",
+                "dest-publish-properties": {
+                    "delivery_mode": 2,
+                    "user_id": "node-${WAGGLE_NODE_ID}"
+                },
+                "dest-uri": "amqps://${WAGGLE_BEEHIVE_RABBITMQ_HOST}:${WAGGLE_BEEHIVE_RABBITMQ_PORT}?auth_mechanism=external&cacertfile=/etc/rabbitmq/cacert.pem&certfile=/etc/rabbitmq/cert.pem&keyfile=/etc/rabbitmq/key.pem",
+                "src-queue": "to-beehive",
+                "src-uri": "amqp://shovel:shovel@wes-rabbitmq"
             },
             "vhost": "/",
             "component": "shovel",
