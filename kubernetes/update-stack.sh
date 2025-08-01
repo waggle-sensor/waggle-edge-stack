@@ -206,6 +206,7 @@ EOF
 
     # generate rabbitmq configs / secrets for kustomize
     # NOTE We are temporarily disabling shovels while debugging the cloud issues.
+    # TODO Let's work on separating out deployment specific config like this from the main update stack scripts.
 #     cat > configs/rabbitmq/enabled_plugins <<EOF
 # [rabbitmq_prometheus,rabbitmq_management,rabbitmq_management_agent,rabbitmq_auth_mechanism_ssl,rabbitmq_shovel,rabbitmq_shovel_management,rabbitmq_mqtt].
 # EOF
