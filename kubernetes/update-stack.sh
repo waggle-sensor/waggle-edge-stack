@@ -205,8 +205,12 @@ EOF
     cp ${WAGGLE_CONFIG_DIR}/${NODE_MANIFEST_V2} configs/${NODE_MANIFEST_V2}
 
     # generate rabbitmq configs / secrets for kustomize
+    # NOTE We are temporarily disabling shovels while debugging the cloud issues.
+#     cat > configs/rabbitmq/enabled_plugins <<EOF
+# [rabbitmq_prometheus,rabbitmq_management,rabbitmq_management_agent,rabbitmq_auth_mechanism_ssl,rabbitmq_shovel,rabbitmq_shovel_management,rabbitmq_mqtt].
+# EOF
     cat > configs/rabbitmq/enabled_plugins <<EOF
-[rabbitmq_prometheus,rabbitmq_management,rabbitmq_management_agent,rabbitmq_auth_mechanism_ssl,rabbitmq_shovel,rabbitmq_shovel_management,rabbitmq_mqtt].
+[rabbitmq_prometheus,rabbitmq_management,rabbitmq_management_agent,rabbitmq_auth_mechanism_ssl,rabbitmq_mqtt].
 EOF
 
     cat > configs/rabbitmq/rabbitmq.conf <<EOF
