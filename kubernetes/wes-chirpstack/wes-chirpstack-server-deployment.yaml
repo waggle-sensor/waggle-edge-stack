@@ -15,6 +15,8 @@ spec:
       containers:
         - name: wes-chirpstack-server
           image: waggle/wes-chirpstack-server:0.3.0
+          securityContext:
+            privileged: true
           imagePullPolicy: IfNotPresent
           command: ["/bin/sh"]
           args: ["-c", "printenv > /etc/environment && sudo crond -f -d 6 & chirpstack -c /etc/chirpstack-waggle"]
@@ -40,6 +42,7 @@ spec:
               cpu: 50m
               memory: 50Mi
             limits:
+              cpu: 100m
               memory: 100Mi
           envFrom:
             - configMapRef:
@@ -67,10 +70,21 @@ spec:
               value: "8080"
             - name: METRICS_PORT
               value: "9100"
+            # wireguard env variables
+            - name: PUID
+              value: "0"
+            - name: PGID
+              value: "0"
+            - name: TZ
+              value: "UTC"
           volumeMounts:
             - name: server-config-volume
               mountPath: /etc/chirpstack-waggle
               readOnly: true
+            - name: wg-dev
+              mountPath: /dev/net/tun
+            - name: django-token-volume
+              mountPath: /mnt/token
           startupProbe:
             httpGet:
               path: /health
@@ -91,3 +105,11 @@ spec:
           configMap:
             name: chirpstack-server-config-cm
             defaultMode: 0644
+        - name: wg-dev
+          hostPath:
+            path: /dev/net/tun
+            type: CharDevice
+        - name: django-token-volume
+          secret:
+            secretName: django-token
+            optional: true
