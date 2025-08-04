@@ -78,7 +78,7 @@ spec:
             - name: TZ
               value: "UTC"
             - name: WG_GET_CONFIG_ENDPOINT
-              value: "http://localhost:8005/node-auth/wireguard/"
+              value: "http://localhost:8005/node-auth/wireguard/" #TODO: update to prod endpoint
           volumeMounts:
             - name: server-config-volume
               mountPath: /etc/chirpstack-waggle
