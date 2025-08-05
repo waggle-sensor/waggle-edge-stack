@@ -77,6 +77,8 @@ spec:
               value: "0"
             - name: TZ
               value: "UTC"
+            - name: AUTH_NODE_KEYWORD
+              value: "node_auth"
             - name: WG_GET_CONFIG_ENDPOINT
               value: "http://localhost:8005/node-auth/wireguard/" #TODO: update to prod endpoint
           volumeMounts:
