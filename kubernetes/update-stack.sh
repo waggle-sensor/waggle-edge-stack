@@ -206,7 +206,7 @@ EOF
 
     # generate rabbitmq configs / secrets for kustomize
     # TODO unify how this is done for various node settings rather than it being a one off for the shovel.
-    if [ -e configs/no-shovel ]; then
+    if [ -e configs/no-rabbitmq-shovel ]; then
         echo "rabbitmq shovel is disabled"
         cat > configs/rabbitmq/enabled_plugins <<EOF
 [rabbitmq_prometheus,rabbitmq_management,rabbitmq_management_agent,rabbitmq_auth_mechanism_ssl,rabbitmq_mqtt].
