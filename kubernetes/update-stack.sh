@@ -205,9 +205,18 @@ EOF
     cp ${WAGGLE_CONFIG_DIR}/${NODE_MANIFEST_V2} configs/${NODE_MANIFEST_V2}
 
     # generate rabbitmq configs / secrets for kustomize
-    cat > configs/rabbitmq/enabled_plugins <<EOF
+    # TODO unify how this is done for various node settings rather than it being a one off for the shovel.
+    if [ -e configs/no-rabbitmq-shovel ]; then
+        echo "rabbitmq shovel is disabled"
+        cat > configs/rabbitmq/enabled_plugins <<EOF
+[rabbitmq_prometheus,rabbitmq_management,rabbitmq_management_agent,rabbitmq_auth_mechanism_ssl,rabbitmq_mqtt].
+EOF
+    else
+        echo "rabbitmq shovel is enabled"
+        cat > configs/rabbitmq/enabled_plugins <<EOF
 [rabbitmq_prometheus,rabbitmq_management,rabbitmq_management_agent,rabbitmq_auth_mechanism_ssl,rabbitmq_shovel,rabbitmq_shovel_management,rabbitmq_mqtt].
 EOF
+    fi
 
     cat > configs/rabbitmq/rabbitmq.conf <<EOF
 # server config
@@ -400,14 +409,15 @@ EOF
     "parameters": [
         {
             "value": {
-            "dest-exchange": "waggle.msg",
-            "dest-publish-properties": {
-                "delivery_mode": 2,
-                "user_id": "node-${WAGGLE_NODE_ID}"
-            },
-            "dest-uri": "amqps://${WAGGLE_BEEHIVE_RABBITMQ_HOST}:${WAGGLE_BEEHIVE_RABBITMQ_PORT}?auth_mechanism=external&cacertfile=/etc/rabbitmq/cacert.pem&certfile=/etc/rabbitmq/cert.pem&keyfile=/etc/rabbitmq/key.pem",
-            "src-queue": "to-beehive",
-            "src-uri": "amqp://shovel:shovel@wes-rabbitmq"
+                "reconnect-delay": 60,
+                "dest-exchange": "waggle.msg",
+                "dest-publish-properties": {
+                    "delivery_mode": 2,
+                    "user_id": "node-${WAGGLE_NODE_ID}"
+                },
+                "dest-uri": "amqps://${WAGGLE_BEEHIVE_RABBITMQ_HOST}:${WAGGLE_BEEHIVE_RABBITMQ_PORT}?auth_mechanism=external&cacertfile=/etc/rabbitmq/cacert.pem&certfile=/etc/rabbitmq/cert.pem&keyfile=/etc/rabbitmq/key.pem",
+                "src-queue": "to-beehive",
+                "src-uri": "amqp://shovel:shovel@wes-rabbitmq"
             },
             "vhost": "/",
             "component": "shovel",
