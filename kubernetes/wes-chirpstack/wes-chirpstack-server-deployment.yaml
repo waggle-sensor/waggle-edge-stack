@@ -72,12 +72,6 @@ spec:
             - name: METRICS_PORT
               value: "9100"
             # wireguard env variables
-            - name: PUID
-              value: "0"
-            - name: PGID
-              value: "0"
-            - name: TZ
-              value: "Etc/UTC"
             - name: AUTH_NODE_KEYWORD
               value: "node_auth"
             - name: WG_GET_CONFIG_ENDPOINT
