@@ -89,12 +89,6 @@ spec:
               mountPath: /dev/net/tun
             - name: django-token-volume
               mountPath: /mnt/token
-            - name: time-sync-volume
-              mountPath: /etc/localtime
-              readOnly: true
-            - name: timezone-sync-volume
-              mountPath: /etc/timezone
-              readOnly: true
           startupProbe:
             httpGet:
               path: /health
@@ -123,11 +117,3 @@ spec:
           secret:
             secretName: django-token
             optional: true
-        - name: time-sync-volume
-          hostPath:
-            path: /etc/localtime
-            type: File
-        - name: timezone-sync-volume
-          hostPath:
-            path: /etc/timezone
-            type: File
