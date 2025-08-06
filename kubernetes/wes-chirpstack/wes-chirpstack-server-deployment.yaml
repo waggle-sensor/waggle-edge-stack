@@ -89,6 +89,8 @@ spec:
               mountPath: /dev/net/tun
             - name: django-token-volume
               mountPath: /mnt/token
+            - name: rtc-dev
+              mountPath: /dev/rtc
           startupProbe:
             httpGet:
               path: /health
@@ -117,3 +119,7 @@ spec:
           secret:
             secretName: django-token
             optional: true
+        - name: rtc-dev
+          hostPath:
+            path: /dev/rtc
+            type: CharDevice
