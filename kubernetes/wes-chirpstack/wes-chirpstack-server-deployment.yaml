@@ -77,7 +77,7 @@ spec:
             - name: PGID
               value: "0"
             - name: TZ
-              value: "UTC"
+              value: "Etc/UTC"
             - name: AUTH_NODE_KEYWORD
               value: "node_auth"
             - name: WG_GET_CONFIG_ENDPOINT
