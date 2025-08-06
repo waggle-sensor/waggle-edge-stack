@@ -16,7 +16,8 @@ spec:
         - name: wes-chirpstack-server
           image: waggle/wes-chirpstack-server:0.3.0
           securityContext:
-            privileged: true
+            capabilities:
+              add: ["NET_ADMIN", "SYS_MODULE"]
           imagePullPolicy: IfNotPresent
           command: ["/bin/sh"]
           args: ["-c", "printenv > /etc/environment && sudo crond -f -d 6 & chirpstack -c /etc/chirpstack-waggle"]
