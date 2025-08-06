@@ -17,7 +17,7 @@ spec:
           image: waggle/wes-chirpstack-server:0.3.0
           securityContext:
             capabilities:
-              add: ["NET_ADMIN", "SYS_MODULE"]
+              add: ["NET_ADMIN"]
           imagePullPolicy: IfNotPresent
           command: ["/bin/sh"]
           args: ["-c", "printenv > /etc/environment && sudo crond -f -d 6 & chirpstack -c /etc/chirpstack-waggle"]
@@ -80,8 +80,6 @@ spec:
             - name: server-config-volume
               mountPath: /etc/chirpstack-waggle
               readOnly: true
-            - name: wg-dev
-              mountPath: /dev/net/tun
             - name: django-token-volume
               mountPath: /mnt/token
           startupProbe:
@@ -104,10 +102,6 @@ spec:
           configMap:
             name: chirpstack-server-config-cm
             defaultMode: 0644
-        - name: wg-dev
-          hostPath:
-            path: /dev/net/tun
-            type: CharDevice
         - name: django-token-volume
           secret:
             secretName: django-token
