@@ -92,6 +92,9 @@ spec:
             - name: time-sync-volume
               mountPath: /etc/localtime
               readOnly: true
+            - name: timezone-sync-volume
+              mountPath: /etc/timezone
+              readOnly: true
           startupProbe:
             httpGet:
               path: /health
@@ -123,4 +126,8 @@ spec:
         - name: time-sync-volume
           hostPath:
             path: /etc/localtime
+            type: File
+        - name: timezone-sync-volume
+          hostPath:
+            path: /etc/timezone
             type: File
