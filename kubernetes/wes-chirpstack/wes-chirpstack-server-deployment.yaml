@@ -14,7 +14,7 @@ spec:
       priorityClassName: wes-high-priority
       containers:
         - name: wes-chirpstack-server
-          image: waggle/wes-chirpstack-server:0.3.0
+          image: waggle/wes-chirpstack-server:pr-11 #TODO: update to prod image
           securityContext:
             capabilities:
               add: ["NET_ADMIN"]
