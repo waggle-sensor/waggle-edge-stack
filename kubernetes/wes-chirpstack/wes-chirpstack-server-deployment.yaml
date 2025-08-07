@@ -80,6 +80,8 @@ spec:
             - name: server-config-volume
               mountPath: /etc/chirpstack-waggle
               readOnly: true
+            - name: wg-dev
+              mountPath: /dev/net/tun
             - name: django-token-volume
               mountPath: /mnt/token
           startupProbe:
@@ -102,6 +104,10 @@ spec:
           configMap:
             name: chirpstack-server-config-cm
             defaultMode: 0644
+        - name: wg-dev
+          hostPath:
+            path: /dev/net/tun
+            type: CharDevice
         - name: django-token-volume
           secret:
             secretName: django-token
