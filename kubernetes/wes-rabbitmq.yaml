@@ -42,8 +42,11 @@ spec:
           image: rabbitmq:3.8.11-management-alpine
           imagePullPolicy: IfNotPresent
           resources:
-            limits:
-              memory: 1Gi
+            # TODO Decide if we want this limit. The request will help prevent overprovisioning
+            # but there a valid times where we want to allow the node some burst level of memory
+            # usage.
+            # limits:
+            #   memory: 1Gi
             requests:
               cpu: 500m
               memory: 1Gi
