@@ -763,6 +763,14 @@ if ! output=$(kubectl get nodes 2>&1); then
     fi
 fi
 
+# Scrape system metrics.
+waggle_log info "starting scraping system metrics..."
+if timeout 300 ./debug/scrape-system-metrics.py; then
+    waggle_log info "finished scraping system metrics!"
+else
+    waggle_log err "failed to scrape system metrics!"
+fi
+
 # Prune old RabbitMQ and Upload Agent configs.
 kubectl get secret | grep wes-rabbitmq-config | head -n -3 | awk '{print $1}' | xargs --no-run-if-empty kubectl delete secret
 kubectl get secret | grep wes-upload-agent-config | head -n -3 | awk '{print $1}' | xargs --no-run-if-empty kubectl delete secret
