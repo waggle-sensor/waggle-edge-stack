@@ -7,6 +7,7 @@ from typing import List
 from datetime import datetime
 import gzip
 import sys
+import re
 
 Device = namedtuple("Device", ["name", "ip"])
 
@@ -26,6 +27,13 @@ def get_system_metrics_disk_usage_bytes() -> int:
     output = subprocess.check_output(["du", "-sb", "/media/plugin-data/system-metrics"])
     fs = output.split()
     return int(fs[0])
+
+
+def get_core_device(devices: List[Device]) -> Device:
+    for device in devices:
+        if devices.ip == "10.31.81.1":
+            return device
+    raise KeyError("could not find core device")
 
 
 def main():
@@ -74,6 +82,27 @@ def main():
         Path(
             rootdir, f"{device.name}_node-exporter_{timestamp_ms}.prom.gz"
         ).write_bytes(gzip.compress(output))
+
+    # scrape core device specific metrics
+    device = get_core_device(devices)
+
+    # scrape rabbitmq metrics
+    output = subprocess.check_output(["kubectl", "get", "pod", "-o", "wide"]).decode()
+    rabbitmq_ip = re.search(r"wes-rabbitmq-0.*(10\.42\S+)", output).group(1)
+
+    if rabbitmq_ip is not None:
+        timestamp = datetime.utcnow()
+        output = subprocess.check_output(
+            [
+                "curl",
+                "-s",
+                f"http://{rabbitmq_ip}:15692/metrics",
+            ]
+        )
+        timestamp_ms = int(timestamp.timestamp() * 1000)
+        Path(rootdir, f"{device.name}_rabbitmq_{timestamp_ms}.prom.gz").write_bytes(
+            gzip.compress(output)
+        )
 
 
 if __name__ == "__main__":
