@@ -31,7 +31,7 @@ def get_system_metrics_disk_usage_bytes() -> int:
 
 def get_core_device(devices: List[Device]) -> Device:
     for device in devices:
-        if devices.ip == "10.31.81.1":
+        if device.ip == "10.31.81.1":
             return device
     raise KeyError("could not find core device")
 
