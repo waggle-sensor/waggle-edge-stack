@@ -24,6 +24,8 @@ def get_devices_from_kube() -> List[Device]:
 
 
 def get_system_metrics_disk_usage_bytes() -> int:
+    if not Path("/media/plugin-data/system-metrics").exists():
+        return 0
     output = subprocess.check_output(["du", "-sb", "/media/plugin-data/system-metrics"])
     fs = output.split()
     return int(fs[0])
