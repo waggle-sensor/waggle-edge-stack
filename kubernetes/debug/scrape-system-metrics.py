@@ -41,6 +41,60 @@ def get_core_device(devices: List[Device]) -> Device:
     raise KeyError("could not find core device")
 
 
+def scrape_cadvisor_metrics_for_device(device: Device, rootdir: Path):
+    timestamp = datetime.utcnow()
+    output = subprocess.check_output(
+        [
+            "kubectl",
+            "get",
+            "--raw",
+            f"/api/v1/nodes/{device.name}/proxy/metrics/cadvisor",
+        ]
+    )
+    timestamp_ms = int(timestamp.timestamp() * 1000)
+    Path(rootdir, f"{device.name}_cadvisor_{timestamp_ms}.prom.gz").write_bytes(
+        gzip.compress(output)
+    )
+
+
+def scrape_node_exporter_metrics_for_device(device: Device, rootdir: Path):
+    timestamp = datetime.utcnow()
+    output = subprocess.check_output(
+        [
+            "curl",
+            "-s",
+            f"http://{device.ip}:9100/metrics",
+        ]
+    )
+    timestamp_ms = int(timestamp.timestamp() * 1000)
+    Path(rootdir, f"{device.name}_node-exporter_{timestamp_ms}.prom.gz").write_bytes(
+        gzip.compress(output)
+    )
+
+
+def scrape_rabbitmq_metrics(devices: List[Device], rootdir: Path):
+    device = get_core_device(devices)
+    output = subprocess.check_output(["kubectl", "get", "pod", "-o", "wide"]).decode()
+    rabbitmq_ip = re.search(r"wes-rabbitmq-0.*(10\.42\S+)", output).group(1)
+
+    if rabbitmq_ip is None:
+        print("failed to scrape rabbitmq metrics")
+        return
+
+    timestamp = datetime.utcnow()
+    output = subprocess.check_output(
+        [
+            "curl",
+            "-s",
+            f"http://{rabbitmq_ip}:15692/metrics",
+        ]
+    )
+    timestamp_ms = int(timestamp.timestamp() * 1000)
+    Path(rootdir, f"{device.name}_rabbitmq_{timestamp_ms}.prom.gz").write_bytes(
+        gzip.compress(output)
+    )
+
+
 def main():
     # perform safety check to make sure we don't have runaway disk usage.
     disk_usage_gb = get_system_metrics_disk_usage_bytes() / 1024**3
@@ -77,55 +131,17 @@ def main():
     devices = get_devices_from_kube()
 
     for device in devices:
-        # scrape cadvisor metrics
-        timestamp = datetime.utcnow()
-        output = subprocess.check_output(
-            [
-                "kubectl",
-                "get",
-                "--raw",
-                f"/api/v1/nodes/{device.name}/proxy/metrics/cadvisor",
-            ]
-        )
-        timestamp_ms = int(timestamp.timestamp() * 1000)
-        Path(rootdir, f"{device.name}_cadvisor_{timestamp_ms}.prom.gz").write_bytes(
-            gzip.compress(output)
-        )
+        try:
+            scrape_cadvisor_metrics_for_device(device, rootdir)
+        except Exception:
+            print(f"failed to scrape cadvisor metrics for {device.name}")
 
-        # scrape node exporter metrics
-        timestamp = datetime.utcnow()
-        output = subprocess.check_output(
-            [
-                "curl",
-                "-s",
-                f"http://{device.ip}:9100/metrics",
-            ]
-        )
-        timestamp_ms = int(timestamp.timestamp() * 1000)
-        Path(
-            rootdir, f"{device.name}_node-exporter_{timestamp_ms}.prom.gz"
-        ).write_bytes(gzip.compress(output))
+        try:
+            scrape_node_exporter_metrics_for_device(device, rootdir)
+        except Exception:
+            print(f"failed to scrape node-exporter metrics for {device.name}")
 
-    # scrape core device specific metrics
-    device = get_core_device(devices)
-
-    # scrape rabbitmq metrics
-    output = subprocess.check_output(["kubectl", "get", "pod", "-o", "wide"]).decode()
-    rabbitmq_ip = re.search(r"wes-rabbitmq-0.*(10\.42\S+)", output).group(1)
-
-    if rabbitmq_ip is not None:
-        timestamp = datetime.utcnow()
-        output = subprocess.check_output(
-            [
-                "curl",
-                "-s",
-                f"http://{rabbitmq_ip}:15692/metrics",
-            ]
-        )
-        timestamp_ms = int(timestamp.timestamp() * 1000)
-        Path(rootdir, f"{device.name}_rabbitmq_{timestamp_ms}.prom.gz").write_bytes(
-            gzip.compress(output)
-        )
+    scrape_rabbitmq_metrics(devices, rootdir)
 
 
 if __name__ == "__main__":
