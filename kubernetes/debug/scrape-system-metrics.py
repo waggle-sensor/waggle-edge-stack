@@ -8,6 +8,9 @@ from datetime import datetime
 import gzip
 import sys
 import re
+from shutil import rmtree
+
+RETENTION_DAYS = 30
 
 Device = namedtuple("Device", ["name", "ip"])
 
@@ -39,6 +42,7 @@ def get_core_device(devices: List[Device]) -> Device:
 
 
 def main():
+    # perform safety check to make sure we don't have runaway disk usage.
     disk_usage_gb = get_system_metrics_disk_usage_bytes() / 1024**3
 
     print(f"system metrics using {disk_usage_gb:03f}Gi of space")
@@ -49,6 +53,23 @@ def main():
         )
         sys.exit(1)
 
+    # keep only the last 30 days of system metrics on disk.
+    dirs = sorted(Path("/media/plugin-data/system-metrics/").glob("*/*/*"))
+    print(f"{len(dirs)} days of system metrics are cached on disk.")
+
+    excess = 0
+
+    if len(dirs) > RETENTION_DAYS:
+        excess = len(dirs) - RETENTION_DAYS
+        print(
+            f"more than {RETENTION_DAYS} days of metrics on disk. will perform clean up!"
+        )
+
+    for d in dirs[:excess]:
+        print(f"removing {d}")
+        rmtree(d)
+
+    # ensure today's data directory exists.
     today = datetime.today()
     rootdir = Path(today.strftime("/media/plugin-data/system-metrics/%Y/%m/%d"))
     rootdir.mkdir(parents=True, exist_ok=True)
