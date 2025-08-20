@@ -38,10 +38,10 @@ else
     echo "ChirpStack version $chirpstack_version < 4.7.0, skipping device sessions migration"
 fi
 
-# import the legacy LoRaWAN devices repository
-echo "Importing legacy LoRaWAN devices repository..."
-echo "Executing: chirpstack -c $CONFIG_PATH import-legacy-lorawan-devices-repository -d /opt/lorawan-devices"
 #TODO: uncomment for production
+# import the legacy LoRaWAN devices repository
+# echo "Importing legacy LoRaWAN devices repository..."
+# echo "Executing: chirpstack -c $CONFIG_PATH import-legacy-lorawan-devices-repository -d /opt/lorawan-devices"
 # if chirpstack -c "$CONFIG_PATH" import-legacy-lorawan-devices-repository -d /opt/lorawan-devices; then
 #     echo "Legacy LoRaWAN devices repository import completed successfully"
 # else
