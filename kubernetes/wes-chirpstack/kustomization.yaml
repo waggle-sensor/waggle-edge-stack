@@ -24,3 +24,6 @@ configMapGenerator:
   - name: chirpstack-postgresql-init-cm
     files:
       - 001-init-chirpstack.sh
+  - name: post-start-server-script-cm
+    files:
+      - 002-post-start-server.sh
