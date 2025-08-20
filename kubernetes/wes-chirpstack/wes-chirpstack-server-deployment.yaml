@@ -26,7 +26,7 @@ spec:
             postStart:
               exec:
                 command:
-                  ["/bin/bash", "/opt/post-start-server.sh"]
+                  ["/bin/bash", "/opt/post-start-server.sh", "/etc/chirpstack-waggle"]
           ports:
             - containerPort: 8080
             - name: metrics
