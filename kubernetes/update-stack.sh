@@ -297,11 +297,11 @@ upgrade_rabbitmq_to_version() {
         return 1
     fi
     
-    # Wait for RabbitMQ to be ready
-    echo "Waiting for RabbitMQ to be ready after $target_ver upgrade..."
-    if ! kubectl wait --for=condition=ready pod/wes-rabbitmq-0 --timeout=300s; then
-        echo "Error: RabbitMQ not ready after $target_ver upgrade"
-        waggle_log err "RabbitMQ not ready after $target_ver upgrade"
+    # Wait for RabbitMQ to be running
+    echo "Waiting for RabbitMQ to be running after $target_ver upgrade..."
+    if ! kubectl wait --for=condition=running pod/wes-rabbitmq-0 --timeout=600s; then
+        echo "Error: RabbitMQ not running after $target_ver upgrade"
+        waggle_log err "RabbitMQ not running after $target_ver upgrade"
         return 1
     fi
     
