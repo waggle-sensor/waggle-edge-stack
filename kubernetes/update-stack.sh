@@ -431,12 +431,17 @@ update_rabbitmq_version() {
     # Verify feature flags are enabled
     echo "Verifying feature flags..."
     kubectl exec wes-rabbitmq-0 -- rabbitmqctl -q --formatter pretty_table list_feature_flags || true
+    echo "DEBUG: Feature flags verification completed"
     
     # Determine upgrade path
     echo "Determining upgrade path..."
+    echo "DEBUG: About to call determine_rabbitmq_upgrade_path with current_ver=$current_ver, target_ver=$target_ver"
     upgrade_path=$(determine_rabbitmq_upgrade_path "$current_ver" "$target_ver")
+    echo "DEBUG: determine_rabbitmq_upgrade_path returned: $upgrade_path"
     
-    if [ $? -ne 0 ]; then
+    local exit_code=$?
+    echo "DEBUG: determine_rabbitmq_upgrade_path exit code: $exit_code"
+    if [ $exit_code -ne 0 ]; then
         echo "Error: No supported upgrade path found from $current_ver to $target_ver"
         waggle_log err "No supported RabbitMQ upgrade path found: $current_ver -> $target_ver"
         return 1
