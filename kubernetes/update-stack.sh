@@ -239,7 +239,7 @@ determine_rabbitmq_upgrade_path() {
         local intermediate_versions=""
         local current_step="$current_pattern"
         
-        while [ -n "$current_step" ] && [ "$current_step" != "$target_pattern" ]; do
+        while [ -n "$current_step" ]; do
             local next_step="${supported_paths[$current_step]}"
             if [ -n "$next_step" ]; then
                 # Convert pattern to major.minor version for intermediate step
@@ -261,6 +261,8 @@ determine_rabbitmq_upgrade_path() {
                 
                 # Check if we've reached the target pattern
                 if [[ "$target_ver" =~ ^${next_step//x/} ]]; then
+                    # We've found the target pattern, stop here
+                    # Don't add this step to intermediate versions since it's the target
                     break
                 fi
                 
