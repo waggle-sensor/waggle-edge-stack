@@ -224,8 +224,6 @@ determine_rabbitmq_upgrade_path() {
         current_pattern="4.0.x"
     fi
     
-
-    
     # Check if direct upgrade is supported
     if [ -n "$current_pattern" ] && [ -n "${supported_paths[$current_pattern]}" ]; then
         local target_pattern="${supported_paths[$current_pattern]}"
@@ -245,11 +243,14 @@ determine_rabbitmq_upgrade_path() {
             local next_step="${supported_paths[$current_step]}"
             if [ -n "$next_step" ]; then
                 # Check if we've reached the target pattern BEFORE adding to intermediate versions
+                echo "DEBUG: Checking if target_ver=$target_ver matches next_step=$next_step (pattern: ^${next_step//x/})"
                 if [[ "$target_ver" =~ ^${next_step//x/} ]]; then
+                    echo "DEBUG: Target pattern matched! Breaking without adding $next_step"
                     # We've found the target pattern, stop here
                     # Don't add this step to intermediate versions since it's the target
                     break
                 fi
+                echo "DEBUG: Target pattern did not match, will add $next_step to intermediate versions"
                 
                 # Convert pattern to major.minor version for intermediate step
                 if [[ "$next_step" =~ ^3\. ]]; then
