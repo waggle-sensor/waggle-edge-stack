@@ -187,6 +187,7 @@ update_wes_plugins() {
 # determine_rabbitmq_upgrade_path: Determines the upgrade path between two RabbitMQ versions
 # Returns a space-separated list of intermediate versions, or empty string if direct upgrade
 determine_rabbitmq_upgrade_path() {
+    echo "DEBUG: ENTERING determine_rabbitmq_upgrade_path function"
     local current_ver="$1"
     local target_ver="$2"
     
