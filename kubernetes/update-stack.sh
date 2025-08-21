@@ -183,6 +183,293 @@ update_wes_plugins() {
 # 2. extract and reshape relevant parts into generated configs
 # 3. load generated configs / secrets using kustomize
 # if we buy into just using kustomize from the get go, then mostly only need step 3.
+
+# determine_rabbitmq_upgrade_path: Determines the upgrade path between two RabbitMQ versions
+# Returns a space-separated list of intermediate versions, or empty string if direct upgrade
+determine_rabbitmq_upgrade_path() {
+    local current_ver="$1"
+    local target_ver="$2"
+    
+    # Define supported upgrade paths based on RabbitMQ documentation
+    # https://www.rabbitmq.com/docs/upgrade
+    # From -> To (only one hop is supported)
+    declare -A supported_paths
+    supported_paths["3.7.18"]="3.8.x"
+    supported_paths["3.8.x"]="3.9.x"
+    supported_paths["3.9.x"]="3.10.x"
+    supported_paths["3.10.x"]="3.11.x"
+    supported_paths["3.11.18"]="3.12.x"
+    supported_paths["3.12.x"]="3.13.x"
+    supported_paths["3.13.x"]="4.0.x"
+    supported_paths["3.13.x"]="4.1.x"
+    supported_paths["4.0.x"]="4.1.x"
+    
+    # Determine current version pattern
+    local current_pattern=""
+    if [[ "$current_ver" =~ ^3\.7\. ]]; then
+        current_pattern="3.7.18"
+    elif [[ "$current_ver" =~ ^3\.8\. ]]; then
+        current_pattern="3.8.x"
+    elif [[ "$current_ver" =~ ^3\.9\. ]]; then
+        current_pattern="3.9.x"
+    elif [[ "$current_ver" =~ ^3\.10\. ]]; then
+        current_pattern="3.10.x"
+    elif [[ "$current_ver" =~ ^3\.11\. ]]; then
+        current_pattern="3.11.18"
+    elif [[ "$current_ver" =~ ^3\.12\. ]]; then
+        current_pattern="3.12.x"
+    elif [[ "$current_ver" =~ ^3\.13\. ]]; then
+        current_pattern="3.13.x"
+    elif [[ "$current_ver" =~ ^4\.0\. ]]; then
+        current_pattern="4.0.x"
+    fi
+    
+    # Check if direct upgrade is supported
+    if [ -n "$current_pattern" ] && [ -n "${supported_paths[$current_pattern]}" ]; then
+        local target_pattern="${supported_paths[$current_pattern]}"
+        
+        # Check if target version matches the supported upgrade path
+        if [[ "$target_ver" =~ ^${target_pattern//x/} ]]; then
+            # Direct upgrade is supported
+            echo ""
+            return 0
+        fi
+        
+        # Need to find intermediate path
+        local intermediate_versions=""
+        local current_step="$current_pattern"
+        
+        while [ -n "$current_step" ] && [ "$current_step" != "$target_pattern" ]; do
+            local next_step="${supported_paths[$current_step]}"
+            if [ -n "$next_step" ]; then
+                # Convert pattern to major.minor version for intermediate step
+                if [[ "$next_step" =~ ^3\. ]]; then
+                    case "$next_step" in
+                        "3.8.x") intermediate_versions="$intermediate_versions 3.8" ;;
+                        "3.9.x") intermediate_versions="$intermediate_versions 3.9" ;;
+                        "3.10.x") intermediate_versions="$intermediate_versions 3.10" ;;
+                        "3.11.x") intermediate_versions="$intermediate_versions 3.11" ;;
+                        "3.12.x") intermediate_versions="$intermediate_versions 3.12" ;;
+                        "3.13.x") intermediate_versions="$intermediate_versions 3.13" ;;
+                    esac
+                elif [[ "$next_step" =~ ^4\. ]]; then
+                    case "$next_step" in
+                        "4.0.x") intermediate_versions="$intermediate_versions 4.0" ;;
+                        "4.1.x") intermediate_versions="$intermediate_versions 4.1" ;;
+                    esac
+                fi
+                
+                # Check if we've reached the target pattern
+                if [[ "$target_ver" =~ ^${next_step//x/} ]]; then
+                    break
+                fi
+                
+                current_step="$next_step"
+            else
+                break
+            fi
+        done
+        
+        # Return intermediate versions (trimmed)
+        echo "$intermediate_versions" | sed 's/^ *//;s/ *$//'
+        return 0
+    fi
+    
+    # No supported path found
+    return 1
+}
+
+# upgrade_rabbitmq_to_version: Upgrades RabbitMQ to a specific version
+upgrade_rabbitmq_to_version() {
+    local target_ver="$1"
+    
+    echo "Upgrading to version $target_ver..."
+    waggle_log info "RabbitMQ upgrading to version $target_ver"
+    
+    kubectl set image statefulset/wes-rabbitmq wes-rabbitmq="rabbitmq:${target_ver}-management-alpine"
+    echo "Waiting for $target_ver rollout to complete..."
+    
+    if ! kubectl rollout status statefulset/wes-rabbitmq; then
+        echo "Error: $target_ver rollout failed"
+        waggle_log err "RabbitMQ $target_ver rollout failed"
+        return 1
+    fi
+    
+    # Wait for RabbitMQ to be ready
+    echo "Waiting for RabbitMQ to be ready after $target_ver upgrade..."
+    if ! kubectl wait --for=condition=ready pod/wes-rabbitmq-0 --timeout=300s; then
+        echo "Error: RabbitMQ not ready after $target_ver upgrade"
+        waggle_log err "RabbitMQ not ready after $target_ver upgrade"
+        return 1
+    fi
+    
+    # Enable feature flags for next upgrade
+    echo "Enabling feature flags for next upgrade..."
+    kubectl exec wes-rabbitmq-0 -- rabbitmqctl enable_feature_flag all || true
+    
+    echo "Successfully upgraded to $target_ver"
+    return 0
+}
+
+# update_rabbitmq_version: Main function to handle RabbitMQ version upgrades
+# This function handles:
+# - Upgrades following RabbitMQ's official supported upgrade paths
+# - Only one-hop upgrades (e.g., 3.8.x -> 3.9.x, 3.13.x -> 4.0.x)
+# - Automatic backup creation before major upgrades
+# - Feature flag enabling for compatibility
+# - Rollout verification and health checks
+# - Comprehensive logging via waggle_log
+update_rabbitmq_version() {
+    echo "checking if RabbitMQ version upgrade is needed..."
+    waggle_log info "starting RabbitMQ version upgrade check"
+    
+    # Get current running version
+    if ! current_version=$(kubectl get statefulset wes-rabbitmq -o jsonpath='{.spec.template.spec.containers[0].image}' 2>/dev/null); then
+        echo "RabbitMQ StatefulSet not found, skipping version upgrade"
+        waggle_log info "RabbitMQ StatefulSet not found, skipping version upgrade"
+        return 0
+    fi
+    
+    # Extract version from image (e.g., "rabbitmq:3.8.11-management-alpine" -> "3.8.11")
+    current_ver=$(echo "$current_version" | sed 's/rabbitmq://' | sed 's/-management-alpine//')
+    
+    # Validate current version format
+    if ! echo "$current_ver" | grep -qE '^[0-9]+\.[0-9]+(\.[0-9]+)?$'; then
+        echo "Error: Invalid current version format: $current_ver"
+        waggle_log err "Invalid RabbitMQ current version format: $current_ver"
+        return 1
+    fi
+    
+    # Get target version from the YAML file
+    target_ver=$(grep "image: rabbitmq:" wes-rabbitmq.yaml | sed 's/.*rabbitmq://' | sed 's/-management-alpine//')
+    
+    # Validate target version format
+    if ! echo "$target_ver" | grep -qE '^[0-9]+\.[0-9]+(\.[0-9]+)?$'; then
+        echo "Error: Invalid target version format: $target_ver"
+        waggle_log err "Invalid RabbitMQ target version format: $target_ver"
+        return 1
+    fi
+    
+    if [ "$current_ver" = "$target_ver" ]; then
+        echo "RabbitMQ is already at target version $target_ver"
+        waggle_log info "RabbitMQ already at target version $target_ver"
+        return 0
+    fi
+    
+    echo "RabbitMQ version upgrade needed: $current_ver -> $target_ver"
+    waggle_log info "RabbitMQ version upgrade needed: $current_ver -> $target_ver"
+    
+    # Check if this is a downgrade (not supported)
+    local current_major=$(echo "$current_ver" | cut -d. -f1)
+    local current_minor=$(echo "$current_ver" | cut -d. -f2)
+    local target_major=$(echo "$target_ver" | cut -d. -f1)
+    local target_minor=$(echo "$target_ver" | cut -d. -f2)
+    
+    if [ "$current_major" -gt "$target_major" ] || ([ "$current_major" -eq "$target_major" ] && [ "$current_minor" -gt "$target_minor" ]); then
+        echo "Error: Downgrading RabbitMQ from $current_ver to $target_ver is not supported"
+        waggle_log err "RabbitMQ downgrade not supported: $current_ver -> $target_ver"
+        return 1
+    fi
+    
+    # Ensure RabbitMQ is running before attempting upgrade
+    echo "Ensuring RabbitMQ is running..."
+    if ! kubectl wait --for=condition=ready pod/wes-rabbitmq-0 --timeout=60s; then
+        echo "Error: RabbitMQ is not ready, cannot proceed with upgrade"
+        waggle_log err "RabbitMQ is not ready, cannot proceed with upgrade"
+        return 1
+    fi
+    
+    # Backup data before major upgrades
+    echo "Creating backup of RabbitMQ data..."
+    waggle_log info "Creating backup of RabbitMQ data"
+    
+    # Check available disk space (need at least 1GB free)
+    available_space=$(df . | awk 'NR==2 {print $4}')
+    if [ "$available_space" -lt 1048576 ]; then  # 1GB in KB
+        echo "Warning: Low disk space available (${available_space}KB), backup may fail"
+        waggle_log warn "Low disk space for RabbitMQ backup: ${available_space}KB"
+    fi
+    
+    backup_file="/var/backups/rabbitmq-data-$(date +%F).tar.gz"
+    if ! kubectl exec wes-rabbitmq-0 -- tar czf /tmp/rabbitmq-data.tar.gz /var/lib/rabbitmq/mnesia; then
+        echo "Error: Failed to create backup, stopping upgrade..."
+        waggle_log err "Failed to create RabbitMQ backup, stopping upgrade"
+        return 1
+    fi
+    
+    if ! kubectl cp wes-rabbitmq-0:/tmp/rabbitmq-data.tar.gz "$backup_file"; then
+        echo "Error: Failed to copy backup to host, stopping upgrade..."
+        waggle_log err "Failed to copy RabbitMQ backup to host, stopping upgrade"
+        return 1
+    fi
+    
+    echo "Backup created: $backup_file"
+    waggle_log info "RabbitMQ backup created: $backup_file"
+    
+    # Enable feature flags for upgrade
+    echo "Enabling feature flags for upgrade..."
+    if ! kubectl exec wes-rabbitmq-0 -- rabbitmqctl enable_feature_flag all; then
+        echo "Warning: Failed to enable feature flags, continuing with upgrade..."
+        waggle_log warn "Failed to enable RabbitMQ feature flags, continuing with upgrade"
+    fi
+    
+    # Verify feature flags are enabled
+    echo "Verifying feature flags..."
+    kubectl exec wes-rabbitmq-0 -- rabbitmqctl -q --formatter pretty_table list_feature_flags || true
+    
+    # Determine upgrade path
+    echo "Determining upgrade path..."
+    upgrade_path=$(determine_rabbitmq_upgrade_path "$current_ver" "$target_ver")
+    
+    if [ $? -ne 0 ]; then
+        echo "Error: No supported upgrade path found from $current_ver to $target_ver"
+        waggle_log err "No supported RabbitMQ upgrade path found: $current_ver -> $target_ver"
+        return 1
+    fi
+    
+    # Execute upgrades
+    if [ -n "$upgrade_path" ]; then
+        echo "Will upgrade through intermediate versions: $upgrade_path"
+        waggle_log info "RabbitMQ will upgrade through intermediate versions: $upgrade_path"
+        
+        # Upgrade through intermediate versions
+        for version in $upgrade_path; do
+            if ! upgrade_rabbitmq_to_version "$version"; then
+                echo "Error: Failed to upgrade to intermediate version $version"
+                return 1
+            fi
+        done
+    else
+        echo "Direct upgrade path available"
+        waggle_log info "RabbitMQ direct upgrade path available"
+    fi
+    
+    # Finally upgrade to target version
+    if ! upgrade_rabbitmq_to_version "$target_ver"; then
+        echo "Error: Failed to upgrade to target version $target_ver"
+        return 1
+    fi
+    
+    # Verify the upgrade was successful
+    echo "Verifying upgrade was successful..."
+    if ! new_version=$(kubectl get statefulset wes-rabbitmq -o jsonpath='{.spec.template.spec.containers[0].image}' 2>/dev/null); then
+        echo "Warning: Could not verify new version"
+        waggle_log warn "Could not verify RabbitMQ new version"
+    else
+        new_ver=$(echo "$new_version" | sed 's/rabbitmq://' | sed 's/-management-alpine//')
+        if [ "$new_ver" = "$target_ver" ]; then
+            echo "Upgrade verification successful: RabbitMQ is now running version $new_ver"
+            waggle_log info "RabbitMQ upgrade verification successful: now running version $new_ver"
+        else
+            echo "Warning: Upgrade verification failed. Expected: $target_ver, Got: $new_ver"
+            waggle_log warn "RabbitMQ upgrade verification failed. Expected: $target_ver, Got: $new_ver"
+        fi
+    fi
+    
+    echo "RabbitMQ version upgrade completed successfully"
+    waggle_log info "RabbitMQ version upgrade completed successfully: $current_ver -> $target_ver"
+}
+
 update_wes() {
     echo "updating wes"
 
@@ -782,6 +1069,7 @@ update_wes_tools
 update_node_secrets
 update_node_manifest_v2
 update_data_config
+update_rabbitmq_version
 update_wes_plugins
 update_wes
 update_influxdb_retention
