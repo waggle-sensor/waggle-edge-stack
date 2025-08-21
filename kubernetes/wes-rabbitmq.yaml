@@ -41,18 +41,9 @@ spec:
         - name: wes-rabbitmq
           image: rabbitmq:3.8.11-management-alpine
           imagePullPolicy: IfNotPresent
-          lifecycle:
-            postStart:
-              exec:
-                command: # enable mqtt plugin for MQTT5 support
-                  [
-                    "rabbitmq-plugins",
-                    "enable",
-                    "rabbitmq_mqtt"
-                  ]
           resources:
             limits:
-              memory: 1Gi
+              memory: 4Gi
             requests:
               cpu: 500m
               memory: 1Gi
