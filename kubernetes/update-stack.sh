@@ -699,6 +699,14 @@ EOF
             "destination_type": "queue",
             "routing_key": "*.ansible",
             "arguments": {}
+        },
+        {
+            "source": "to-validator",
+            "vhost": "/",
+            "destination": "to-validator",
+            "destination_type": "queue",
+            "routing_key": "*.to-validator",
+            "arguments": {}
         }
     ],
     "parameters": [
