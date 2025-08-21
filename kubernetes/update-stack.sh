@@ -437,8 +437,15 @@ update_rabbitmq_version() {
     # Determine upgrade path
     echo "Determining upgrade path..."
     echo "DEBUG: About to call determine_rabbitmq_upgrade_path with current_ver=$current_ver, target_ver=$target_ver"
-    upgrade_path=$(determine_rabbitmq_upgrade_path "$current_ver" "$target_ver")
-    echo "DEBUG: determine_rabbitmq_upgrade_path returned: $upgrade_path"
+    echo "DEBUG: Testing if function exists..."
+    if declare -f determine_rabbitmq_upgrade_path > /dev/null; then
+        echo "DEBUG: Function exists, calling it..."
+        upgrade_path=$(determine_rabbitmq_upgrade_path "$current_ver" "$target_ver")
+        echo "DEBUG: determine_rabbitmq_upgrade_path returned: $upgrade_path"
+    else
+        echo "DEBUG: Function does not exist!"
+        return 1
+    fi
     
     local exit_code=$?
     echo "DEBUG: determine_rabbitmq_upgrade_path exit code: $exit_code"
