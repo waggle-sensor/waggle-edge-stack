@@ -244,6 +244,13 @@ determine_rabbitmq_upgrade_path() {
         while [ -n "$current_step" ]; do
             local next_step="${supported_paths[$current_step]}"
             if [ -n "$next_step" ]; then
+                # Check if we've reached the target pattern BEFORE adding to intermediate versions
+                if [[ "$target_ver" =~ ^${next_step//x/} ]]; then
+                    # We've found the target pattern, stop here
+                    # Don't add this step to intermediate versions since it's the target
+                    break
+                fi
+                
                 # Convert pattern to major.minor version for intermediate step
                 if [[ "$next_step" =~ ^3\. ]]; then
                     case "$next_step" in
@@ -259,13 +266,6 @@ determine_rabbitmq_upgrade_path() {
                         "4.0.x") intermediate_versions="$intermediate_versions 4.0" ;;
                         "4.1.x") intermediate_versions="$intermediate_versions 4.1" ;;
                     esac
-                fi
-                
-                # Check if we've reached the target pattern
-                if [[ "$target_ver" =~ ^${next_step//x/} ]]; then
-                    # We've found the target pattern, stop here
-                    # Don't add this step to intermediate versions since it's the target
-                    break
                 fi
                 
                 current_step="$next_step"
@@ -428,7 +428,6 @@ update_rabbitmq_version() {
     upgrade_path=$(determine_rabbitmq_upgrade_path "$current_ver" "$target_ver")
     
     local exit_code=$?
-    echo "DEBUG: determine_rabbitmq_upgrade_path exit code: $exit_code"
     if [ $exit_code -ne 0 ]; then
         echo "Error: No supported upgrade path found from $current_ver to $target_ver"
         waggle_log err "No supported RabbitMQ upgrade path found: $current_ver -> $target_ver"
