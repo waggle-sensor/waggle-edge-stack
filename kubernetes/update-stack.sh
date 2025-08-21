@@ -187,11 +187,8 @@ update_wes_plugins() {
 # determine_rabbitmq_upgrade_path: Determines the upgrade path between two RabbitMQ versions
 # Returns a space-separated list of intermediate versions, or empty string if direct upgrade
 determine_rabbitmq_upgrade_path() {
-    echo "DEBUG: ENTERING determine_rabbitmq_upgrade_path function"
     local current_ver="$1"
     local target_ver="$2"
-    
-    echo "DEBUG: determine_rabbitmq_upgrade_path called with current_ver=$current_ver, target_ver=$target_ver"
     
     # Define supported upgrade paths based on RabbitMQ documentation
     # https://www.rabbitmq.com/docs/upgrade
@@ -209,35 +206,33 @@ determine_rabbitmq_upgrade_path() {
     
     # Determine current version pattern
     local current_pattern=""
-    if [[ "$current_ver" =~ ^3\.7\. ]]; then
+    if [[ "$current_ver" =~ ^3\.7(\.|$) ]]; then
         current_pattern="3.7.18"
-    elif [[ "$current_ver" =~ ^3\.8\. ]]; then
+    elif [[ "$current_ver" =~ ^3\.8(\.|$) ]]; then
         current_pattern="3.8.x"
-    elif [[ "$current_ver" =~ ^3\.9\. ]]; then
+    elif [[ "$current_ver" =~ ^3\.9(\.|$) ]]; then
         current_pattern="3.9.x"
-    elif [[ "$current_ver" =~ ^3\.10\. ]]; then
+    elif [[ "$current_ver" =~ ^3\.10(\.|$) ]]; then
         current_pattern="3.10.x"
-    elif [[ "$current_ver" =~ ^3\.11\. ]]; then
+    elif [[ "$current_ver" =~ ^3\.11(\.|$) ]]; then
         current_pattern="3.11.18"
-    elif [[ "$current_ver" =~ ^3\.12\. ]]; then
+    elif [[ "$current_ver" =~ ^3\.12(\.|$) ]]; then
         current_pattern="3.12.x"
-    elif [[ "$current_ver" =~ ^3\.13\. ]]; then
+    elif [[ "$current_ver" =~ ^3\.13(\.|$) ]]; then
         current_pattern="3.13.x"
-    elif [[ "$current_ver" =~ ^4\.0\. ]]; then
+    elif [[ "$current_ver" =~ ^4\.0(\.|$) ]]; then
         current_pattern="4.0.x"
     fi
     
-    echo "DEBUG: current_pattern determined as: $current_pattern"
+
     
     # Check if direct upgrade is supported
     if [ -n "$current_pattern" ] && [ -n "${supported_paths[$current_pattern]}" ]; then
         local target_pattern="${supported_paths[$current_pattern]}"
-        echo "DEBUG: target_pattern from supported_paths: $target_pattern"
         
         # Check if target version matches the supported upgrade path
         if [[ "$target_ver" =~ ^${target_pattern//x/} ]]; then
             # Direct upgrade is supported
-            echo "DEBUG: Direct upgrade supported from $current_pattern to $target_pattern"
             echo ""
             return 0
         fi
@@ -245,12 +240,9 @@ determine_rabbitmq_upgrade_path() {
         # Need to find intermediate path
         local intermediate_versions=""
         local current_step="$current_pattern"
-        echo "DEBUG: Starting path building from current_step: $current_step"
         
         while [ -n "$current_step" ]; do
-            echo "DEBUG: Loop iteration - current_step: $current_step"
             local next_step="${supported_paths[$current_step]}"
-            echo "DEBUG: next_step from supported_paths: $next_step"
             if [ -n "$next_step" ]; then
                 # Convert pattern to major.minor version for intermediate step
                 if [[ "$next_step" =~ ^3\. ]]; then
@@ -284,13 +276,11 @@ determine_rabbitmq_upgrade_path() {
         
         # Return intermediate versions (trimmed)
         local final_result=$(echo "$intermediate_versions" | sed 's/^ *//;s/ *$//')
-        echo "DEBUG: Final intermediate_versions result: '$final_result'"
         echo "$final_result"
         return 0
     fi
     
     # No supported path found
-    echo "DEBUG: No supported path found for current_ver=$current_ver, target_ver=$target_ver"
     return 1
 }
 
@@ -432,25 +422,10 @@ update_rabbitmq_version() {
     # Verify feature flags are enabled
     echo "Verifying feature flags..."
     kubectl exec wes-rabbitmq-0 -- rabbitmqctl -q --formatter pretty_table list_feature_flags || true
-    echo "DEBUG: Feature flags verification completed"
     
     # Determine upgrade path
     echo "Determining upgrade path..."
-    echo "DEBUG: About to call determine_rabbitmq_upgrade_path with current_ver=$current_ver, target_ver=$target_ver"
-    echo "DEBUG: Testing if function exists..."
-    if declare -f determine_rabbitmq_upgrade_path > /dev/null; then
-        echo "DEBUG: Function exists, calling it..."
-        echo "DEBUG: Function definition:"
-        declare -f determine_rabbitmq_upgrade_path
-        echo "DEBUG: Now calling the function..."
-        echo "DEBUG: Calling function directly..."
-        determine_rabbitmq_upgrade_path "$current_ver" "$target_ver"
-        upgrade_path=$(determine_rabbitmq_upgrade_path "$current_ver" "$target_ver")
-        echo "DEBUG: determine_rabbitmq_upgrade_path returned: $upgrade_path"
-    else
-        echo "DEBUG: Function does not exist!"
-        return 1
-    fi
+    upgrade_path=$(determine_rabbitmq_upgrade_path "$current_ver" "$target_ver")
     
     local exit_code=$?
     echo "DEBUG: determine_rabbitmq_upgrade_path exit code: $exit_code"
