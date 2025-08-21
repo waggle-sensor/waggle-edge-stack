@@ -443,6 +443,8 @@ update_rabbitmq_version() {
         echo "DEBUG: Function definition:"
         declare -f determine_rabbitmq_upgrade_path
         echo "DEBUG: Now calling the function..."
+        echo "DEBUG: Calling function directly..."
+        determine_rabbitmq_upgrade_path "$current_ver" "$target_ver"
         upgrade_path=$(determine_rabbitmq_upgrade_path "$current_ver" "$target_ver")
         echo "DEBUG: determine_rabbitmq_upgrade_path returned: $upgrade_path"
     else
