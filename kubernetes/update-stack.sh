@@ -267,7 +267,7 @@ upgrade_rabbitmq_to_version() {
     fi
     
     # Enable feature flags for next upgrade
-    sleep 1m
+    sleep 3m
     echo "Enabling feature flags for next upgrade..."
     kubectl exec wes-rabbitmq-0 -- rabbitmqctl enable_feature_flag all || true
     
