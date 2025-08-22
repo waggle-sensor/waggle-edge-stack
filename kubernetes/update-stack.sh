@@ -486,6 +486,9 @@ log.console = true
 # mqtt config for lorawan
 mqtt.default_user = service
 mqtt.default_pass = service
+
+# enable deprecated features for management metrics collection
+deprecated_features.permit.management_metrics_collection = true
 EOF
 
     WAGGLE_BEEHIVE_RABBITMQ_HOST=$(get_configmap_field waggle-config WAGGLE_BEEHIVE_RABBITMQ_HOST)
