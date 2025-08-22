@@ -584,6 +584,20 @@ EOF
             "durable": true,
             "auto_delete": false,
             "arguments": {}
+        },
+        {
+            "name": "ansible",
+            "vhost": "/",
+            "durable": true,
+            "auto_delete": false,
+            "arguments": {}
+        },
+        {
+            "name": "to-validator",
+            "vhost": "/",
+            "durable": true,
+            "auto_delete": false,
+            "arguments": {}
         }
     ],
     "exchanges": [
@@ -616,6 +630,15 @@ EOF
         },
         {
             "name": "to-node",
+            "vhost": "/",
+            "type": "topic",
+            "durable": true,
+            "auto_delete": false,
+            "internal": false,
+            "arguments": {}
+        },
+        {
+            "name": "to-validator",
             "vhost": "/",
             "type": "topic",
             "durable": true,
