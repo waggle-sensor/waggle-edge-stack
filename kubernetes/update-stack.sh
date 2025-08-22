@@ -256,7 +256,12 @@ determine_rabbitmq_upgrade_path() {
                         "3.9.x") intermediate_versions="$intermediate_versions 3.9" ;;
                         "3.10.x") intermediate_versions="$intermediate_versions 3.10" ;;
                         "3.11.x") intermediate_versions="$intermediate_versions 3.11" ;;
-                        "3.12.x") intermediate_versions="$intermediate_versions 3.12" ;;
+                        "3.12.x") 
+                            # Special case: only add 3.12 if we're coming from 3.11.18
+                            if [ "$current_step" = "3.11.18" ]; then
+                                intermediate_versions="$intermediate_versions 3.12"
+                            fi
+                            ;;
                         "3.13.x") intermediate_versions="$intermediate_versions 3.13" ;;
                     esac
                 elif [[ "$next_step" =~ ^4\. ]]; then
@@ -437,42 +442,42 @@ update_rabbitmq_version() {
         echo "Will upgrade through intermediate versions: $upgrade_path"
         waggle_log info "RabbitMQ will upgrade through intermediate versions: $upgrade_path"
         
-        # Upgrade through intermediate versions
-        for version in $upgrade_path; do
-            if ! upgrade_rabbitmq_to_version "$version"; then
-                echo "Error: Failed to upgrade to intermediate version $version"
-                return 1
-            fi
-        done
+        # # Upgrade through intermediate versions
+        # for version in $upgrade_path; do
+        #     if ! upgrade_rabbitmq_to_version "$version"; then
+        #         echo "Error: Failed to upgrade to intermediate version $version"
+        #         return 1
+        #     fi
+        # done
     else
         echo "Direct upgrade path available"
         waggle_log info "RabbitMQ direct upgrade path available"
     fi
     
     # Finally upgrade to target version
-    if ! upgrade_rabbitmq_to_version "$target_ver"; then
-        echo "Error: Failed to upgrade to target version $target_ver"
-        return 1
-    fi
+    # if ! upgrade_rabbitmq_to_version "$target_ver"; then
+    #     echo "Error: Failed to upgrade to target version $target_ver"
+    #     return 1
+    # fi
     
     # Verify the upgrade was successful
-    echo "Verifying upgrade was successful..."
-    if ! new_version=$(kubectl get statefulset wes-rabbitmq -o jsonpath='{.spec.template.spec.containers[0].image}' 2>/dev/null); then
-        echo "Warning: Could not verify new version"
-        waggle_log warn "Could not verify RabbitMQ new version"
-    else
-        new_ver=$(echo "$new_version" | sed 's/rabbitmq://' | sed 's/-management-alpine//')
-        if [ "$new_ver" = "$target_ver" ]; then
-            echo "Upgrade verification successful: RabbitMQ is now running version $new_ver"
-            waggle_log info "RabbitMQ upgrade verification successful: now running version $new_ver"
-        else
-            echo "Warning: Upgrade verification failed. Expected: $target_ver, Got: $new_ver"
-            waggle_log warn "RabbitMQ upgrade verification failed. Expected: $target_ver, Got: $new_ver"
-        fi
-    fi
+    # echo "Verifying upgrade was successful..."
+    # if ! new_version=$(kubectl get statefulset wes-rabbitmq -o jsonpath='{.spec.template.spec.containers[0].image}' 2>/dev/null); then
+    #     echo "Warning: Could not verify new version"
+    #     waggle_log warn "Could not verify RabbitMQ new version"
+    # else
+    #     new_ver=$(echo "$new_version" | sed 's/rabbitmq://' | sed 's/-management-alpine//')
+    #     if [ "$new_ver" = "$target_ver" ]; then
+    #         echo "Upgrade verification successful: RabbitMQ is now running version $new_ver"
+    #         waggle_log info "RabbitMQ upgrade verification successful: now running version $new_ver"
+    #     else
+    #         echo "Warning: Upgrade verification failed. Expected: $target_ver, Got: $new_ver"
+    #         waggle_log warn "RabbitMQ upgrade verification failed. Expected: $target_ver, Got: $new_ver"
+    #     fi
+    # fi
     
-    echo "RabbitMQ version upgrade completed successfully"
-    waggle_log info "RabbitMQ version upgrade completed successfully: $current_ver -> $target_ver"
+    # echo "RabbitMQ version upgrade completed successfully"
+    # waggle_log info "RabbitMQ version upgrade completed successfully: $current_ver -> $target_ver"
 }
 
 update_wes() {
