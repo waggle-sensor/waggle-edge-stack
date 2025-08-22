@@ -189,102 +189,57 @@ update_wes_plugins() {
 determine_rabbitmq_upgrade_path() {
     local current_ver="$1"
     local target_ver="$2"
-    
-    # Define supported upgrade paths based on RabbitMQ documentation
-    # https://www.rabbitmq.com/docs/upgrade
-    # From -> To (only one hop is supported)
+
     declare -A supported_paths
-    supported_paths["3.7.18"]="3.8.x"
+    supported_paths["3.7.x"]="3.8.x"
     supported_paths["3.8.x"]="3.9.x"
     supported_paths["3.9.x"]="3.10.x"
     supported_paths["3.10.x"]="3.11.x"
-    supported_paths["3.11.18"]="3.12.x"
+    supported_paths["3.11.x"]="3.12.x"
     supported_paths["3.12.x"]="3.13.x"
     supported_paths["3.13.x"]="4.0.x"
-    supported_paths["3.13.x"]="4.1.x"
     supported_paths["4.0.x"]="4.1.x"
-    
-    # Determine current version pattern
+
+    # Map specific versions to generalized patterns
     local current_pattern=""
-    if [[ "$current_ver" =~ ^3\.7(\.|$) ]]; then
-        current_pattern="3.7.18"
-    elif [[ "$current_ver" =~ ^3\.8(\.|$) ]]; then
-        current_pattern="3.8.x"
-    elif [[ "$current_ver" =~ ^3\.9(\.|$) ]]; then
-        current_pattern="3.9.x"
-    elif [[ "$current_ver" =~ ^3\.10(\.|$) ]]; then
-        current_pattern="3.10.x"
-    elif [[ "$current_ver" =~ ^3\.11(\.|$) ]]; then
-        current_pattern="3.11.18"
-    elif [[ "$current_ver" =~ ^3\.12(\.|$) ]]; then
-        current_pattern="3.12.x"
-    elif [[ "$current_ver" =~ ^3\.13(\.|$) ]]; then
-        current_pattern="3.13.x"
-    elif [[ "$current_ver" =~ ^4\.0(\.|$) ]]; then
-        current_pattern="4.0.x"
+    if [[ "$current_ver" =~ ^3\.7 ]]; then current_pattern="3.7.x"
+    elif [[ "$current_ver" =~ ^3\.8 ]]; then current_pattern="3.8.x"
+    elif [[ "$current_ver" =~ ^3\.9 ]]; then current_pattern="3.9.x"
+    elif [[ "$current_ver" =~ ^3\.10 ]]; then current_pattern="3.10.x"
+    elif [[ "$current_ver" =~ ^3\.11 ]]; then current_pattern="3.11.x"
+    elif [[ "$current_ver" =~ ^3\.12 ]]; then current_pattern="3.12.x"
+    elif [[ "$current_ver" =~ ^3\.13 ]]; then current_pattern="3.13.x"
+    elif [[ "$current_ver" =~ ^4\.0 ]]; then current_pattern="4.0.x"
+    elif [[ "$current_ver" =~ ^4\.1 ]]; then current_pattern="4.1.x"
+    else
+        echo "Unsupported current version: $current_ver" >&2
+        return 1
     fi
-    
-    # Check if direct upgrade is supported
-    if [ -n "$current_pattern" ] && [ -n "${supported_paths[$current_pattern]}" ]; then
-        local target_pattern="${supported_paths[$current_pattern]}"
-        
-        # Check if target version matches the supported upgrade path
-        if [[ "$target_ver" =~ ^${target_pattern//x/} ]]; then
-            # Direct upgrade is supported
-            echo ""
-            return 0
+
+    local intermediate_versions=()
+    local step="$current_pattern"
+
+    while [ -n "${supported_paths[$step]}" ]; do
+        step="${supported_paths[$step]}"
+        local actual_version="${step//.x/}"  # remove .x suffix
+
+        # Add step to the list
+        intermediate_versions+=("$actual_version")
+
+        # Stop if this step matches the target
+        if [[ "$target_ver" =~ ^$actual_version(\.|$) ]]; then
+            break
         fi
-        
-        # Need to find intermediate path
-        local intermediate_versions=""
-        local current_step="$current_pattern"
-        
-        while [ -n "$current_step" ]; do
-            local next_step="${supported_paths[$current_step]}"
-            if [ -n "$next_step" ]; then
-                # Check if we've reached the target pattern BEFORE adding to intermediate versions
-                if [[ "$target_ver" =~ ^${next_step//x/} ]]; then
-                    # We've found the target pattern, stop here
-                    # Don't add this step to intermediate versions since it's the target
-                    break
-                fi
-                
-                # Convert pattern to major.minor version for intermediate step
-                if [[ "$next_step" =~ ^3\. ]]; then
-                    case "$next_step" in
-                        "3.8.x") intermediate_versions="$intermediate_versions 3.8" ;;
-                        "3.9.x") intermediate_versions="$intermediate_versions 3.9" ;;
-                        "3.10.x") intermediate_versions="$intermediate_versions 3.10" ;;
-                        "3.11.x") intermediate_versions="$intermediate_versions 3.11" ;;
-                        "3.12.x") 
-                            # Special case: only add 3.12 if we're coming from 3.11.18
-                            if [ "$current_step" = "3.11.18" ]; then
-                                intermediate_versions="$intermediate_versions 3.12"
-                            fi
-                            ;;
-                        "3.13.x") intermediate_versions="$intermediate_versions 3.13" ;;
-                    esac
-                elif [[ "$next_step" =~ ^4\. ]]; then
-                    case "$next_step" in
-                        "4.0.x") intermediate_versions="$intermediate_versions 4.0" ;;
-                        "4.1.x") intermediate_versions="$intermediate_versions 4.1" ;;
-                    esac
-                fi
-                
-                current_step="$next_step"
-            else
-                break
-            fi
-        done
-        
-        # Return intermediate versions (trimmed)
-        local final_result=$(echo "$intermediate_versions" | sed 's/^ *//;s/ *$//')
-        echo "$final_result"
+    done
+
+    # Final validation: make sure path reached target major.minor
+    if [[ "${intermediate_versions[-1]}" =~ ^${target_ver%.*} ]]; then
+        echo "${intermediate_versions[*]}"
         return 0
+    else
+        echo "No valid upgrade path from $current_ver to $target_ver" >&2
+        return 1
     fi
-    
-    # No supported path found
-    return 1
 }
 
 # upgrade_rabbitmq_to_version: Upgrades RabbitMQ to a specific version
