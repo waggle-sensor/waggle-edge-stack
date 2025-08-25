@@ -17,6 +17,7 @@ fatal() {
 waggle_log() {
     level="$1"
     shift
+    echo $*
     systemd-cat -t waggle -p "$level" echo $*
 }
 
@@ -701,7 +702,7 @@ EOF
                     "delivery_mode": 2,
                     "user_id": "node-${WAGGLE_NODE_ID}"
                 },
-                "dest-uri": "amqps://${WAGGLE_BEEHIVE_RABBITMQ_HOST}:${WAGGLE_BEEHIVE_RABBITMQ_PORT}?auth_mechanism=external&cacertfile=/etc/rabbitmq/cacert.pem&certfile=/etc/rabbitmq/cert.pem&keyfile=/etc/rabbitmq/key.pem",
+                "dest-uri": "amqps://${WAGGLE_BEEHIVE_RABBITMQ_HOST}:${WAGGLE_BEEHIVE_RABBITMQ_PORT}?auth_mechanism=external&cacertfile=/etc/rabbitmq/cacert.pem&certfile=/etc/rabbitmq/cert.pem&keyfile=/etc/rabbitmq/key.pem&heartbeat=60",
                 "src-queue": "to-beehive",
                 "src-uri": "amqp://shovel:shovel@wes-rabbitmq"
             },
@@ -1030,9 +1031,15 @@ clean_manifestv2_cm() {
 #                run this command on the devices as well.
 clean_slash_run_tempfs() {
     echo "cleaning /run/udev/data by udevadm info -c"
-    udevadm info -c
+    if ! udevadm info -c; then
+        waggle_log err "failed to clean udev tmpfs on core"
+    fi
+
+    # TODO(sean) Think about how we want to handle this in general.
     echo "attempting to perform the same on NXagent if exists"
-    ssh ws-nxagent -x "udevadm info -c"
+    if ! ssh ws-nxagent -x "udevadm info -c"; then
+        waggle_log err "failed to clean udev tmpfs on agent"
+    fi
 }
 
 waggle_log info "started updating wes"
