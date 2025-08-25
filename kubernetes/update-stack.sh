@@ -744,9 +744,15 @@ clean_manifestv2_cm() {
 #                run this command on the devices as well.
 clean_slash_run_tempfs() {
     echo "cleaning /run/udev/data by udevadm info -c"
-    udevadm info -c
+    if ! udevadm info -c; then
+        waggle_log err "failed to clean udev tmpfs on core"
+    fi
+
+    # TODO(sean) Think about how we want to handle this in general.
     echo "attempting to perform the same on NXagent if exists"
-    ssh ws-nxagent -x "udevadm info -c"
+    if ! ssh ws-nxagent -x "udevadm info -c"; then
+        waggle_log err "failed to clean udev tmpfs on agent"
+    fi
 }
 
 waggle_log info "started updating wes"
