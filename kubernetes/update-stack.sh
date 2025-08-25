@@ -17,6 +17,7 @@ fatal() {
 waggle_log() {
     level="$1"
     shift
+    echo $*
     systemd-cat -t waggle -p "$level" echo $*
 }
 
