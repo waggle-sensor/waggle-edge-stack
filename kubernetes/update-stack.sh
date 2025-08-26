@@ -266,8 +266,8 @@ enable_rmq_ft_flags() {
                 sleep $retry_delay
                 retry_delay=$((retry_delay * 2))  # Exponential backoff
             else
-                echo "Warning: Failed to enable feature flags after $max_retries attempts"
-                waggle_log warn "Failed to enable RabbitMQ feature flags after $max_retries attempts"
+                echo "Warning: Failed to enable feature flags after ${max_retries} attempts"
+                waggle_log warn "Failed to enable RabbitMQ feature flags after ${max_retries} attempts"
             fi
         fi
     done
