@@ -270,7 +270,7 @@ enable_rmq_ft_flags() {
 }
 
 # upgrade_rabbitmq_to_version: Upgrades RabbitMQ to a specific version
-upgrade_rabbitmq_to_version() {
+update_rabbitmq_to_version() {
     local target_ver="$1"
     
     waggle_log info "RabbitMQ upgrading to version $target_ver"
@@ -354,6 +354,12 @@ update_rmq_version() {
         waggle_log err "RabbitMQ downgrade not supported: $current_ver -> $target_ver"
         return 1
     fi
+
+    # make sure to start from current version
+    if ! update_rabbitmq_to_version "$current_ver"; then
+        waggle_log err "Failed to update to current version $current_ver"
+        return 1
+    fi
     
     # Ensure RabbitMQ is running before attempting upgrade
     waggle_log info "Ensuring RabbitMQ is running..."
@@ -404,7 +410,7 @@ update_rmq_version() {
         
         # Upgrade through intermediate versions
         for version in $upgrade_path; do
-            if ! upgrade_rabbitmq_to_version "$version"; then
+            if ! update_rabbitmq_to_version "$version"; then
                 waggle_log err "Failed to upgrade to intermediate version $version"
                 return 1
             fi
@@ -414,7 +420,7 @@ update_rmq_version() {
     fi
     
     # Finally upgrade to target version
-    if ! upgrade_rabbitmq_to_version "$target_ver"; then
+    if ! update_rabbitmq_to_version "$target_ver"; then
         waggle_log err "Failed to upgrade to target version $target_ver"
         return 1
     fi
