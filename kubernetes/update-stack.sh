@@ -645,12 +645,6 @@ EOF
         waggle_log err "RabbitMQ downgrade not supported: $current_ver -> $target_ver"
         return 1
     fi
-
-    # make sure to start from current version
-    if ! update_rabbitmq_to_version "$current_ver"; then
-        waggle_log err "Failed to update to current version $current_ver"
-        return 1
-    fi
     
     # Ensure RabbitMQ is running before attempting upgrade
     waggle_log info "Ensuring RabbitMQ is running..."
