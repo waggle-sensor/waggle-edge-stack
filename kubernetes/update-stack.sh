@@ -185,9 +185,9 @@ update_wes_plugins() {
 # 3. load generated configs / secrets using kustomize
 # if we buy into just using kustomize from the get go, then mostly only need step 3.
 
-# determine_rabbitmq_upgrade_path: Determines the upgrade path between two RabbitMQ versions
+# determine_rmq_upgrade_path: Determines the upgrade path between two RabbitMQ versions
 # Returns a space-separated list of intermediate versions, or empty string if direct upgrade
-determine_rabbitmq_upgrade_path() {
+determine_rmq_upgrade_path() {
     local current_ver="$1"
     local target_ver="$2"
 
@@ -243,6 +243,36 @@ determine_rabbitmq_upgrade_path() {
     fi
 }
 
+# enable_rmq_ft_flags: Enables feature flags for RabbitMQ
+enable_rmq_ft_flags() {
+    local max_retries=5
+    local retry_count=0
+    local retry_delay=30  # Start with 30 seconds
+    while [ $retry_count -lt $max_retries ]; do
+        echo "Attempt $((retry_count + 1))/$max_retries to enable feature flags..."
+        
+        if kubectl exec wes-rabbitmq-0 -- rabbitmqctl enable_feature_flag all; then
+            echo "Successfully enabled feature flags"
+            echo "feature flags enabled:"
+            kubectl exec wes-rabbitmq-0 -- rabbitmqctl -q --formatter pretty_table list_feature_flags || true
+            break
+        else
+            retry_count=$((retry_count + 1))
+            
+            if [ $retry_count -lt $max_retries ]; then
+                echo "Failed to enable feature flags (attempt $retry_count/$max_retries)"
+                echo "Retrying in ${retry_delay} seconds..."
+                waggle_log warn "Feature flag enable failed, retrying in ${retry_delay}s (attempt $retry_count/$max_retries)"
+                sleep $retry_delay
+                retry_delay=$((retry_delay * 2))  # Exponential backoff
+            else
+                echo "Warning: Failed to enable feature flags after $max_retries attempts"
+                waggle_log warn "Failed to enable RabbitMQ feature flags after $max_retries attempts"
+            fi
+        fi
+    done
+}
+
 # upgrade_rabbitmq_to_version: Upgrades RabbitMQ to a specific version
 upgrade_rabbitmq_to_version() {
     local target_ver="$1"
@@ -270,13 +300,13 @@ upgrade_rabbitmq_to_version() {
     # Enable feature flags for next upgrade
     sleep 3m
     echo "Enabling feature flags for next upgrade..."
-    kubectl exec wes-rabbitmq-0 -- rabbitmqctl enable_feature_flag all || true
+    enable_rmq_ft_flags
     
     echo "Successfully upgraded to $target_ver"
     return 0
 }
 
-# update_rabbitmq_version: Main function to handle RabbitMQ version upgrades
+# update_rmq_version: Main function to handle RabbitMQ version upgrades
 # This function handles:
 # - Upgrades following RabbitMQ's official supported upgrade paths
 # - Only one-hop upgrades (e.g., 3.8.x -> 3.9.x, 3.13.x -> 4.0.x)
@@ -284,7 +314,7 @@ upgrade_rabbitmq_to_version() {
 # - Feature flag enabling for compatibility
 # - Rollout verification and health checks
 # - Comprehensive logging via waggle_log
-update_rabbitmq_version() {
+update_rmq_version() {
     echo "checking if RabbitMQ version upgrade is needed..."
     waggle_log info "starting RabbitMQ version upgrade check"
     
@@ -373,18 +403,11 @@ update_rabbitmq_version() {
     
     # Enable feature flags for upgrade
     echo "Enabling feature flags for upgrade..."
-    if ! kubectl exec wes-rabbitmq-0 -- rabbitmqctl enable_feature_flag all; then
-        echo "Warning: Failed to enable feature flags, continuing with upgrade..."
-        waggle_log warn "Failed to enable RabbitMQ feature flags, continuing with upgrade"
-    fi
-    
-    # Verify feature flags are enabled
-    echo "Verifying feature flags..."
-    kubectl exec wes-rabbitmq-0 -- rabbitmqctl -q --formatter pretty_table list_feature_flags || true
+    enable_rmq_ft_flags
     
     # Determine upgrade path
     echo "Determining upgrade path..."
-    upgrade_path=$(determine_rabbitmq_upgrade_path "$current_ver" "$target_ver")
+    upgrade_path=$(determine_rmq_upgrade_path "$current_ver" "$target_ver")
     
     local exit_code=$?
     if [ $exit_code -ne 0 ]; then
@@ -1075,7 +1098,7 @@ update_wes_tools
 update_node_secrets
 update_node_manifest_v2
 update_data_config
-update_rabbitmq_version
+update_rmq_version
 update_wes_plugins
 update_wes
 update_influxdb_retention
