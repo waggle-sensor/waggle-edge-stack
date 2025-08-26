@@ -273,7 +273,7 @@ enable_rmq_ft_flags() {
 update_rabbitmq_to_version() {
     local target_ver="$1"
     
-    waggle_log info "RabbitMQ upgrading to version $target_ver"
+    waggle_log info "RabbitMQ updating to version $target_ver"
     
     kubectl set image statefulset/wes-rabbitmq wes-rabbitmq="rabbitmq:${target_ver}-management-alpine"
     waggle_log info "Waiting for $target_ver rollout to complete..."
@@ -284,9 +284,9 @@ update_rabbitmq_to_version() {
     fi
     
     # Wait for RabbitMQ to be running
-    waggle_log info "Waiting for RabbitMQ to be running after $target_ver upgrade..."
+    waggle_log info "Waiting for RabbitMQ to be running after $target_ver update..."
     if ! kubectl wait --for=condition=Ready pod/wes-rabbitmq-0 --timeout=600s; then
-        waggle_log err "RabbitMQ not ready after $target_ver upgrade"
+        waggle_log err "RabbitMQ not ready after $target_ver update"
         return 1
     fi
     
@@ -297,7 +297,7 @@ update_rabbitmq_to_version() {
     waggle_log info "Enabling feature flags for next upgrade..."
     enable_rmq_ft_flags
     
-    waggle_log info "Successfully upgraded to $target_ver"
+    waggle_log info "Successfully updated to $target_ver"
     return 0
 }
 
