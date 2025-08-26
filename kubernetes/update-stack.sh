@@ -252,21 +252,17 @@ enable_rmq_ft_flags() {
         echo "Attempt $((retry_count + 1))/$max_retries to enable feature flags..."
         
         if kubectl exec wes-rabbitmq-0 -- rabbitmqctl enable_feature_flag all; then
-            echo "Successfully enabled feature flags"
-            echo "feature flags enabled:"
+            waggle_log info "Successfully enabled RabbitMQ feature flags"
             kubectl exec wes-rabbitmq-0 -- rabbitmqctl -q --formatter pretty_table list_feature_flags || true
             break
         else
             retry_count=$((retry_count + 1))
             
             if [ $retry_count -lt $max_retries ]; then
-                echo "Failed to enable feature flags (attempt $retry_count/$max_retries)"
-                echo "Retrying in ${retry_delay} seconds..."
                 waggle_log warn "Feature flag enable failed, retrying in ${retry_delay}s (attempt $retry_count/$max_retries)"
                 sleep $retry_delay
                 retry_delay=$((retry_delay * 2))  # Exponential backoff
             else
-                echo "Warning: Failed to enable feature flags after ${max_retries} attempts"
                 waggle_log warn "Failed to enable RabbitMQ feature flags after ${max_retries} attempts"
             fi
         fi
@@ -277,32 +273,29 @@ enable_rmq_ft_flags() {
 upgrade_rabbitmq_to_version() {
     local target_ver="$1"
     
-    echo "Upgrading to version $target_ver..."
     waggle_log info "RabbitMQ upgrading to version $target_ver"
     
     kubectl set image statefulset/wes-rabbitmq wes-rabbitmq="rabbitmq:${target_ver}-management-alpine"
-    echo "Waiting for $target_ver rollout to complete..."
+    waggle_log info "Waiting for $target_ver rollout to complete..."
     
     if ! kubectl rollout status statefulset/wes-rabbitmq; then
-        echo "Error: $target_ver rollout failed"
         waggle_log err "RabbitMQ $target_ver rollout failed"
         return 1
     fi
     
     # Wait for RabbitMQ to be running
-    echo "Waiting for RabbitMQ to be running after $target_ver upgrade..."
+    waggle_log info "Waiting for RabbitMQ to be running after $target_ver upgrade..."
     if ! kubectl wait --for=condition=Ready pod/wes-rabbitmq-0 --timeout=600s; then
-        echo "Error: RabbitMQ not ready after $target_ver upgrade"
         waggle_log err "RabbitMQ not ready after $target_ver upgrade"
         return 1
     fi
     
     # Enable feature flags for next upgrade
     sleep 3m
-    echo "Enabling feature flags for next upgrade..."
+    waggle_log info "Enabling feature flags for next upgrade..."
     enable_rmq_ft_flags
     
-    echo "Successfully upgraded to $target_ver"
+    waggle_log info "Successfully upgraded to $target_ver"
     return 0
 }
 
@@ -315,12 +308,10 @@ upgrade_rabbitmq_to_version() {
 # - Rollout verification and health checks
 # - Comprehensive logging via waggle_log
 update_rmq_version() {
-    echo "checking if RabbitMQ version upgrade is needed..."
     waggle_log info "starting RabbitMQ version upgrade check"
     
     # Get current running version
     if ! current_version=$(kubectl get statefulset wes-rabbitmq -o jsonpath='{.spec.template.spec.containers[0].image}' 2>/dev/null); then
-        echo "RabbitMQ StatefulSet not found, skipping version upgrade"
         waggle_log info "RabbitMQ StatefulSet not found, skipping version upgrade"
         return 0
     fi
@@ -330,7 +321,6 @@ update_rmq_version() {
     
     # Validate current version format
     if ! echo "$current_ver" | grep -qE '^[0-9]+\.[0-9]+(\.[0-9]+)?$'; then
-        echo "Error: Invalid current version format: $current_ver"
         waggle_log err "Invalid RabbitMQ current version format: $current_ver"
         return 1
     fi
@@ -340,18 +330,15 @@ update_rmq_version() {
     
     # Validate target version format
     if ! echo "$target_ver" | grep -qE '^[0-9]+\.[0-9]+(\.[0-9]+)?$'; then
-        echo "Error: Invalid target version format: $target_ver"
         waggle_log err "Invalid RabbitMQ target version format: $target_ver"
         return 1
     fi
     
     if [ "$current_ver" = "$target_ver" ]; then
-        echo "RabbitMQ is already at target version $target_ver"
         waggle_log info "RabbitMQ already at target version $target_ver"
         return 0
     fi
     
-    echo "RabbitMQ version upgrade needed: $current_ver -> $target_ver"
     waggle_log info "RabbitMQ version upgrade needed: $current_ver -> $target_ver"
     
     # Check if this is a downgrade (not supported)
@@ -361,101 +348,86 @@ update_rmq_version() {
     local target_minor=$(echo "$target_ver" | cut -d. -f2)
     
     if [ "$current_major" -gt "$target_major" ] || ([ "$current_major" -eq "$target_major" ] && [ "$current_minor" -gt "$target_minor" ]); then
-        echo "Error: Downgrading RabbitMQ from $current_ver to $target_ver is not supported"
         waggle_log err "RabbitMQ downgrade not supported: $current_ver -> $target_ver"
         return 1
     fi
     
     # Ensure RabbitMQ is running before attempting upgrade
-    echo "Ensuring RabbitMQ is running..."
+    waggle_log info "Ensuring RabbitMQ is running..."
     if ! kubectl wait --for=condition=ready pod/wes-rabbitmq-0 --timeout=60s; then
-        echo "Error: RabbitMQ is not ready, cannot proceed with upgrade"
         waggle_log err "RabbitMQ is not ready, cannot proceed with upgrade"
         return 1
     fi
     
     # Backup data before major upgrades
-    echo "Creating backup of RabbitMQ data..."
     waggle_log info "Creating backup of RabbitMQ data"
     
     # Check available disk space (need at least 1GB free)
     available_space=$(df . | awk 'NR==2 {print $4}')
     if [ "$available_space" -lt 1048576 ]; then  # 1GB in KB
-        echo "Warning: Low disk space available (${available_space}KB), backup may fail"
         waggle_log warn "Low disk space for RabbitMQ backup: ${available_space}KB"
     fi
     
     backup_file="/var/backups/rabbitmq-data-$(date +%F).tar.gz"
     if ! kubectl exec wes-rabbitmq-0 -- tar czf /tmp/rabbitmq-data.tar.gz /var/lib/rabbitmq/mnesia; then
-        echo "Error: Failed to create backup, stopping upgrade..."
         waggle_log err "Failed to create RabbitMQ backup, stopping upgrade"
         return 1
     fi
     
     if ! kubectl cp wes-rabbitmq-0:/tmp/rabbitmq-data.tar.gz "$backup_file"; then
-        echo "Error: Failed to copy backup to host, stopping upgrade..."
         waggle_log err "Failed to copy RabbitMQ backup to host, stopping upgrade"
         return 1
     fi
     
-    echo "Backup created: $backup_file"
     waggle_log info "RabbitMQ backup created: $backup_file"
     
     # Enable feature flags for upgrade
-    echo "Enabling feature flags for upgrade..."
+    waggle_log info "Enabling feature flags for upgrade..."
     enable_rmq_ft_flags
     
     # Determine upgrade path
-    echo "Determining upgrade path..."
+    waggle_log info "Determining upgrade path..."
     upgrade_path=$(determine_rmq_upgrade_path "$current_ver" "$target_ver")
     
     local exit_code=$?
     if [ $exit_code -ne 0 ]; then
-        echo "Error: No supported upgrade path found from $current_ver to $target_ver"
         waggle_log err "No supported RabbitMQ upgrade path found: $current_ver -> $target_ver"
         return 1
     fi
     
     # Execute upgrades
     if [ -n "$upgrade_path" ]; then
-        echo "Will upgrade through intermediate versions: $upgrade_path"
         waggle_log info "RabbitMQ will upgrade through intermediate versions: $upgrade_path"
         
         # Upgrade through intermediate versions
         for version in $upgrade_path; do
             if ! upgrade_rabbitmq_to_version "$version"; then
-                echo "Error: Failed to upgrade to intermediate version $version"
+                waggle_log err "Failed to upgrade to intermediate version $version"
                 return 1
             fi
         done
     else
-        echo "Direct upgrade path available"
         waggle_log info "RabbitMQ direct upgrade path available"
     fi
     
     # Finally upgrade to target version
     if ! upgrade_rabbitmq_to_version "$target_ver"; then
-        echo "Error: Failed to upgrade to target version $target_ver"
+        waggle_log err "Failed to upgrade to target version $target_ver"
         return 1
     fi
     
     # Verify the upgrade was successful
-    echo "Verifying upgrade was successful..."
+    waggle_log info "Verifying upgrade was successful..."
     if ! new_version=$(kubectl get statefulset wes-rabbitmq -o jsonpath='{.spec.template.spec.containers[0].image}' 2>/dev/null); then
-        echo "Warning: Could not verify new version"
         waggle_log warn "Could not verify RabbitMQ new version"
     else
         new_ver=$(echo "$new_version" | sed 's/rabbitmq://' | sed 's/-management-alpine//')
         if [ "$new_ver" = "$target_ver" ]; then
-            echo "Upgrade verification successful: RabbitMQ is now running version $new_ver"
             waggle_log info "RabbitMQ upgrade verification successful: now running version $new_ver"
         else
-            echo "Warning: Upgrade verification failed. Expected: $target_ver, Got: $new_ver"
             waggle_log warn "RabbitMQ upgrade verification failed. Expected: $target_ver, Got: $new_ver"
         fi
     fi
-    
-    echo "RabbitMQ version upgrade completed successfully"
     waggle_log info "RabbitMQ version upgrade completed successfully: $current_ver -> $target_ver"
 }
 
