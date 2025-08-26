@@ -804,7 +804,7 @@ secretGenerator:
 EOF
 
     # if rabbitmq version is updated, update version
-    kubectl apply -f wes-rabbitmq-secrets.yaml
+    kubectl apply -k wes-rabbitmq-secrets.yaml
     update_rmq_version
 
     # HACK(sean) at some point, kustomize deprecated env: for envs: in the configmap / secret generators.
