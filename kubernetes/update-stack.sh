@@ -269,31 +269,6 @@ enable_rmq_ft_flags() {
     done
 }
 
-# reload_rmq_definitions: Reloads RabbitMQ definitions
-reload_rmq_definitions() {
-    local max_retries=5
-    local retry_count=0
-    local retry_delay=30  # Start with 30 seconds
-    
-    while [ $retry_count -lt $max_retries ]; do
-        echo "Attempt $((retry_count + 1))/$max_retries to reload RabbitMQ definitions..."
-        
-        if kubectl exec wes-rabbitmq-0 -- rabbitmqctl eval 'rabbit_definitions:load(<<"/etc/rabbitmq/definitions.json">>)'; then
-            waggle_log info "Successfully reloaded RabbitMQ definitions"
-        else
-            retry_count=$((retry_count + 1))
-            
-            if [ $retry_count -lt $max_retries ]; then
-                waggle_log warn "Definitions reload failed, retrying in ${retry_delay}s (attempt $retry_count/$max_retries)"
-                sleep $retry_delay
-                retry_delay=$((retry_delay * 2))  # Exponential backoff
-            else
-                waggle_log warn "Failed to reload RabbitMQ definitions after ${max_retries} attempts"
-            fi
-        fi
-    done
-}
-
 # upgrade_rabbitmq_to_version: Upgrades RabbitMQ to a specific version
 upgrade_rabbitmq_to_version() {
     local target_ver="$1"
@@ -317,10 +292,6 @@ upgrade_rabbitmq_to_version() {
     
     # wait for startup
     sleep 3m
-
-    # reload definitions for new version
-    waggle_log info "Reloading RabbitMQ definitions..."
-    reload_rmq_definitions
 
     # Enable feature flags for next upgrade
     waggle_log info "Enabling feature flags for next upgrade..."
@@ -1101,9 +1072,9 @@ update_wes_tools
 update_node_secrets
 update_node_manifest_v2
 update_data_config
-update_rmq_version
 update_wes_plugins
 update_wes
+update_rmq_version
 update_influxdb_retention
 clean_manifestv2_cm
 clean_slash_run_tempfs
