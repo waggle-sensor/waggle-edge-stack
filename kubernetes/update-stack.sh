@@ -701,6 +701,15 @@ EOF
         
         # Upgrade through intermediate versions
         for version in $upgrade_path; do
+            # break if target version major & minor is in the version
+            local target_major=$(echo "$target_ver" | cut -d. -f1)
+            local target_minor=$(echo "$target_ver" | cut -d. -f2)
+            local version_major=$(echo "$version" | cut -d. -f1)
+            local version_minor=$(echo "$version" | cut -d. -f2)
+            if [ "$version_major" -eq "$target_major" ] && [ "$version_minor" -eq "$target_minor" ]; then
+                waggle_log info "RabbitMQ upgrade path reached target major & minor version, $target_ver"
+                break
+            fi
             if ! update_rabbitmq_to_version "$version"; then
                 waggle_log err "Failed to upgrade to intermediate version $version"
                 return 1
