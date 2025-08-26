@@ -789,19 +789,20 @@ data:
 EOF
     
     # seperate rmq secrets to be able to apply separately
-    mkdir -p wes-rabbitmq-secrets
+    mkdir -p wes-rabbitmq-secrets/configs/rabbitmq
+    cp configs/rabbitmq/* wes-rabbitmq-secrets/configs/rabbitmq/
     cat > wes-rabbitmq-secrets/kustomization.yaml <<EOF
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 secretGenerator:
   - name: wes-rabbitmq-config
     files:
-      - ../configs/rabbitmq/rabbitmq.conf
-      - ../configs/rabbitmq/definitions.json
-      - ../configs/rabbitmq/enabled_plugins
-      - ../configs/rabbitmq/cacert.pem
-      - ../configs/rabbitmq/cert.pem
-      - ../configs/rabbitmq/key.pem
+      - configs/rabbitmq/rabbitmq.conf
+      - configs/rabbitmq/definitions.json
+      - configs/rabbitmq/enabled_plugins
+      - configs/rabbitmq/cacert.pem
+      - configs/rabbitmq/cert.pem
+      - configs/rabbitmq/key.pem
 EOF
 
     # if rabbitmq version is updated, update version
