@@ -787,6 +787,26 @@ data:
   WAGGLE_NODE_ID: "${WAGGLE_NODE_ID}"
   WAGGLE_NODE_VSN: "${WAGGLE_NODE_VSN}"
 EOF
+    
+    # Create wes-rabbitmq-secrets.yaml file to be able to apply separately
+    cat > wes-rabbitmq-secrets.yaml <<EOF
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+secretGenerator:
+  - name: wes-rabbitmq-config
+    files:
+      - configs/rabbitmq/rabbitmq.conf
+      - configs/rabbitmq/definitions.json
+      - configs/rabbitmq/enabled_plugins
+      - configs/rabbitmq/cacert.pem
+      - configs/rabbitmq/cert.pem
+      - configs/rabbitmq/key.pem
+EOF
+
+    # if rabbitmq version is updated, update version
+    kubectl apply -f wes-rabbitmq-secrets.yaml
+    update_rmq_version
 
     # HACK(sean) at some point, kustomize deprecated env: for envs: in the configmap / secret generators.
     # i'm generating the kustomization.yaml file just to use literals instead of envs which are
@@ -812,14 +832,6 @@ configMapGenerator:
     files:
       - configs/${NODE_MANIFEST_V2}
 secretGenerator:
-  - name: wes-rabbitmq-config
-    files:
-      - configs/rabbitmq/rabbitmq.conf
-      - configs/rabbitmq/definitions.json
-      - configs/rabbitmq/enabled_plugins
-      - configs/rabbitmq/cacert.pem
-      - configs/rabbitmq/cert.pem
-      - configs/rabbitmq/key.pem
   - name: wes-upload-agent-config
     files:
       - configs/upload-agent/ca.pub
@@ -831,6 +843,8 @@ secretGenerator:
     literals:
       - token=${WAGGLE_INFLUXDB_TOKEN}
 resources:
+    # also add rmq secrets here to contain everything in one file
+  - wes-rabbitmq-secrets.yaml
   # common constraints and limits
   - wes-default-limits.yaml
   - wes-priority-classes.yaml
@@ -1074,7 +1088,6 @@ update_node_manifest_v2
 update_data_config
 update_wes_plugins
 update_wes
-update_rmq_version
 update_influxdb_retention
 clean_manifestv2_cm
 clean_slash_run_tempfs
