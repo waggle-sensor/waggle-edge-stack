@@ -302,6 +302,7 @@ upgrade_rabbitmq_to_version() {
 }
 
 # update_rmq_version: Main function to handle RabbitMQ version upgrades
+# takes current version as an argument
 # This function handles:
 # - Upgrades following RabbitMQ's official supported upgrade paths
 # - Only one-hop upgrades (e.g., 3.8.x -> 3.9.x, 3.13.x -> 4.0.x)
@@ -310,11 +311,11 @@ upgrade_rabbitmq_to_version() {
 # - Rollout verification and health checks
 # - Comprehensive logging via waggle_log
 update_rmq_version() {
+    local current_version="$1"
     waggle_log info "starting RabbitMQ version upgrade check"
-    
-    # Get current running version
-    if ! current_version=$(kubectl get statefulset wes-rabbitmq -o jsonpath='{.spec.template.spec.containers[0].image}' 2>/dev/null); then
-        waggle_log info "RabbitMQ StatefulSet not found, skipping version upgrade"
+
+    if [ -z "$current_version" ]; then
+        waggle_log err "RabbitMQ current version not found, skipping version upgrade"
         return 0
     fi
     
@@ -787,27 +788,6 @@ data:
   WAGGLE_NODE_ID: "${WAGGLE_NODE_ID}"
   WAGGLE_NODE_VSN: "${WAGGLE_NODE_VSN}"
 EOF
-    
-    # seperate rmq secrets to be able to apply separately
-    mkdir -p wes-rabbitmq-secrets/configs/rabbitmq
-    cp configs/rabbitmq/* wes-rabbitmq-secrets/configs/rabbitmq/
-    cat > wes-rabbitmq-secrets/kustomization.yaml <<EOF
-apiVersion: kustomize.config.k8s.io/v1beta1
-kind: Kustomization
-secretGenerator:
-  - name: wes-rabbitmq-config
-    files:
-      - configs/rabbitmq/rabbitmq.conf
-      - configs/rabbitmq/definitions.json
-      - configs/rabbitmq/enabled_plugins
-      - configs/rabbitmq/cacert.pem
-      - configs/rabbitmq/cert.pem
-      - configs/rabbitmq/key.pem
-EOF
-
-    # if rabbitmq version is updated, update version
-    kubectl apply -k wes-rabbitmq-secrets
-    update_rmq_version
 
     # HACK(sean) at some point, kustomize deprecated env: for envs: in the configmap / secret generators.
     # i'm generating the kustomization.yaml file just to use literals instead of envs which are
@@ -833,6 +813,14 @@ configMapGenerator:
     files:
       - configs/${NODE_MANIFEST_V2}
 secretGenerator:
+  - name: wes-rabbitmq-config
+    files:
+      - configs/rabbitmq/rabbitmq.conf
+      - configs/rabbitmq/definitions.json
+      - configs/rabbitmq/enabled_plugins
+      - configs/rabbitmq/cacert.pem
+      - configs/rabbitmq/cert.pem
+      - configs/rabbitmq/key.pem
   - name: wes-upload-agent-config
     files:
       - configs/upload-agent/ca.pub
@@ -844,8 +832,6 @@ secretGenerator:
     literals:
       - token=${WAGGLE_INFLUXDB_TOKEN}
 resources:
-    # also add rmq secrets here to contain everything in one file
-  - wes-rabbitmq-secrets/
   # common constraints and limits
   - wes-default-limits.yaml
   - wes-priority-classes.yaml
@@ -886,6 +872,11 @@ EOF
   }
 }
 '
+
+    # Get current rabbitmq running version, before applying kustomize files
+    if ! rmq_current_version=$(kubectl get statefulset wes-rabbitmq -o jsonpath='{.spec.template.spec.containers[0].image}' 2>/dev/null); then
+        waggle_log info "RabbitMQ StatefulSet not found"
+    fi
 
     echo "performing one-time operation - clean old chirpstack"
     # NOTE(Joe) this is a work-around to remove old deployments when converting to statefulsets
@@ -930,6 +921,9 @@ EOF
     # wait a moment before checking for images
     sleep 10
     k3s crictl images | awk '$2 ~ /<none>/ {print $3}' | xargs -r k3s crictl rmi || true
+
+    # if rabbitmq version is updated, update version
+    update_rmq_version "${rmq_current_version}"
 }
 
 get_configmap_field() {
