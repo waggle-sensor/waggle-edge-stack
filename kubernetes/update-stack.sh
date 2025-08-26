@@ -788,11 +788,10 @@ data:
   WAGGLE_NODE_VSN: "${WAGGLE_NODE_VSN}"
 EOF
     
-    # Create wes-rabbitmq-secrets.yaml file to be able to apply separately
+    # seperate rmq secrets to be able to apply separately
     cat > wes-rabbitmq-secrets.yaml <<EOF
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
-
 secretGenerator:
   - name: wes-rabbitmq-config
     files:
