@@ -796,12 +796,12 @@ kind: Kustomization
 secretGenerator:
   - name: wes-rabbitmq-config
     files:
-      - configs/rabbitmq/rabbitmq.conf
-      - configs/rabbitmq/definitions.json
-      - configs/rabbitmq/enabled_plugins
-      - configs/rabbitmq/cacert.pem
-      - configs/rabbitmq/cert.pem
-      - configs/rabbitmq/key.pem
+      - ../configs/rabbitmq/rabbitmq.conf
+      - ../configs/rabbitmq/definitions.json
+      - ../configs/rabbitmq/enabled_plugins
+      - ../configs/rabbitmq/cacert.pem
+      - ../configs/rabbitmq/cert.pem
+      - ../configs/rabbitmq/key.pem
 EOF
 
     # if rabbitmq version is updated, update version
