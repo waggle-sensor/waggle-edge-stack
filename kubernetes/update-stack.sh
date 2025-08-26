@@ -789,7 +789,8 @@ data:
 EOF
     
     # seperate rmq secrets to be able to apply separately
-    cat > wes-rabbitmq-secrets.yaml <<EOF
+    mkdir -p wes-rabbitmq-secrets
+    cat > wes-rabbitmq-secrets/kustomization.yaml <<EOF
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 secretGenerator:
@@ -804,7 +805,7 @@ secretGenerator:
 EOF
 
     # if rabbitmq version is updated, update version
-    kubectl apply -k wes-rabbitmq-secrets.yaml
+    kubectl apply -k wes-rabbitmq-secrets
     update_rmq_version
 
     # HACK(sean) at some point, kustomize deprecated env: for envs: in the configmap / secret generators.
@@ -843,7 +844,7 @@ secretGenerator:
       - token=${WAGGLE_INFLUXDB_TOKEN}
 resources:
     # also add rmq secrets here to contain everything in one file
-  - wes-rabbitmq-secrets.yaml
+  - wes-rabbitmq-secrets/
   # common constraints and limits
   - wes-default-limits.yaml
   - wes-priority-classes.yaml
