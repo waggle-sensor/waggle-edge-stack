@@ -410,7 +410,9 @@ EOF
     "parameters": [
         {
             "value": {
-                "reconnect-delay": 60,
+                "reconnect-delay": 30,
+                "ack-mode": "on-confirm",
+                "prefetch-count": 100,
                 "dest-exchange": "waggle.msg",
                 "dest-publish-properties": {
                     "delivery_mode": 2,
