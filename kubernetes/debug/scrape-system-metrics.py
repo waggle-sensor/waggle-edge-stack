@@ -12,7 +12,7 @@ from shutil import rmtree
 
 RETENTION_DAYS = 30
 
-Device = namedtuple("Device", ["name", "ip"])
+Device = namedtuple("Device", ["name", "ip", "core"])
 
 
 def get_devices_from_kube() -> List[Device]:
@@ -20,9 +20,19 @@ def get_devices_from_kube() -> List[Device]:
     kube_nodes_data = json.loads(output)
     devices = []
     for item in kube_nodes_data["items"]:
-        name = item["metadata"]["name"]
-        ip = item["metadata"]["annotations"]["k3s.io/internal-ip"]
-        devices.append(Device(name, ip))
+        metadata = item["metadata"]
+        labels = metadata["labels"]
+        annotations = item["metadata"]["annotations"]
+        # get device details
+        name = metadata["name"]
+        ip = annotations["k3s.io/internal-ip"]
+        # we essentially define that: core device = device where we run k3s control plane
+        core = False
+        if labels.get("node-role.kubernetes.io/control-plane") == "true":
+            core = True
+        if labels.get("node-role.kubernetes.io/master") == "true":
+            core = True
+        devices.append(Device(name, ip, core))
     return devices
 
 
@@ -35,10 +45,10 @@ def get_system_metrics_disk_usage_bytes() -> int:
 
 
 def get_core_device(devices: List[Device]) -> Device:
-    for device in devices:
-        if device.ip == "10.31.81.1":
-            return device
-    raise KeyError("could not find core device")
+    core_devices = [device for device in devices if device.core]
+    if len(core_devices) != 1:
+        raise KeyError("could not find core device")
+    return devices[0]
 
 
 def scrape_cadvisor_metrics_for_device(device: Device, rootdir: Path):
