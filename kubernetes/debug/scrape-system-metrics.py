@@ -48,7 +48,7 @@ def get_core_device(devices: List[Device]) -> Device:
     core_devices = [device for device in devices if device.core]
     if len(core_devices) != 1:
         raise KeyError("could not find core device")
-    return devices[0]
+    return core_devices[0]
 
 
 def scrape_cadvisor_metrics_for_device(device: Device, rootdir: Path):
