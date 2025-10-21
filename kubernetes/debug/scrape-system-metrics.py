@@ -83,7 +83,7 @@ def scrape_node_exporter_metrics_for_device(device: Device, rootdir: Path):
 
 
 def scrape_rabbitmq_metrics(devices: List[Device], rootdir: Path):
-    device = get_core_device(devices)
+    core_device = get_core_device(devices)
     output = subprocess.check_output(["kubectl", "get", "pod", "-o", "wide"]).decode()
     rabbitmq_ip = re.search(r"wes-rabbitmq-0.*(10\.42\S+)", output).group(1)
 
@@ -100,9 +100,26 @@ def scrape_rabbitmq_metrics(devices: List[Device], rootdir: Path):
         ]
     )
     timestamp_ms = int(timestamp.timestamp() * 1000)
-    Path(rootdir, f"{device.name}_rabbitmq_{timestamp_ms}.prom.gz").write_bytes(
+    Path(rootdir, f"{core_device.name}_rabbitmq_{timestamp_ms}.prom.gz").write_bytes(
         gzip.compress(output)
     )
+
+
+# fix_rabbitmq_metric_name fixes a naming bug where we accidentally tagged
+# rabbitmq metrics with a non core device name. this is a hold over to
+# fix the names once. eventually this function can be dropped as the bug
+# is fixed.
+def fix_rabbitmq_metrics_name(devices):
+    core_device = get_core_device(devices)
+
+    for path in Path("/media/plugin-data/system-metrics").glob("**/*rabbitmq*.prom.gz"):
+        parts = path.name.split("_", maxsplit=2)
+        if parts[0] == core_device.name:
+            continue
+        fixed_name = f"{core_device.name}_{parts[1]}_{parts[2]}"
+        fixed_path = path.with_name(fixed_name)
+        print("renaming", path, "to", fixed_path)
+        path.rename(fixed_path)
 
 
 def main():
@@ -152,6 +169,9 @@ def main():
             print(f"failed to scrape node-exporter metrics for {device.name}")
 
     scrape_rabbitmq_metrics(devices, rootdir)
+
+    # see note about eventually dropping this.
+    fix_rabbitmq_metrics_name(devices)
 
 
 if __name__ == "__main__":
