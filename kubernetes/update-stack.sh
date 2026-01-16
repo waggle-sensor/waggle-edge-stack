@@ -784,6 +784,10 @@ fi
 kubectl get secret | grep wes-rabbitmq-config | head -n -3 | awk '{print $1}' | xargs --no-run-if-empty kubectl delete secret
 kubectl get secret | grep wes-upload-agent-config | head -n -3 | awk '{print $1}' | xargs --no-run-if-empty kubectl delete secret
 
+# NOTE(sean) Apply backwards compatible label on control plane nodes. We can eventually deprecate this
+# but a number of services depend on this for scheduling.
+kubectl get node | awk '/control-plane/ && !/master/ {print $1}' | xargs -I{} kubectl label node {} node-role.kubernetes.io/master=true
+
 delete_stuck_pods
 restart_bad_meta_init_pods
 cleanup_old_iio_raingauge
