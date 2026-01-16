@@ -786,7 +786,7 @@ kubectl get secret | grep wes-upload-agent-config | head -n -3 | awk '{print $1}
 
 # NOTE(sean) Apply backwards compatible label on control plane nodes. We can eventually deprecate this
 # but a number of services depend on this for scheduling.
-kubectl get node | awk '/control-plane/ && !/master/ {print $1}' | xargs -I{} kubectl label node {} node-role.kubernetes.io/master=true
+kubectl get node | awk '/control-plane/ {print $1}' | xargs -I{} kubectl label node --overwrite {} node-role.kubernetes.io/master=true
 
 delete_stuck_pods
 restart_bad_meta_init_pods
