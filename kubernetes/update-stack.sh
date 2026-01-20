@@ -184,26 +184,139 @@ update_wes_plugins() {
 # 2. extract and reshape relevant parts into generated configs
 # 3. load generated configs / secrets using kustomize
 # if we buy into just using kustomize from the get go, then mostly only need step 3.
-update_wes() {
-    echo "updating wes"
 
-    echo "generating wes configs"
+# determine_rmq_upgrade_path: Determines the upgrade path between two RabbitMQ versions
+# Returns a space-separated list of intermediate versions, or empty string if direct upgrade
+determine_rmq_upgrade_path() {
+    local current_ver="$1"
+    local target_ver="$2"
 
-    mkdir -p configs configs/rabbitmq configs/upload-agent
+    declare -A supported_paths
+    supported_paths["3.7.x"]="3.8.x"
+    supported_paths["3.8.x"]="3.9.x"
+    supported_paths["3.9.x"]="3.10.x"
+    supported_paths["3.10.x"]="3.11.x"
+    supported_paths["3.11.x"]="3.12.x"
+    supported_paths["3.12.x"]="3.13.x"
+    supported_paths["3.13.x"]="4.0.x"
+    supported_paths["4.0.x"]="4.1.x"
+
+    # Map specific versions to generalized patterns
+    local current_pattern=""
+    if [[ "$current_ver" =~ ^3\.7 ]]; then current_pattern="3.7.x"
+    elif [[ "$current_ver" =~ ^3\.8 ]]; then current_pattern="3.8.x"
+    elif [[ "$current_ver" =~ ^3\.9 ]]; then current_pattern="3.9.x"
+    elif [[ "$current_ver" =~ ^3\.10 ]]; then current_pattern="3.10.x"
+    elif [[ "$current_ver" =~ ^3\.11 ]]; then current_pattern="3.11.x"
+    elif [[ "$current_ver" =~ ^3\.12 ]]; then current_pattern="3.12.x"
+    elif [[ "$current_ver" =~ ^3\.13 ]]; then current_pattern="3.13.x"
+    elif [[ "$current_ver" =~ ^4\.0 ]]; then current_pattern="4.0.x"
+    elif [[ "$current_ver" =~ ^4\.1 ]]; then current_pattern="4.1.x"
+    else
+        echo "Unsupported current version: $current_ver" >&2
+        return 1
+    fi
+
+    local intermediate_versions=()
+    local step="$current_pattern"
+
+    while [ -n "${supported_paths[$step]}" ]; do
+        step="${supported_paths[$step]}"
+        local actual_version="${step//.x/}"  # remove .x suffix
+
+        # Add step to the list
+        intermediate_versions+=("$actual_version")
+
+        # Stop if this step matches the target
+        if [[ "$target_ver" =~ ^$actual_version(\.|$) ]]; then
+            break
+        fi
+    done
+
+    # Final validation: make sure path reached target major.minor
+    if [[ "${intermediate_versions[-1]}" =~ ^${target_ver%.*} ]]; then
+        echo "${intermediate_versions[*]}"
+        return 0
+    else
+        echo "No valid upgrade path from $current_ver to $target_ver" >&2
+        return 1
+    fi
+}
+
+# enable_rmq_ft_flags: Enables feature flags for RabbitMQ
+enable_rmq_ft_flags() {
+    local max_retries=5
+    local retry_count=0
+    local retry_delay=30  # Start with 30 seconds
+    while [ $retry_count -lt $max_retries ]; do
+        echo "Attempt $((retry_count + 1))/$max_retries to enable feature flags..."
+        
+        if kubectl exec wes-rabbitmq-0 -- rabbitmqctl enable_feature_flag all; then
+            waggle_log info "Successfully enabled RabbitMQ feature flags"
+            kubectl exec wes-rabbitmq-0 -- rabbitmqctl -q --formatter pretty_table list_feature_flags || true
+            break
+        else
+            retry_count=$((retry_count + 1))
+            
+            if [ $retry_count -lt $max_retries ]; then
+                waggle_log warn "Feature flag enable failed, retrying in ${retry_delay}s (attempt $retry_count/$max_retries)"
+                sleep $retry_delay
+                retry_delay=$((retry_delay * 2))  # Exponential backoff
+            else
+                waggle_log warn "Failed to enable RabbitMQ feature flags after ${max_retries} attempts"
+            fi
+        fi
+    done
+}
+
+# upgrade_rabbitmq_to_version: Upgrades RabbitMQ to a specific version
+update_rabbitmq_to_version() {
+    local target_ver="$1"
+    
+    waggle_log info "RabbitMQ updating to version $target_ver"
+    
+    kubectl set image statefulset/wes-rabbitmq wes-rabbitmq="rabbitmq:${target_ver}-management-alpine"
+    waggle_log info "Waiting for $target_ver rollout to complete..."
+    
+    if ! kubectl rollout status statefulset/wes-rabbitmq; then
+        waggle_log err "RabbitMQ $target_ver rollout failed"
+        return 1
+    fi
+    
+    # Wait for RabbitMQ to be running
+    waggle_log info "Waiting for RabbitMQ to be running after $target_ver update..."
+    if ! kubectl wait --for=condition=Ready pod/wes-rabbitmq-0 --timeout=600s; then
+        waggle_log err "RabbitMQ not ready after $target_ver update"
+        return 1
+    fi
+    
+    # wait for startup
+    sleep 3m
+
+    # Enable feature flags for next upgrade
+    waggle_log info "Enabling feature flags for next upgrade..."
+    enable_rmq_ft_flags
+    
+    waggle_log info "Successfully updated to $target_ver"
+    return 0
+}
+
+# update_rmq_version: Main function to handle RabbitMQ version upgrades
+# takes current version as an argument
+# This function handles:
+# - Upgrades following RabbitMQ's official supported upgrade paths
+# - Only one-hop upgrades (e.g., 3.8.x -> 3.9.x, 3.13.x -> 4.0.x)
+# - Automatic backup creation before major upgrades
+# - Feature flag enabling for compatibility
+# - Rollout verification and health checks
+# - Comprehensive logging via waggle_log
+update_rmq_version() {
+
+    echo "generating rabbitmq configs"
+
+    mkdir -p configs configs/rabbitmq
     # make all config directories private
     find configs -type d | xargs -r chmod 700
-
-    # generate identity config for kustomize
-    # NOTE we are ignoring the WAGGLE_NODE_ID in waggle-config and creating from local file
-    WAGGLE_NODE_ID=$(node_id)
-    WAGGLE_NODE_VSN=$(node_vsn)
-    cat > configs/wes-identity.env <<EOF
-WAGGLE_NODE_ID=${WAGGLE_NODE_ID}
-WAGGLE_NODE_VSN=${WAGGLE_NODE_VSN}
-EOF
-
-    # copy over the (potentially) updated node manifest
-    cp ${WAGGLE_CONFIG_DIR}/${NODE_MANIFEST_V2} configs/${NODE_MANIFEST_V2}
 
     # generate rabbitmq configs / secrets for kustomize
     # TODO unify how this is done for various node settings rather than it being a one off for the shovel.
@@ -235,6 +348,9 @@ log.console = true
 # mqtt config for lorawan
 mqtt.default_user = service
 mqtt.default_pass = service
+
+# enable deprecated features for management metrics collection
+deprecated_features.permit.management_metrics_collection = true
 EOF
 
     WAGGLE_BEEHIVE_RABBITMQ_HOST=$(get_configmap_field waggle-config WAGGLE_BEEHIVE_RABBITMQ_HOST)
@@ -333,6 +449,20 @@ EOF
             "durable": true,
             "auto_delete": false,
             "arguments": {}
+        },
+        {
+            "name": "ansible",
+            "vhost": "/",
+            "durable": true,
+            "auto_delete": false,
+            "arguments": {}
+        },
+        {
+            "name": "to-validator",
+            "vhost": "/",
+            "durable": true,
+            "auto_delete": false,
+            "arguments": {}
         }
     ],
     "exchanges": [
@@ -365,6 +495,15 @@ EOF
         },
         {
             "name": "to-node",
+            "vhost": "/",
+            "type": "topic",
+            "durable": true,
+            "auto_delete": false,
+            "internal": false,
+            "arguments": {}
+        },
+        {
+            "name": "to-validator",
             "vhost": "/",
             "type": "topic",
             "durable": true,
@@ -405,6 +544,14 @@ EOF
             "destination_type": "queue",
             "routing_key": "*.ansible",
             "arguments": {}
+        },
+        {
+            "source": "to-validator",
+            "vhost": "/",
+            "destination": "to-validator",
+            "destination_type": "queue",
+            "routing_key": "*.to-validator",
+            "arguments": {}
         }
     ],
     "parameters": [
@@ -429,6 +576,187 @@ EOF
     ]
 }
 EOF
+
+    mkdir -p wes-rabbitmq-config
+    cp wes-rabbitmq.yaml wes-rabbitmq-config/
+    cp configs/rabbitmq/* wes-rabbitmq-config/
+    cat > wes-rabbitmq-config/kustomization.yaml <<EOF
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+secretGenerator:
+  - name: wes-rabbitmq-config
+    files:
+      - rabbitmq.conf
+      - definitions.json
+      - enabled_plugins
+      - cacert.pem
+      - cert.pem
+      - key.pem
+resources:
+  - wes-rabbitmq.yaml
+EOF
+
+    waggle_log info "starting RabbitMQ version upgrade check"
+
+    # Get current rabbitmq running version, before applying kustomize files
+    if ! current_version=$(kubectl get statefulset wes-rabbitmq -o jsonpath='{.spec.template.spec.containers[0].image}' 2>/dev/null); then
+        waggle_log info "RabbitMQ StatefulSet not found"
+    fi
+
+    if [ -z "$current_version" ]; then
+        waggle_log err "RabbitMQ current version not found, skipping version upgrade"
+        kubectl apply -k wes-rabbitmq-config
+        return 0
+    fi
+    
+    # Extract version from image (e.g., "rabbitmq:3.8.11-management-alpine" -> "3.8.11")
+    current_ver=$(echo "$current_version" | sed 's/rabbitmq://' | sed 's/-management-alpine//')
+    
+    # Validate current version format
+    if ! echo "$current_ver" | grep -qE '^[0-9]+\.[0-9]+(\.[0-9]+)?$'; then
+        waggle_log err "Invalid RabbitMQ current version format: $current_ver"
+        kubectl apply -k wes-rabbitmq-config
+        return 1
+    fi
+    
+    # Get target version from the YAML file
+    target_ver=$(grep "image: rabbitmq:" wes-rabbitmq.yaml | sed 's/.*rabbitmq://' | sed 's/-management-alpine//')
+    
+    # Validate target version format
+    if ! echo "$target_ver" | grep -qE '^[0-9]+\.[0-9]+(\.[0-9]+)?$'; then
+        waggle_log err "Invalid RabbitMQ target version format: $target_ver"
+        kubectl apply -k wes-rabbitmq-config
+        return 1
+    fi
+    
+    if [ "$current_ver" = "$target_ver" ]; then
+        waggle_log info "RabbitMQ already at target version $target_ver"
+        kubectl apply -k wes-rabbitmq-config
+        return 0
+    fi
+    
+    waggle_log info "RabbitMQ version upgrade needed: $current_ver -> $target_ver"
+    
+    # Check if this is a downgrade (not supported)
+    local current_major=$(echo "$current_ver" | cut -d. -f1)
+    local current_minor=$(echo "$current_ver" | cut -d. -f2)
+    local target_major=$(echo "$target_ver" | cut -d. -f1)
+    local target_minor=$(echo "$target_ver" | cut -d. -f2)
+    
+    if [ "$current_major" -gt "$target_major" ] || ([ "$current_major" -eq "$target_major" ] && [ "$current_minor" -gt "$target_minor" ]); then
+        waggle_log err "RabbitMQ downgrade not supported: $current_ver -> $target_ver"
+        return 1
+    fi
+    
+    # Ensure RabbitMQ is running before attempting upgrade
+    waggle_log info "Ensuring RabbitMQ is running..."
+    if ! kubectl wait --for=condition=ready pod/wes-rabbitmq-0 --timeout=60s; then
+        waggle_log err "RabbitMQ is not ready, cannot proceed with upgrade"
+        return 1
+    fi
+    
+    # Backup data before major upgrades
+    waggle_log info "Creating backup of RabbitMQ data"
+    
+    # Check available disk space (need at least 1GB free)
+    available_space=$(df . | awk 'NR==2 {print $4}')
+    if [ "$available_space" -lt 1048576 ]; then  # 1GB in KB
+        waggle_log warn "Low disk space for RabbitMQ backup: ${available_space}KB"
+    fi
+    
+    backup_file="/var/backups/rabbitmq-data-$(date +%F).tar.gz"
+    if ! kubectl exec wes-rabbitmq-0 -- tar czf /tmp/rabbitmq-data.tar.gz /var/lib/rabbitmq/mnesia; then
+        waggle_log err "Failed to create RabbitMQ backup, stopping upgrade"
+        return 1
+    fi
+    
+    if ! kubectl cp wes-rabbitmq-0:/tmp/rabbitmq-data.tar.gz "$backup_file"; then
+        waggle_log err "Failed to copy RabbitMQ backup to host, stopping upgrade"
+        return 1
+    fi
+    
+    waggle_log info "RabbitMQ backup created: $backup_file"
+    
+    # Enable feature flags for upgrade
+    waggle_log info "Enabling feature flags for upgrade..."
+    enable_rmq_ft_flags
+    
+    # Determine upgrade path
+    waggle_log info "Determining upgrade path..."
+    upgrade_path=$(determine_rmq_upgrade_path "$current_ver" "$target_ver")
+    
+    local exit_code=$?
+    if [ $exit_code -ne 0 ]; then
+        waggle_log err "No supported RabbitMQ upgrade path found: $current_ver -> $target_ver"
+        return 1
+    fi
+    
+    # Execute upgrades
+    if [ -n "$upgrade_path" ]; then
+        waggle_log info "RabbitMQ will upgrade through intermediate versions: $upgrade_path"
+        
+        # Upgrade through intermediate versions
+        for version in $upgrade_path; do
+            # break if target version major & minor is in the version
+            local target_major=$(echo "$target_ver" | cut -d. -f1)
+            local target_minor=$(echo "$target_ver" | cut -d. -f2)
+            local version_major=$(echo "$version" | cut -d. -f1)
+            local version_minor=$(echo "$version" | cut -d. -f2)
+            if [ "$version_major" -eq "$target_major" ] && [ "$version_minor" -eq "$target_minor" ]; then
+                waggle_log info "RabbitMQ upgrade path reached target major & minor version, $target_ver"
+                break
+            fi
+            if ! update_rabbitmq_to_version "$version"; then
+                waggle_log err "Failed to upgrade to intermediate version $version"
+                return 1
+            fi
+        done
+    else
+        waggle_log info "RabbitMQ direct upgrade path available"
+    fi
+    
+    # Finally upgrade to target version
+    kubectl apply -k wes-rabbitmq-config
+    if ! update_rabbitmq_to_version "$target_ver"; then
+        waggle_log err "Failed to upgrade to target version $target_ver"
+        return 1
+    fi
+    
+    # Verify the upgrade was successful
+    waggle_log info "Verifying upgrade was successful..."
+    if ! new_version=$(kubectl get statefulset wes-rabbitmq -o jsonpath='{.spec.template.spec.containers[0].image}' 2>/dev/null); then
+        waggle_log warn "Could not verify RabbitMQ new version"
+    else
+        new_ver=$(echo "$new_version" | sed 's/rabbitmq://' | sed 's/-management-alpine//')
+        if [ "$new_ver" = "$target_ver" ]; then
+            waggle_log info "RabbitMQ upgrade verification successful: now running version $new_ver"
+        else
+            waggle_log warn "RabbitMQ upgrade verification failed. Expected: $target_ver, Got: $new_ver"
+        fi
+    fi
+    waggle_log info "RabbitMQ version upgrade completed successfully: $current_ver -> $target_ver"
+}
+
+update_wes() {
+    echo "updating wes"
+
+    echo "generating wes configs"
+
+    mkdir -p configs configs/upload-agent
+    # make all config directories private
+    find configs -type d | xargs -r chmod 700
+
+    # generate identity config for kustomize
+    # NOTE we are ignoring the WAGGLE_NODE_ID in waggle-config and creating from local file
+    WAGGLE_NODE_ID=$(node_id)
+    WAGGLE_NODE_VSN=$(node_vsn)
+    cat > configs/wes-identity.env <<EOF
+WAGGLE_NODE_ID=${WAGGLE_NODE_ID}
+WAGGLE_NODE_VSN=${WAGGLE_NODE_VSN}
+EOF
+
+    # copy over the (potentially) updated node manifest
+    cp ${WAGGLE_CONFIG_DIR}/${NODE_MANIFEST_V2} configs/${NODE_MANIFEST_V2}
 
     # generate rabbitmq configs / secrets for kustomize
     get_configmap_field beehive-ca-certificate cacert.pem > configs/rabbitmq/cacert.pem
@@ -531,14 +859,6 @@ configMapGenerator:
     files:
       - configs/${NODE_MANIFEST_V2}
 secretGenerator:
-  - name: wes-rabbitmq-config
-    files:
-      - configs/rabbitmq/rabbitmq.conf
-      - configs/rabbitmq/definitions.json
-      - configs/rabbitmq/enabled_plugins
-      - configs/rabbitmq/cacert.pem
-      - configs/rabbitmq/cert.pem
-      - configs/rabbitmq/key.pem
   - name: wes-upload-agent-config
     files:
       - configs/upload-agent/ca.pub
@@ -563,7 +883,6 @@ resources:
   - wes-device-labeler.yaml
   - wes-audio-server.yaml
   - wes-data-sharing-service.yaml
-  - wes-rabbitmq.yaml
   - wes-upload-agent.yaml
   - wes-metrics-agent.yaml
   - wes-plugin-scheduler.yaml
@@ -609,6 +928,8 @@ EOF
     kubectl delete -f nvidia-device-plugin.yaml || true
 
     echo "deploying wes stack"
+    # if rabbitmq version is updated, update version
+    update_rmq_version
     # NOTE(sean) this is split as its own thing as the version of kubectl (v1.20.2+k3s1) we were using
     # when this was added didn't seem to support nesting other kustomization dirs as resources.
     # i'm deploying this first, to ensure to influxdb pvc issue doesn't stop this from running
@@ -634,6 +955,7 @@ EOF
     # wait a moment before checking for images
     sleep 10
     k3s crictl images | awk '$2 ~ /<none>/ {print $3}' | xargs -r k3s crictl rmi || true
+
 }
 
 get_configmap_field() {
