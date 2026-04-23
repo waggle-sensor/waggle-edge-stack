@@ -1,0 +1,64 @@
+#!/bin/bash
+
+set -euo pipefail
+
+vsn="${1}"
+node_id="${2}"
+
+vsn="${vsn^^}"
+name="${node_id^^}"
+serial_no=$(tail -c 13 <<< "${name}")
+
+if grep -q agx-thor /etc/nv_boot_control.conf; then
+    hardware=nvidia-thor-agx-devkit
+    hw_model=agx-thor
+else
+    echo "Unknown device. Will not generate default manifest."
+    exit 1
+fi
+
+cat > /etc/waggle/node-manifest-v2.json.gen <<EOF
+{
+  "vsn": "${vsn}",
+  "name": "${name}",
+  "phase": null,
+  "project": "SGT",
+  "address": "",
+  "gps_lat": null,
+  "gps_lon": null,
+  "modem": null,
+  "tags": [],
+  "computes": [
+    {
+      "name": "agx-thor",
+      "is_active": true,
+      "serial_no": "${serial_no}",
+      "zone": "core",
+      "hardware": {
+        "hardware": "${hardware}",
+        "hw_model": "${hw_model}",
+        "hw_version": "",
+        "sw_version": "",
+        "manufacturer": "",
+        "datasheet": "",
+        "capabilities": [
+          "gpu",
+          "cuda102",
+          "arm64",
+          "cuda110"
+        ],
+        "description": "",
+        "cpu": "",
+        "cpu_ram": "",
+        "gpu_ram": "",
+        "shared_ram": false
+      }
+    }
+  ],
+  "sensors": [],
+  "resources": [],
+  "lorawanconnections": []
+}
+EOF
+
+mv /etc/waggle/node-manifest-v2.json.gen /etc/waggle/node-manifest-v2.json

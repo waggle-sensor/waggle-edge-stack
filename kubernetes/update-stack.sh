@@ -785,9 +785,20 @@ restart_bad_meta_init_pods
 cleanup_old_iio_raingauge
 update_wes_tools
 update_node_secrets
+
 if ! update_node_manifest_v2; then
     waggle_log info "Unable to fetch node manifest! Will continue but camera provisioner and device labeler will not run!"
 fi
+
+
+# if manifest does not exist, attempt to generate a default one
+if ! test -f /etc/waggle/node-manifest-v2.json; then
+    waggle_log info "No manifest found. Will attempt to generate default."
+    if ! ./generate-default-manifest "$(node_vsn)" "$(node_id)"; then
+        waggle_log err "Failed to generate default manifest."
+    fi
+fi
+
 update_data_config
 update_wes_plugins
 update_wes
