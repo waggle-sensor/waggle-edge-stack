@@ -793,7 +793,9 @@ restart_bad_meta_init_pods
 cleanup_old_iio_raingauge
 update_wes_tools
 update_node_secrets
-update_node_manifest_v2
+if ! update_node_manifest_v2; then
+    echo "WARNING: Unable to fetch node manifest! Will continue but camera provisioner and device labeler will not run!"
+fi
 update_data_config
 update_wes_plugins
 update_wes
