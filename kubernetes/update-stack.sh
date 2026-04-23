@@ -772,14 +772,6 @@ if ! output=$(kubectl get nodes 2>&1); then
     fi
 fi
 
-# Scrape system metrics.
-waggle_log info "starting scraping system metrics..."
-if timeout 300 ./debug/scrape-system-metrics.py; then
-    waggle_log info "finished scraping system metrics!"
-else
-    waggle_log err "failed to scrape system metrics!"
-fi
-
 # Prune old RabbitMQ and Upload Agent configs.
 kubectl get secret | grep wes-rabbitmq-config | head -n -3 | awk '{print $1}' | xargs --no-run-if-empty kubectl delete secret
 kubectl get secret | grep wes-upload-agent-config | head -n -3 | awk '{print $1}' | xargs --no-run-if-empty kubectl delete secret
@@ -794,7 +786,7 @@ cleanup_old_iio_raingauge
 update_wes_tools
 update_node_secrets
 if ! update_node_manifest_v2; then
-    echo "WARNING: Unable to fetch node manifest! Will continue but camera provisioner and device labeler will not run!"
+    waggle_log info "Unable to fetch node manifest! Will continue but camera provisioner and device labeler will not run!"
 fi
 update_data_config
 update_wes_plugins
