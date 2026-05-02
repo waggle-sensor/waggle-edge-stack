@@ -1,0 +1,5 @@
+# WES Ollama
+
+This exposes Ollama as a Service to the cluster. Very important note - this does _not_ run Ollama in the cluster,
+instead it adds a Service and explicit Endpoint pointing to Ollama running on a known host machine. This allows
+us to share the model cache and tool that users already have access to when logging into a node.
