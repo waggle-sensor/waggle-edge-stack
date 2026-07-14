@@ -111,12 +111,12 @@ spec:
     - Egress
   egress:
     - to:
+        # allow devices on lan
         - ipBlock:
-            # allow access to: 10.31.81.10 - 10.31.81.255
             cidr: 10.31.81.0/24
-            except:
-              - 10.31.81.0/29 # 10.31.81.0 - 10.31.81.7
-              - 10.31.81.8/31 # 10.31.81.8 - 10.31.81.9
+        # allow devices on vpn
+        - ipBlock:
+            cidr: 10.107.0.0/16
 ---
 # TODO(sean) this is a temporary fix. we should see if we can exclude the init containers from being matched here.
 apiVersion: networking.k8s.io/v1
