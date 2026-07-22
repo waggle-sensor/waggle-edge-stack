@@ -560,6 +560,7 @@ resources:
 #   - dcgm-exporter.yaml
 #   - nvidia-device-plugin.yaml
   - node-exporter.yaml
+  - wes-ollama.yaml
   - wes-device-labeler.yaml
   - wes-audio-server.yaml
   - wes-data-sharing-service.yaml
