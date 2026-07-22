@@ -560,7 +560,6 @@ resources:
 #   - dcgm-exporter.yaml
 #   - nvidia-device-plugin.yaml
   - node-exporter.yaml
-  - wes-ollama.yaml
   - wes-device-labeler.yaml
   - wes-audio-server.yaml
   - wes-data-sharing-service.yaml
@@ -623,6 +622,8 @@ EOF
         echo "perform backwards compatible changes - support old kubectl (v1.20.x)"
         kubectl kustomize | sed -e 's:batch/v1:batch/v1beta1:' | kubectl apply -f -
     fi
+
+    kubectl apply -k wes-ollama
 
     # manage chirpstack deployment based on node manifest
     if jq -e '.sensors[] | select(.name | ascii_downcase == "lorawan")' /etc/waggle/node-manifest-v2.json > /dev/null; then
