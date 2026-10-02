@@ -627,7 +627,11 @@ EOF
 
     # manage chirpstack deployment based on node manifest
     if jq -e '.sensors[] | select(.name | ascii_downcase == "lorawan gateway")' /etc/waggle/node-manifest-v2.json > /dev/null; then
-        kubectl apply -k wes-chirpstack
+        if jq -e '[.sensors[] | select(.name | ascii_downcase == "lorawan gateway") | (.hardware.hw_model // "") | ascii_downcase] | any(. == "rak2287")' /etc/waggle/node-manifest-v2.json > /dev/null; then
+            kubectl apply -k wes-chirpstack
+        else
+            kubectl apply -k wes-chirpstack-external
+        fi
     else
         kubectl delete -k wes-chirpstack 2> /dev/null || true
     fi
