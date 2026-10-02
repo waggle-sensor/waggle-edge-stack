@@ -1,23 +1,11 @@
-# WES Chirpstack
+# WES Chirpstack (external gateway)
 
-_Note: This directory contains experimental work to try running Chirpstack against an external gateway device._
+Kustomize overlay of [wes-chirpstack](../wes-chirpstack) for a LoRaWAN gateway that is not on the node.
 
-Contains all components to support the Chirpstack software stack to gain access to LoRaWAN device data.
+The overlay keeps the shared Chirpstack stack and patches only the gateway Deployment:
 
-## Metrics
+- Drop the onboard `wes-lorawan-gateway` packet-forwarder sidecar and the host `/sys` mount.
+- Schedule the gateway bridge on the control-plane node.
+- Publish UDP `1700` on the host so an external gateway can reach the bridge.
 
-Most of the Chirpstack pods publish prometheus metrics on port `9100`. See the individual deployment files for details.
-
-## More Information
-
-For more information on each component:
-
-- Gateway:
-   - [udp-packet-forwader](https://github.com/RAKWireless/udp-packet-forwarder)
-   - [chirpstack-gateway-bridge](https://github.com/chirpstack/chirpstack-gateway-bridge)
-- Chirpstack:
-   - [wes-chirpstack-server](https://github.com/waggle-sensor/wes-chirpstack-server)
-   - [wes-chirpstack-tracker](https://github.com/waggle-sensor/wes-chirpstack-tracker)
-   - [init-chirpstack-server](https://github.com/waggle-sensor/init-chirpstack-server)
-   - [redis](https://github.com/redis/redis)
-   - [postgres](https://www.postgresql.org/)
+Shared server, tracker, Redis, PostgreSQL, init job, and config files live in `wes-chirpstack`.

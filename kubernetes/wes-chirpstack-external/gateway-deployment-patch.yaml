@@ -1,0 +1,21 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: wes-chirpstack-gateway-bridge
+spec:
+  template:
+    spec:
+      nodeSelector:
+        $patch: replace
+        node-role.kubernetes.io/master: "true"
+      containers:
+        - name: wes-lorawan-gateway
+          $patch: delete
+        - name: wes-chirpstack-gateway-bridge
+          ports:
+            - containerPort: 1700
+              hostPort: 1700
+              protocol: UDP
+      volumes:
+        - name: lorawan-host-sys
+          $patch: delete
