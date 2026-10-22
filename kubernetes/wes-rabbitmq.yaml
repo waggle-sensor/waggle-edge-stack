@@ -39,7 +39,7 @@ spec:
         node-role.kubernetes.io/master: "true"
       containers:
         - name: wes-rabbitmq
-          image: rabbitmq:3.8.11-management-alpine
+          image: rabbitmq:3.13.7-management-alpine
           imagePullPolicy: IfNotPresent
           resources:
             limits:
