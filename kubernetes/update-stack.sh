@@ -533,8 +533,8 @@ metadata:
 data:
   WAGGLE_NODE_ID: "${WAGGLE_NODE_ID}"
   WAGGLE_NODE_VSN: "${WAGGLE_NODE_VSN}"
-  WAGGLE_NODE_GPS_LAT=${WAGGLE_NODE_GPS_LAT}
-  WAGGLE_NODE_GPS_LON=${WAGGLE_NODE_GPS_LON}
+  WAGGLE_NODE_GPS_LAT: "${WAGGLE_NODE_GPS_LAT}"
+  WAGGLE_NODE_GPS_LON: "${WAGGLE_NODE_GPS_LON}"
 EOF
 
     # HACK(sean) at some point, kustomize deprecated env: for envs: in the configmap / secret generators.
