@@ -40,11 +40,35 @@ getarch() {
 }
 
 node_id() {
+    if [ ! -f "${WAGGLE_CONFIG_DIR}/node-id" ]; then
+        echo ""
+        return
+    fi
     echo $(awk '{print tolower($0)}' "${WAGGLE_CONFIG_DIR}/node-id")
 }
 
 node_vsn() {
+    if [ ! -f "${WAGGLE_CONFIG_DIR}/vsn" ]; then
+        echo ""
+        return
+    fi
     echo $(awk '{print toupper($0)}' "${WAGGLE_CONFIG_DIR}/vsn")
+}
+
+node_gps_lat() {
+    if [ ! -f "${WAGGLE_CONFIG_DIR}/${NODE_MANIFEST_V2}" ]; then
+        echo ""
+        return
+    fi
+    jq -r '.gps_lat // ""' "${WAGGLE_CONFIG_DIR}/${NODE_MANIFEST_V2}"
+}
+
+node_gps_lon() {
+    if [ ! -f "${WAGGLE_CONFIG_DIR}/${NODE_MANIFEST_V2}" ]; then
+        echo ""
+        return
+    fi
+    jq -r '.gps_lon // ""' "${WAGGLE_CONFIG_DIR}/${NODE_MANIFEST_V2}"
 }
 
 update_wes_tools() {
@@ -197,9 +221,13 @@ update_wes() {
     # NOTE we are ignoring the WAGGLE_NODE_ID in waggle-config and creating from local file
     WAGGLE_NODE_ID=$(node_id)
     WAGGLE_NODE_VSN=$(node_vsn)
+    WAGGLE_NODE_GPS_LAT=$(node_gps_lat)
+    WAGGLE_NODE_GPS_LON=$(node_gps_lon)
     cat > configs/wes-identity.env <<EOF
 WAGGLE_NODE_ID=${WAGGLE_NODE_ID}
 WAGGLE_NODE_VSN=${WAGGLE_NODE_VSN}
+WAGGLE_NODE_GPS_LAT=${WAGGLE_NODE_GPS_LAT}
+WAGGLE_NODE_GPS_LON=${WAGGLE_NODE_GPS_LON}
 EOF
 
     # copy over the (potentially) updated node manifest
